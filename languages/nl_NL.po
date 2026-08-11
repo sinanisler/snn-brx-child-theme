@@ -634,52 +634,52 @@ msgstr ""
 
 #: includes/ai/ai-agent-and-chat.php:193
 msgid "AI Chat History"
-msgstr ""
+msgstr "AI-chatgeschiedenis"
 
 #: includes/ai/ai-agent-and-chat.php:1152
 #: includes/ai/ai-agent-and-chat.php:194
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:197
 msgid "Chat History"
-msgstr ""
+msgstr "Chatgeschiedenis"
 
 #: includes/ai/ai-agent-and-chat.php:424
 #: includes/ai/ai-agent-and-chat.php:425
 msgid "AI Agent Settings"
-msgstr ""
+msgstr "AI-agentinstellingen"
 
 #: includes/ai/ai-agent-and-chat.php:476
 msgid "Settings saved successfully!"
-msgstr ""
+msgstr "Instellingen succesvol opgeslagen!"
 
 #: includes/ai/ai-agent-and-chat.php:494
 msgid "AI Agent & Chat Overlay Settings"
-msgstr ""
+msgstr "Instellingen voor AI-agent en chatoverlay"
 
 #: includes/ai/ai-agent-and-chat.php:495
 msgid "Configure the AI-powered chat assistant that helps you manage WordPress through natural conversation."
-msgstr ""
+msgstr "Configureer de AI-chatassistent die u helpt bij het beheren van WordPress via natuurlijke conversatie."
 
 #: includes/ai/ai-agent-and-chat.php:505
 msgid "Enable AI Agent & Chat Overlay"
-msgstr ""
+msgstr "AI-agent en chatoverlay inschakelen"
 
 #: includes/ai/ai-agent-and-chat.php:514
 msgid "Enable the AI chat assistant accessible from the admin bar."
-msgstr ""
+msgstr "Schakel de AI-chatassistent in die toegankelijk is vanuit de adminbalk."
 
 #: includes/ai/ai-agent-and-chat.php:517
 #, php-format
 msgid "To set up AI API key and model selection, go to <a href=\"%s\">AI Settings</a>."
-msgstr ""
+msgstr "Ga naar <a href=\"%s\">AI-instellingen</a> om de AI API-sleutel en modelkeuze te configureren."
 
 #: includes/ai/ai-agent-and-chat.php:528 includes/ai/ai-settings.php:378
 #: includes/ai/ai-settings.php:382
 msgid "System Prompt"
-msgstr ""
+msgstr "Systeemprompt"
 
 #: includes/ai/ai-agent-and-chat.php:540
 msgid "Customize the AI assistant's behavior and personality. This is the base instruction that guides how the AI responds."
-msgstr ""
+msgstr "Pas het gedrag en de persoonlijkheid van de AI-assistent aan. Dit is de basisinstructie die bepaalt hoe de AI reageert."
 
 #: includes/ai/ai-agent-and-chat.php:541
 #: includes/ai/ai-agent-and-chat.php:562
@@ -687,161 +687,161 @@ msgstr ""
 #: includes/ai/ai-agent-and-chat.php:604
 #: includes/ai/ai-agent-and-chat.php:626
 msgid "Default:"
-msgstr ""
+msgstr "Standaard:"
 
 #: includes/ai/ai-agent-and-chat.php:549
 msgid "Max Token Count"
-msgstr ""
+msgstr "Maximaal aantal tokens"
 
 #: includes/ai/ai-agent-and-chat.php:561
 msgid "Maximum number of tokens for AI responses. Higher values allow longer responses but cost more."
-msgstr ""
+msgstr "Maximaal aantal tokens voor AI-antwoorden. Hogere waarden zorgen voor langere antwoorden, maar kosten meer."
 
 #: includes/ai/ai-agent-and-chat.php:562
 msgid "Recommended range:"
-msgstr ""
+msgstr "Aanbevolen bereik:"
 
 #: includes/ai/ai-agent-and-chat.php:570
 msgid "Max Retry Attempts"
-msgstr ""
+msgstr "Maximaal aantal pogingen"
 
 #: includes/ai/ai-agent-and-chat.php:582
 msgid "Number of times the AI will retry a failed ability execution with corrected input."
-msgstr ""
+msgstr "Aantal keren dat de AI een mislukte uitvoering van een vaardigheid opnieuw probeert met gecorrigeerde invoer."
 
 #: includes/ai/ai-agent-and-chat.php:591
 msgid "Max Conversation History"
-msgstr ""
+msgstr "Maximale gespreksgeschiedenis"
 
 #: includes/ai/ai-agent-and-chat.php:603
 msgid "Number of recent messages to include in AI context. Higher values provide more context but use more tokens."
-msgstr ""
+msgstr "Aantal recente berichten dat in de AI-context wordt opgenomen. Hogere waarden geven meer context maar gebruiken meer tokens."
 
 #: includes/ai/ai-agent-and-chat.php:612
 msgid "Chat Overlay Width"
-msgstr ""
+msgstr "Breedte van chatoverlay"
 
 #: includes/ai/ai-agent-and-chat.php:625
 msgid "Width of the chat overlay panel in pixels."
-msgstr ""
+msgstr "Breedte van het chatoverlaypaneel in pixels."
 
 #: includes/ai/ai-agent-and-chat.php:626
 msgid "Range:"
-msgstr ""
+msgstr "Bereik:"
 
 #: includes/ai/ai-agent-and-chat.php:634
 msgid "Pixabay API Key"
-msgstr ""
+msgstr "Pixabay API-sleutel"
 
 #: includes/ai/ai-agent-and-chat.php:642
 msgid "Paste your Pixabay API key here"
-msgstr ""
+msgstr "Plak hier uw Pixabay API-sleutel"
 
 #: includes/ai/ai-agent-and-chat.php:644
 msgid "Used for image search inside the AI agent. Get your free API key from"
-msgstr ""
+msgstr "Wordt gebruikt voor het zoeken naar afbeeldingen binnen de AI-agent. Verkrijg uw gratis API-sleutel via"
 
 #: includes/ai/ai-agent-and-chat.php:646
 msgid "(your API key is shown there when logged in)."
-msgstr ""
+msgstr "(uw API-sleutel wordt daar getoond zodra u bent ingelogd)."
 
 #: includes/ai/ai-agent-and-chat.php:654
 msgid "Enable Debug Mode"
-msgstr ""
+msgstr "Foutopsporingsmodus inschakelen"
 
 #: includes/ai/ai-agent-and-chat.php:663
 msgid "Enable console.log debugging messages in browser console. Useful for troubleshooting."
-msgstr ""
+msgstr "Schakel console.log-foutopsporingsberichten in de browserconsole in. Handig voor probleemoplossing."
 
 #: includes/ai/ai-agent-and-chat.php:673
 msgid "Available WordPress Abilities"
-msgstr ""
+msgstr "Beschikbare WordPress-mogelijkheden"
 
 #: includes/ai/ai-agent-and-chat.php:674
 msgid "Select which abilities the AI agent can use. Newly added abilities are automatically enabled by default."
-msgstr ""
+msgstr "Selecteer welke mogelijkheden de AI-agent kan gebruiken. Nieuw toegevoegde mogelijkheden worden standaard automatisch ingeschakeld."
 
 #: includes/ai/ai-agent-and-chat.php:681 includes/ai/ai-overlay.php:318
 #: includes/features/activity-logs.php:1638
 #: includes/features/block-editor-settings.php:122
 #: includes/features/block-editor-settings.php:161
 msgid "Select All"
-msgstr ""
+msgstr "Alles selecteren"
 
 #: includes/ai/ai-agent-and-chat.php:684 includes/ai/ai-overlay.php:319
 #: includes/features/activity-logs.php:1639
 msgid "Deselect All"
-msgstr ""
+msgstr "Alles deselecteren"
 
 #: includes/ai/ai-agent-and-chat.php:725
 msgid "No abilities found."
-msgstr ""
+msgstr "Geen mogelijkheden gevonden."
 
 #: includes/ai/ai-agent-and-chat.php:726
 msgid "Make sure WordPress 6.9+ is installed and abilities are registered with show_in_rest enabled."
-msgstr ""
+msgstr "Zorg ervoor dat WordPress 6.9+ is geïnstalleerd en dat mogelijkheden zijn geregistreerd met show_in_rest ingeschakeld."
 
 #: includes/ai/ai-agent-and-chat.php:731
 #: includes/features/301-redirect.php:513
 #: includes/features/editor-settings-panel-bricks.php:273
 #: includes/features/mail-customizer.php:274
 msgid "Save Settings"
-msgstr ""
+msgstr "Instellingen opslaan"
 
 #: includes/ai/ai-agent-and-chat.php:737
 msgid "Chat History Management"
-msgstr ""
+msgstr "Chatgeschiedenisbeheer"
 
 #: includes/ai/ai-agent-and-chat.php:738
 msgid "Manage saved chat conversations. Chat history is automatically saved and can be accessed from the chat interface."
-msgstr ""
+msgstr "Beheer opgeslagen chatgesprekken. Chatgeschiedenis wordt automatisch opgeslagen en is toegankelijk vanuit de chatinterface."
 
 #: includes/ai/ai-agent-and-chat.php:747
 msgid "Total saved conversations:"
-msgstr ""
+msgstr "Totaal aantal opgeslagen gesprekken:"
 
 #: includes/ai/ai-agent-and-chat.php:753
 #: includes/ai/ai-agent-and-chat.php:802
 #: includes/ai/ai-agent-and-chat.php:807
 msgid "Delete All Chat History"
-msgstr ""
+msgstr "Alle chatgeschiedenis verwijderen"
 
 #: includes/ai/ai-agent-and-chat.php:757
 msgid "This will permanently delete all saved chat conversations for your account. This action cannot be undone."
-msgstr ""
+msgstr "Dit verwijdert permanent alle opgeslagen chatgesprekken van uw account. Deze actie kan niet ongedaan worden gemaakt."
 
 #: includes/ai/ai-agent-and-chat.php:762
 msgid "Recent Conversations"
-msgstr ""
+msgstr "Recente gesprekken"
 
 #: includes/ai/ai-agent-and-chat.php:782
 msgid "Are you sure you want to delete all chat history? This action cannot be undone."
-msgstr ""
+msgstr "Weet u zeker dat u alle chatgeschiedenis wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
 
 #: includes/ai/ai-agent-and-chat.php:787
 #: includes/features/media-image-opt.php:2726
 msgid "Deleting..."
-msgstr ""
+msgstr "Bezig met verwijderen..."
 
 #: includes/ai/ai-agent-and-chat.php:798
 msgid "Successfully deleted"
-msgstr ""
+msgstr "Succesvol verwijderd"
 
 #: includes/ai/ai-agent-and-chat.php:798
 msgid "chat histories."
-msgstr ""
+msgstr "chatgeschiedenissen."
 
 #: includes/ai/ai-agent-and-chat.php:801
 #: includes/features/media-image-opt.php:2745
 #: includes/features/media-settings.php:256
 msgid "Error:"
-msgstr ""
+msgstr "Fout:"
 
 #: includes/ai/ai-agent-and-chat.php:806
 #: includes/elements/profile-settings.php:477
 #: includes/features/role-manager.php:997
 msgid "An error occurred. Please try again."
-msgstr ""
+msgstr "Er is een fout opgetreden. Probeer het opnieuw."
 
 #: includes/ai/ai-agent-and-chat.php:1156
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:201
@@ -850,159 +850,159 @@ msgstr ""
 #: includes/features/mail-logging.php:261
 #: includes/features/role-manager.php:1000
 msgid "Loading..."
-msgstr ""
+msgstr "Bezig met laden..."
 
 #: includes/ai/ai-agent-and-chat.php:1165
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:210
 msgid "AI Features Disabled"
-msgstr ""
+msgstr "AI-functies uitgeschakeld"
 
 #: includes/ai/ai-agent-and-chat.php:1166
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:211
 msgid "The global AI Features setting is currently disabled. Please enable it to use the AI chat assistant."
-msgstr ""
+msgstr "De algemene instelling voor AI-functies is momenteel uitgeschakeld. Schakel deze in om de AI-chatassistent te gebruiken."
 
 #: includes/ai/ai-agent-and-chat.php:1168
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:213
 msgid "Go to AI Settings"
-msgstr ""
+msgstr "Ga naar AI-instellingen"
 
 #: includes/ai/ai-agent-and-chat.php:1178
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:223
 msgid "AI features are disabled..."
-msgstr ""
+msgstr "AI-functies zijn uitgeschakeld..."
 
 #: includes/ai/ai-block-editor.php:388
 msgid "AI Content Generation"
-msgstr ""
+msgstr "AI-contentgeneratie"
 
 #: includes/ai/ai-block-editor.php:396 includes/ai/ai-overlay.php:296
 msgid "Existing content will appear here. Add your instructions or select a preset..."
-msgstr ""
+msgstr "Bestaande content verschijnt hier. Voeg uw instructies toe of selecteer een preset..."
 
 #: includes/ai/ai-block-editor.php:398 includes/ai/ai-overlay.php:299
 #: includes/ai/ai-seo-generation.php:211
 #: includes/ai/ai-seo-generation.php:76
 msgid "Generate"
-msgstr ""
+msgstr "Genereren"
 
 #: includes/ai/ai-block-editor.php:402 includes/ai/ai-overlay.php:303
 #: includes/ai/ai-overlay.php:704 includes/ai/ai-overlay.php:717
 msgid "Copy Text"
-msgstr ""
+msgstr "Tekst kopiëren"
 
 #: includes/ai/ai-block-editor.php:403 includes/ai/ai-overlay.php:304
 msgid "Apply to Editor"
-msgstr ""
+msgstr "Toepassen op editor"
 
 #: includes/ai/ai-block-editor.php:413
 msgid "AI Image Generation"
-msgstr ""
+msgstr "AI-afbeeldingsgeneratie"
 
 #: includes/ai/ai-block-editor.php:420
 msgid "Include Post Title"
-msgstr ""
+msgstr "Berichttitel opnemen"
 
 #: includes/ai/ai-block-editor.php:424
 msgid "Include Post Content"
-msgstr ""
+msgstr "Berichtinhoud opnemen"
 
 #: includes/ai/ai-block-editor.php:428
 msgid "Edit Existing Featured Image"
-msgstr ""
+msgstr "Bestaande uitgelichte afbeelding bewerken"
 
 #: includes/ai/ai-block-editor.php:438
 msgid "Add your instructions or select a preset..."
-msgstr ""
+msgstr "Voeg uw instructies toe of selecteer een preset..."
 
 #: includes/ai/ai-block-editor.php:440
 msgid "Generate Image"
-msgstr ""
+msgstr "Afbeelding genereren"
 
 #: includes/ai/ai-block-editor.php:446
 #: includes/ai/ai-seo-generation.php:212
 #: includes/ai/ai-seo-generation.php:77
 msgid "Regenerate"
-msgstr ""
+msgstr "Opnieuw genereren"
 
 #: includes/ai/ai-block-editor.php:447
 msgid "Save as Featured Image"
-msgstr ""
+msgstr "Opslaan als uitgelichte afbeelding"
 
 #: includes/ai/ai-overlay.php:287
 msgid "AI Content Assistant"
-msgstr ""
+msgstr "AI-content-assistent"
 
 #: includes/ai/ai-overlay.php:313
 msgid "Bulk AI Content Editor"
-msgstr ""
+msgstr "AI-bulkcontenteditor"
 
 #: includes/ai/ai-overlay.php:329
 msgid "Enter prompt.."
-msgstr ""
+msgstr "Voer prompt in.."
 
 #: includes/ai/ai-overlay.php:331
 msgid "Regenerate Selected"
-msgstr ""
+msgstr "Selectie opnieuw genereren"
 
 #: includes/ai/ai-overlay.php:336
 msgid "Apply Changes to Editor"
-msgstr ""
+msgstr "Wijzigingen toepassen op editor"
 
 #: includes/ai/ai-overlay.php:684
 msgid "Unexpected AI response format."
-msgstr ""
+msgstr "Onverwacht AI-antwoordformaat."
 
 #: includes/ai/ai-overlay.php:702 includes/ai/ai-settings.php:1844
 #: includes/ai/ai-settings.php:1855
 msgid "Copied!"
-msgstr ""
+msgstr "Gekopieerd!"
 
 #: includes/ai/ai-overlay.php:715
 msgid "Copied! (fallback)"
-msgstr ""
+msgstr "Gekopieerd! (alternatief)"
 
 #: includes/ai/ai-overlay.php:755
 msgid "Generate with AI"
-msgstr ""
+msgstr "Genereren met AI"
 
 #: includes/ai/ai-overlay.php:923
 msgid "No text elements found on the page or all are empty."
-msgstr ""
+msgstr "Geen tekstelementen gevonden op de pagina of allemaal leeg."
 
 #: includes/ai/ai-overlay.php:1004
 msgid "Please select at least one field to regenerate."
-msgstr ""
+msgstr "Selecteer ten minste één veld om opnieuw te genereren."
 
 #: includes/ai/ai-overlay.php:1081
 msgid "Unexpected AI response format for bulk operation."
-msgstr ""
+msgstr "Onverwacht AI-antwoordformaat voor bulkbewerking."
 
 #: includes/ai/ai-seo-generation.php:69
 msgid "Generating..."
-msgstr ""
+msgstr "Bezig met genereren..."
 
 #: includes/ai/ai-seo-generation.php:70
 msgid "Regenerating..."
-msgstr ""
+msgstr "Bezig met opnieuw genereren..."
 
 #: includes/ai/ai-seo-generation.php:71
 msgid "Error generating content"
-msgstr ""
+msgstr "Fout bij het genereren van content"
 
 #: includes/ai/ai-seo-generation.php:72
 msgid "Saved successfully"
-msgstr ""
+msgstr "Succesvol opgeslagen"
 
 #: includes/ai/ai-seo-generation.php:73
 msgid "Preview & Edit"
-msgstr ""
+msgstr "Voorbeeld en bewerken"
 
 #: includes/ai/ai-seo-generation.php:213
 #: includes/ai/ai-seo-generation.php:74
 #: includes/features/301-redirect.php:479
 msgid "Save"
-msgstr ""
+msgstr "Opslaan"
 
 #: includes/ai/ai-seo-generation.php:210
 #: includes/ai/ai-seo-generation.php:75
@@ -1011,388 +1011,388 @@ msgstr ""
 #: includes/features/301-redirect.php:480
 #: includes/features/role-manager.php:749
 msgid "Cancel"
-msgstr ""
+msgstr "Annuleren"
 
 #: includes/ai/ai-seo-generation.php:78
 msgid "Select Action Preset"
-msgstr ""
+msgstr "Actiepreset selecteren"
 
 #: includes/ai/ai-seo-generation.php:79
 msgid "Custom Prompt (Optional)"
-msgstr ""
+msgstr "Aangepaste prompt (optioneel)"
 
 #: includes/ai/ai-seo-generation.php:80
 msgid "AI is reading:"
-msgstr ""
+msgstr "AI leest:"
 
 #: includes/ai/ai-seo-generation.php:147
 #: includes/ai/ai-seo-generation.php:81 includes/features/seo.php:2250
 msgid "SEO Title"
-msgstr ""
+msgstr "SEO-titel"
 
 #: includes/ai/ai-seo-generation.php:151
 #: includes/ai/ai-seo-generation.php:82
 msgid "SEO Description"
-msgstr ""
+msgstr "SEO-beschrijving"
 
 #: includes/ai/ai-seo-generation.php:83
 #: includes/features/post-types-settings.php:184
 #: includes/features/post-types-settings.php:30
 msgid "Excerpt"
-msgstr ""
+msgstr "Uittreksel"
 
 #: includes/ai/ai-seo-generation.php:84
 msgid "Taxonomy Description"
-msgstr ""
+msgstr "Taxonomiebeschrijving"
 
 #: includes/ai/ai-seo-generation.php:85
 msgid "Post Title"
-msgstr ""
+msgstr "Berichttitel"
 
 #: includes/ai/ai-seo-generation.php:86
 msgid "Term Name"
-msgstr ""
+msgstr "Termnaam"
 
 #: includes/ai/ai-seo-generation.php:87
 msgid "Processing item"
-msgstr ""
+msgstr "Item verwerken"
 
 #: includes/ai/ai-seo-generation.php:88
 msgid "of"
-msgstr ""
+msgstr "van"
 
 #: includes/ai/ai-seo-generation.php:116
 msgid "Bulk AI SEO Generation ✨"
-msgstr ""
+msgstr "AI SEO-bulkgeneratie ✨"
 
 #: includes/ai/ai-seo-generation.php:123
 #: includes/ai/ai-seo-generation.php:1822
 msgid "AI SEO Generation"
-msgstr ""
+msgstr "AI SEO-generatie"
 
 #: includes/ai/ai-seo-generation.php:131
 msgid "Action Preset:"
-msgstr ""
+msgstr "Actiepreset:"
 
 #: includes/ai/ai-seo-generation.php:143
 msgid "Generate:"
-msgstr ""
+msgstr "Genereren:"
 
 #: includes/ai/ai-seo-generation.php:160
 #: includes/ai/ai-seo-generation.php:726
 msgid "Generate Post Title instead of Meta Title"
-msgstr ""
+msgstr "Berichttitel genereren in plaats van meta-titel"
 
 #: includes/ai/ai-seo-generation.php:168
 #: includes/ai/ai-seo-generation.php:735
 msgid "Generate Excerpt instead of Meta Description"
-msgstr ""
+msgstr "Uittreksel genereren in plaats van meta-beschrijving"
 
 #: includes/ai/ai-seo-generation.php:174
 msgid "Custom Prompt (Optional):"
-msgstr ""
+msgstr "Aangepaste prompt (optioneel):"
 
 #: includes/ai/ai-seo-generation.php:175
 msgid "Add additional instructions..."
-msgstr ""
+msgstr "Extra instructies toevoegen..."
 
 #: includes/ai/ai-seo-generation.php:181
 msgid "SEO Title:"
-msgstr ""
+msgstr "SEO-titel:"
 
 #: includes/ai/ai-seo-generation.php:187
 msgid "SEO Description:"
-msgstr ""
+msgstr "SEO-beschrijving:"
 
 #: includes/ai/ai-seo-generation.php:196
 msgid "items generated"
-msgstr ""
+msgstr "items gegenereerd"
 
 #: includes/ai/ai-seo-generation.php:632
 msgid "Please select posts first."
-msgstr ""
+msgstr "Selecteer eerst berichten."
 
 #: includes/ai/ai-seo-generation.php:638
 msgid "Please select terms first."
-msgstr ""
+msgstr "Selecteer eerst termen."
 
 #: includes/ai/ai-seo-generation.php:724
 msgid "Generate Term Name instead of Meta Title"
-msgstr ""
+msgstr "Termnaam genereren in plaats van meta-titel"
 
 #: includes/ai/ai-seo-generation.php:733
 msgid "Generate Term Description instead of Meta Description"
-msgstr ""
+msgstr "Termbeschrijving genereren in plaats van meta-beschrijving"
 
 #: includes/ai/ai-seo-generation.php:1606
 msgid "Generate with AI ✨"
-msgstr ""
+msgstr "Genereren met AI ✨"
 
 #: includes/ai/ai-seo-generation.php:1826
 msgid "✨ Generate SEO with AI"
-msgstr ""
+msgstr "✨ SEO genereren met AI"
 
 #: includes/ai/ai-seo-generation.php:1828
 msgid "Generate SEO title and description using AI"
-msgstr ""
+msgstr "SEO-titel en -beschrijving genereren met AI"
 
 #: includes/ai/ai-settings.php:338 includes/ai/ai-settings.php:341
 #: includes/ai/ai-settings.php:42 includes/ai/ai-settings.php:43
 #: includes/features/settings-page.php:44
 msgid "AI Settings"
-msgstr ""
+msgstr "AI-instellingen"
 
 #: includes/ai/ai-settings.php:342 includes/ai/ai-settings.php:803
 msgid "Prompt Presets"
-msgstr ""
+msgstr "Promptpresets"
 
 #: includes/ai/ai-settings.php:353
 msgid "Enable AI Features"
-msgstr ""
+msgstr "AI-functies inschakelen"
 
 #: includes/ai/ai-settings.php:367
 msgid "API Provider"
-msgstr ""
+msgstr "API-provider"
 
 #: includes/ai/ai-settings.php:392
 msgid "Enter the system prompt for AI interactions."
-msgstr ""
+msgstr "Voer de systeemprompt in voor AI-interacties."
 
 #: includes/ai/ai-settings.php:400
 msgid "⚙️ Advanced Generation Settings"
-msgstr ""
+msgstr "⚙️ Geavanceerde generatie-instellingen"
 
 #: includes/ai/ai-settings.php:402
 msgid "— fine-tune how the AI responds (click to expand)"
-msgstr ""
+msgstr "— fijnafstemming van hoe de AI reageert (klik om uit te vouwen)"
 
 #: includes/ai/ai-settings.php:406
 msgid "These settings apply to all AI providers (OpenRouter and Custom). Most users don't need to change these — the defaults work well for general content editing."
-msgstr ""
+msgstr "Deze instellingen zijn van toepassing op alle AI-providers (OpenRouter en Aangepast). De meeste gebruikers hoeven deze niet te wijzigen — de standaardwaarden werken goed voor algemene contentbewerking."
 
 #: includes/ai/ai-settings.php:411
 msgid "Temperature"
-msgstr ""
+msgstr "Temperatuur"
 
 #: includes/ai/ai-settings.php:427
 msgid "Controls randomness. 0 = deterministic/factual, 1 = creative, 2 = very random. Default: 0.7"
-msgstr ""
+msgstr "Bepaalt de willekeurigheid. 0 = deterministisch/feitelijk, 1 = creatief, 2 = zeer willekeurig. Standaard: 0.7"
 
 #: includes/ai/ai-settings.php:433
 msgid "Max Tokens"
-msgstr ""
+msgstr "Maximaal aantal tokens"
 
 #: includes/ai/ai-settings.php:447
 msgid "Maximum response length in tokens (≈ words). Higher = longer responses but more API cost. Default: 4000"
-msgstr ""
+msgstr "Maximale antwoordlengte in tokens (≈ woorden). Hoger = langere antwoorden maar hogere API-kosten. Standaard: 4000"
 
 #: includes/ai/ai-settings.php:453
 msgid "Top P"
-msgstr ""
+msgstr "Top P"
 
 #: includes/ai/ai-settings.php:469
 msgid "Nucleus sampling: only tokens with cumulative probability up to this value are considered. 1 = all tokens (default), 0.1 = only the most likely tokens."
-msgstr ""
+msgstr "Kernbemonstering: alleen tokens met een cumulatieve waarschijnlijkheid tot deze waarde worden meegenomen. 1 = alle tokens (standaard), 0.1 = alleen de meest waarschijnlijke tokens."
 
 #: includes/ai/ai-settings.php:475
 msgid "Frequency Penalty"
-msgstr ""
+msgstr "Frequentiestraf"
 
 #: includes/ai/ai-settings.php:491
 msgid "Reduces word repetition. Positive values penalize tokens based on how often they've appeared. -2 to 2, 0 = off (default)."
-msgstr ""
+msgstr "Vermindert woordherhaling. Positieve waarden bestraffen tokens op basis van hoe vaak ze zijn verschenen. Van -2 tot 2, 0 = uit (standaard)."
 
 #: includes/ai/ai-settings.php:497
 msgid "Presence Penalty"
-msgstr ""
+msgstr "Aanwezigheidsstraf"
 
 #: includes/ai/ai-settings.php:513
 msgid "Encourages topic diversity. Positive values penalize tokens that have already appeared at all. -2 to 2, 0 = off (default)."
-msgstr ""
+msgstr "Stimuleert onderwerpdiversiteit. Positieve waarden bestraffen tokens die al eerder zijn verschenen. Van -2 tot 2, 0 = uit (standaard)."
 
 #: includes/ai/ai-settings.php:524
 msgid "OpenRouter API Settings"
-msgstr ""
+msgstr "OpenRouter API-instellingen"
 
 #: includes/ai/ai-settings.php:528
 msgid "OpenRouter API Key"
-msgstr ""
+msgstr "OpenRouter API-sleutel"
 
 #: includes/ai/ai-settings.php:539
 msgid "Enter your OpenRouter API key."
-msgstr ""
+msgstr "Voer uw OpenRouter API-sleutel in."
 
 #: includes/ai/ai-settings.php:544
 msgid "OpenRouter Model"
-msgstr ""
+msgstr "OpenRouter-model"
 
 #: includes/ai/ai-settings.php:553
 msgid "Search for model..."
-msgstr ""
+msgstr "Model zoeken..."
 
 #: includes/ai/ai-settings.php:1153 includes/ai/ai-settings.php:558
 msgid "Loading models..."
-msgstr ""
+msgstr "Modellen laden..."
 
 #: includes/ai/ai-settings.php:561
 msgid "Select the OpenRouter model to use. Start typing to search."
-msgstr ""
+msgstr "Selecteer het te gebruiken OpenRouter-model. Begin met typen om te zoeken."
 
 #: includes/ai/ai-settings.php:562
 msgid "Prices"
-msgstr ""
+msgstr "Prijzen"
 
 #: includes/ai/ai-settings.php:568
 msgid "Selected Model Features:"
-msgstr ""
+msgstr "Kenmerken van geselecteerd model:"
 
 #: includes/ai/ai-settings.php:575
 msgid "Model Provider"
-msgstr ""
+msgstr "Modelprovider"
 
 #: includes/ai/ai-settings.php:1301 includes/ai/ai-settings.php:1309
 #: includes/ai/ai-settings.php:1331 includes/ai/ai-settings.php:1373
 #: includes/ai/ai-settings.php:1379 includes/ai/ai-settings.php:583
 #: includes/ai/ai-settings.php:634
 msgid "Auto (Default)"
-msgstr ""
+msgstr "Automatisch (standaard)"
 
 #: includes/ai/ai-settings.php:586
 msgid "Select a specific provider for this model. Auto lets OpenRouter choose automatically."
-msgstr ""
+msgstr "Selecteer een specifieke provider voor dit model. Automatisch laat OpenRouter automatisch kiezen."
 
 #: includes/ai/ai-settings.php:589 includes/ai/ai-settings.php:640
 msgid "Provider Details:"
-msgstr ""
+msgstr "Providerdetails:"
 
 #: includes/ai/ai-settings.php:596
 msgid "OpenRouter Image Model"
-msgstr ""
+msgstr "OpenRouter-afbeeldingsmodel"
 
 #: includes/ai/ai-settings.php:605
 msgid "Search for image model..."
-msgstr ""
+msgstr "Afbeeldingsmodel zoeken..."
 
 #: includes/ai/ai-settings.php:610
 msgid "Loading image models..."
-msgstr ""
+msgstr "Afbeeldingsmodellen laden..."
 
 #: includes/ai/ai-settings.php:613
 msgid "Select an OpenRouter model with image output capabilities. Start typing to search."
-msgstr ""
+msgstr "Selecteer een OpenRouter-model met mogelijkheden voor afbeeldingsuitvoer. Begin met typen om te zoeken."
 
 #: includes/ai/ai-settings.php:619
 msgid "Selected Image Model Features:"
-msgstr ""
+msgstr "Kenmerken van geselecteerd afbeeldingsmodel:"
 
 #: includes/ai/ai-settings.php:626
 msgid "Image Model Provider"
-msgstr ""
+msgstr "Provider van afbeeldingsmodel"
 
 #: includes/ai/ai-settings.php:637
 msgid "Select a specific provider for this image model. Auto lets OpenRouter choose automatically."
-msgstr ""
+msgstr "Selecteer een specifieke provider voor dit afbeeldingsmodel. Automatisch laat OpenRouter automatisch kiezen."
 
 #: includes/ai/ai-settings.php:647
 msgid "Image Generation Settings"
-msgstr ""
+msgstr "Instellingen voor afbeeldingsgeneratie"
 
 #: includes/ai/ai-settings.php:650
 msgid "Aspect Ratio:"
-msgstr ""
+msgstr "Beeldverhouding:"
 
 #: includes/ai/ai-settings.php:664
 msgid "Image Size:"
-msgstr ""
+msgstr "Afbeeldingsgrootte:"
 
 #: includes/ai/ai-settings.php:671
 msgid "Default settings for image generation. Applied when generating images with compatible models. Note: Image size options are currently only supported by Gemini models."
-msgstr ""
+msgstr "Standaardinstellingen voor afbeeldingsgeneratie. Toegepast bij het genereren van afbeeldingen met compatibele modellen. Let op: afbeeldingsgrootte-opties worden momenteel alleen ondersteund door Gemini-modellen."
 
 #: includes/ai/ai-settings.php:682
 msgid "Custom API Settings"
-msgstr ""
+msgstr "Aangepaste API-instellingen"
 
 #: includes/ai/ai-settings.php:686
 msgid "Custom API Key"
-msgstr ""
+msgstr "Aangepaste API-sleutel"
 
 #: includes/ai/ai-settings.php:700
 msgid "Custom API Endpoint"
-msgstr ""
+msgstr "Aangepast API-eindpunt"
 
 #: includes/ai/ai-settings.php:712
 msgid "Enter the full endpoint URL including the path. Must be an OpenAI-compatible"
-msgstr ""
+msgstr "Voer de volledige eindpunt-URL in, inclusief het pad. Moet compatibel zijn met"
 
 #: includes/ai/ai-settings.php:713
 msgid "endpoint."
-msgstr ""
+msgstr "OpenAI."
 
 #: includes/ai/ai-settings.php:715
 msgid "Example:"
-msgstr ""
+msgstr "Voorbeeld:"
 
 #: includes/ai/ai-settings.php:717
 msgid "You can expose your local model to the internet using"
-msgstr ""
+msgstr "U kunt uw lokale model op internet blootstellen met"
 
 #: includes/ai/ai-settings.php:719
 msgid "Install cloudflared and run example:"
-msgstr ""
+msgstr "Installeer cloudflared en voer het voorbeeld uit:"
 
 #: includes/ai/ai-settings.php:723
 msgid "It gives you a public HTTPS URL — append endpoint"
-msgstr ""
+msgstr "Dit geeft u een openbare HTTPS-URL — voeg het eindpunt toe"
 
 #: includes/ai/ai-settings.php:723
 msgid "and paste it here."
-msgstr ""
+msgstr "en plak het hier."
 
 #: includes/ai/ai-settings.php:729
 msgid "Custom Model"
-msgstr ""
+msgstr "Aangepast model"
 
 #: includes/ai/ai-settings.php:746
 msgid "🔌 Test Connection"
-msgstr ""
+msgstr "🔌 Verbinding testen"
 
 #: includes/ai/ai-settings.php:748
 msgid "— verify your API settings are working (click to expand)"
-msgstr ""
+msgstr "— controleer of uw API-instellingen werken (klik om uit te vouwen)"
 
 #: includes/ai/ai-settings.php:752
 msgid "Send a minimal test message using your current settings. Works for both OpenRouter and Custom providers. The log below shows each step in real time with colour-coded results."
-msgstr ""
+msgstr "Verstuur een minimaal testbericht met uw huidige instellingen. Werkt voor zowel OpenRouter als aangepaste providers. Het logboek hieronder toont elke stap in realtime met kleurgecodeerde resultaten."
 
 #: includes/ai/ai-settings.php:754
 msgid "Tip: Save your settings first if you made changes, then run the test."
-msgstr ""
+msgstr "Tip: sla eerst uw instellingen op als u wijzigingen heeft aangebracht en voer dan de test uit."
 
 #: includes/ai/ai-settings.php:756
 msgid "Run Connection Test"
-msgstr ""
+msgstr "Verbindingstest uitvoeren"
 
 #: includes/ai/ai-settings.php:1845 includes/ai/ai-settings.php:1856
 #: includes/ai/ai-settings.php:787
 msgid "Copy"
-msgstr ""
+msgstr "Kopiëren"
 
 #: includes/ai/ai-settings.php:792
 msgid "Settings tested:"
-msgstr ""
+msgstr "Geteste instellingen:"
 
 #: includes/ai/ai-settings.php:805
 msgid "Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay."
-msgstr ""
+msgstr "Voeg AI-actieprompts toe, bewerk, verwijder of sleep om ze opnieuw te ordenen. Deze presets zijn beschikbaar als selecteerbare knoppen in de AI-overlay."
 
 #: includes/ai/ai-settings.php:1538 includes/ai/ai-settings.php:819
 msgid "Action Name"
-msgstr ""
+msgstr "Actienaam"
 
 #: includes/ai/ai-settings.php:1545 includes/ai/ai-settings.php:827
 msgid "Action Prompt"
-msgstr ""
+msgstr "Actieprompt"
 
 #: includes/ai/ai-settings.php:1549 includes/ai/ai-settings.php:832
 #: includes/features/cookie-banner.php:467
@@ -1418,793 +1418,793 @@ msgstr ""
 #: includes/features/taxonomy-settings.php:195
 #: includes/features/taxonomy-settings.php:91
 msgid "Remove"
-msgstr ""
+msgstr "Verwijderen"
 
 #: includes/ai/ai-settings.php:841
 msgid "Add Preset"
-msgstr ""
+msgstr "Preset toevoegen"
 
 #: includes/ai/ai-settings.php:842
 msgid "Reset Presets"
-msgstr ""
+msgstr "Presets resetten"
 
 #: includes/ai/ai-settings.php:846
 msgid "Export Presets"
-msgstr ""
+msgstr "Presets exporteren"
 
 #: includes/ai/ai-settings.php:847 includes/ai/ai-settings.php:856
 msgid "Import Presets"
-msgstr ""
+msgstr "Presets importeren"
 
 #: includes/ai/ai-settings.php:850
 msgid "Exported Presets"
-msgstr ""
+msgstr "Geëxporteerde presets"
 
 #: includes/ai/ai-settings.php:851
 msgid "Copy the text below to save your presets."
-msgstr ""
+msgstr "Kopieer de onderstaande tekst om uw presets op te slaan."
 
 #: includes/ai/ai-settings.php:857
 msgid "Paste your previously exported presets into the text area below and click \"Import\". This will add the imported presets to your current list, skipping any duplicates."
-msgstr ""
+msgstr "Plak uw eerder geëxporteerde presets in het onderstaande tekstveld en klik op \"Importeren\". Dit voegt de geïmporteerde presets toe aan uw huidige lijst, waarbij duplicaten worden overgeslagen."
 
 #: includes/ai/ai-settings.php:860 includes/features/301-redirect.php:334
 #: includes/features/301-redirect.php:346
 msgid "Import"
-msgstr ""
+msgstr "Importeren"
 
 #: includes/ai/ai-settings.php:951
 msgid "Save AI Settings"
-msgstr ""
+msgstr "AI-instellingen opslaan"
 
 #: includes/ai/ai-settings.php:1150
 msgid "OpenRouter key missing. Please add your key first."
-msgstr ""
+msgstr "OpenRouter-sleutel ontbreekt. Voeg eerst uw sleutel toe."
 
 #: includes/ai/ai-settings.php:1155
 msgid "Still loading models... (this is taking longer than usual)"
-msgstr ""
+msgstr "Modellen worden nog geladen... (dit duurt langer dan gebruikelijk)"
 
 #: includes/ai/ai-settings.php:1186
 msgid "No models found."
-msgstr ""
+msgstr "Geen modellen gevonden."
 
 #: includes/ai/ai-settings.php:1191
 msgid "Error loading models."
-msgstr ""
+msgstr "Fout bij het laden van modellen."
 
 #: includes/ai/ai-settings.php:1293
 msgid "Loading providers..."
-msgstr ""
+msgstr "Providers laden..."
 
 #: includes/ai/ai-settings.php:1409
 msgid "Provider:"
-msgstr ""
+msgstr "Provider:"
 
 #: includes/ai/ai-settings.php:1415
 msgid "Prompt Cost:"
-msgstr ""
+msgstr "Promptkosten:"
 
 #: includes/ai/ai-settings.php:1416
 msgid "Completion Cost:"
-msgstr ""
+msgstr "Voltooiingskosten:"
 
 #: includes/ai/ai-settings.php:1422
 msgid "Latency (P50):"
-msgstr ""
+msgstr "Latentie (P50):"
 
 #: includes/ai/ai-settings.php:1425
 msgid "Latency (P90):"
-msgstr ""
+msgstr "Latentie (P90):"
 
 #: includes/ai/ai-settings.php:1428
 msgid "Latency (P99):"
-msgstr ""
+msgstr "Latentie (P99):"
 
 #: includes/ai/ai-settings.php:1435
 msgid "Throughput (P50):"
-msgstr ""
+msgstr "Doorvoer (P50):"
 
 #: includes/ai/ai-settings.php:1438
 msgid "Throughput (P90):"
-msgstr ""
+msgstr "Doorvoer (P90):"
 
 #: includes/ai/ai-settings.php:1441
 msgid "Throughput (P99):"
-msgstr ""
+msgstr "Doorvoer (P99):"
 
 #: includes/ai/ai-settings.php:1447
 msgid "Quantization:"
-msgstr ""
+msgstr "Kwantisering:"
 
 #: includes/ai/ai-settings.php:1452
 msgid "Supported Parameters:"
-msgstr ""
+msgstr "Ondersteunde parameters:"
 
 #: includes/ai/ai-settings.php:1567
 msgid "Are you sure you want to reset all presets to their defaults? This cannot be undone."
-msgstr ""
+msgstr "Weet u zeker dat u alle presets wilt resetten naar hun standaardwaarden? Deze actie kan niet ongedaan worden gemaakt."
 
 #: includes/ai/ai-settings.php:1666
 msgid "Textarea is empty."
-msgstr ""
+msgstr "Het tekstveld is leeg."
 
 #: includes/ai/ai-settings.php:1672
 msgid "Data is not a valid array."
-msgstr ""
+msgstr "De gegevens zijn geen geldige array."
 
 #: includes/ai/ai-settings.php:1702
 msgid "Import complete!"
-msgstr ""
+msgstr "Import voltooid!"
 
 #: includes/ai/ai-settings.php:1702
 msgid "duplicates skipped."
-msgstr ""
+msgstr "duplicaten overgeslagen."
 
 #: includes/ai/ai-settings.php:1702
 msgid "presets added"
-msgstr ""
+msgstr "presets toegevoegd"
 
 #: includes/ai/ai-settings.php:1705 includes/features/301-redirect.php:189
 msgid "Invalid JSON format."
-msgstr ""
+msgstr "Ongeldig JSON-formaat."
 
 #: includes/elements/advanced-image.php:15
 msgid "Advanced Image"
-msgstr ""
+msgstr "Geavanceerde afbeelding"
 
 #: includes/elements/advanced-image.php:23
 #: includes/elements/image-hotspot.php:21
 #: includes/elements/marquee-slider-carousel.php:30
 #: includes/elements/polkadot-effect.php:22
 msgid "Image"
-msgstr ""
+msgstr "Afbeelding"
 
 #: includes/elements/advanced-image.php:30
 msgid "Blur"
-msgstr ""
+msgstr "Vervaging"
 
 #: includes/elements/advanced-image.php:38
 #: includes/elements/polkadot-effect.php:40
 msgid "Brightness"
-msgstr ""
+msgstr "Helderheid"
 
 #: includes/elements/advanced-image.php:46
 #: includes/elements/polkadot-effect.php:53
 msgid "Contrast"
-msgstr ""
+msgstr "Contrast"
 
 #: includes/elements/advanced-image.php:54
 msgid "Grayscale"
-msgstr ""
+msgstr "Grijstinten"
 
 #: includes/elements/advanced-image.php:62
 #: includes/elements/gsap-multi-element-register.php:310
 msgid "Hue Rotate"
-msgstr ""
+msgstr "Kleurtoonrotatie"
 
 #: includes/elements/advanced-image.php:70
 msgid "Invert"
-msgstr ""
+msgstr "Omkeren"
 
 #: includes/elements/advanced-image.php:78
 msgid "Opacity"
-msgstr ""
+msgstr "Dekking"
 
 #: includes/elements/advanced-image.php:86
 msgid "Saturate"
-msgstr ""
+msgstr "Verzadiging"
 
 #: includes/elements/advanced-image.php:94
 msgid "Sepia"
-msgstr ""
+msgstr "Sepia"
 
 #: includes/elements/advanced-image.php:174
 #: includes/elements/polkadot-effect.php:131
 msgid "No image selected."
-msgstr ""
+msgstr "Geen afbeelding geselecteerd."
 
 #: includes/elements/animated-heading.php:17
 #: includes/elements/animated-heading.php:37
 msgid "Animated Headline"
-msgstr ""
+msgstr "Geanimeerde koptekst"
 
 #: includes/elements/animated-heading.php:30
 msgid "Before"
-msgstr ""
+msgstr "Voor"
 
 #: includes/elements/animated-heading.php:44
 msgid "After"
-msgstr ""
+msgstr "Na"
 
 #: includes/elements/animated-heading.php:49
 msgid "SVG Stroke Color"
-msgstr ""
+msgstr "SVG-lijnkleur"
 
 #: includes/elements/animated-heading.php:62
 msgid "SVG Stroke Width"
-msgstr ""
+msgstr "SVG-lijndikte"
 
 #: includes/elements/animated-heading.php:87
 msgid "SVG Bottom"
-msgstr ""
+msgstr "SVG-onderzijde"
 
 #: includes/elements/animated-heading.php:107
 msgid "SVG Height"
-msgstr ""
+msgstr "SVG-hoogte"
 
 #: includes/elements/animated-heading.php:128
 #: includes/elements/lottie-animation.php:41
 msgid "Loop Animation"
-msgstr ""
+msgstr "Loopanimatie"
 
 #: includes/elements/animated-heading.php:136
 #: includes/elements/gsap-animations.php:209
 msgid "Duration"
-msgstr ""
+msgstr "Duur"
 
 #: includes/elements/animated-heading.php:144
 msgid "Rounded"
-msgstr ""
+msgstr "Afgerond"
 
 #: includes/elements/animated-heading.php:152
 msgid "Text On Top"
-msgstr ""
+msgstr "Tekst bovenaan"
 
 #: includes/elements/animated-heading.php:162
 msgid "Underline"
-msgstr ""
+msgstr "Onderstreept"
 
 #: includes/elements/animated-heading.php:163
 msgid "Underline Zigzag"
-msgstr ""
+msgstr "Zigzag-onderstreping"
 
 #: includes/elements/animated-heading.php:164
 msgid "Underline Wavey"
-msgstr ""
+msgstr "Golvende onderstreping"
 
 #: includes/elements/animated-heading.php:165
 #: includes/elements/svg-text-path.php:39
 msgid "Circle"
-msgstr ""
+msgstr "Cirkel"
 
 #: includes/elements/animated-heading.php:166
 msgid "Double Line"
-msgstr ""
+msgstr "Dubbele lijn"
 
 #: includes/elements/animated-heading.php:167
 msgid "Strikethrough"
-msgstr ""
+msgstr "Doorgehaald"
 
 #: includes/elements/animated-heading.php:168
 msgid "Strikethrough X"
-msgstr ""
+msgstr "Doorgehaald X"
 
 #: includes/elements/animated-heading.php:176
 msgid "Headline Typography"
-msgstr ""
+msgstr "Typografie van de kop"
 
 #: includes/elements/animated-heading.php:191
 #: includes/elements/animated-vfx-text.php:56
 #: includes/elements/gsap-text-animations.php:53
 msgid "H1"
-msgstr ""
+msgstr "H1"
 
 #: includes/elements/animated-heading.php:192
 #: includes/elements/animated-vfx-text.php:57
 #: includes/elements/gsap-text-animations.php:54
 msgid "H2"
-msgstr ""
+msgstr "H2"
 
 #: includes/elements/animated-heading.php:193
 #: includes/elements/animated-vfx-text.php:58
 #: includes/elements/gsap-text-animations.php:55
 msgid "H3"
-msgstr ""
+msgstr "H3"
 
 #: includes/elements/animated-heading.php:194
 #: includes/elements/animated-vfx-text.php:59
 #: includes/elements/gsap-text-animations.php:56
 msgid "H4"
-msgstr ""
+msgstr "H4"
 
 #: includes/elements/animated-heading.php:195
 #: includes/elements/animated-vfx-text.php:60
 #: includes/elements/gsap-text-animations.php:57
 msgid "Paragraph"
-msgstr ""
+msgstr "Alinea"
 
 #: includes/elements/animated-heading.php:196
 #: includes/elements/animated-vfx-text.php:61
 #: includes/elements/gsap-text-animations.php:58
 msgid "Span"
-msgstr ""
+msgstr "Span"
 
 #: includes/elements/animated-heading.php:197
 #: includes/elements/animated-vfx-text.php:62
 #: includes/elements/gsap-text-animations.php:59
 msgid "Div"
-msgstr ""
+msgstr "Div"
 
 #: includes/elements/animated-heading.php:206
 #: includes/elements/svg-text-path.php:50
 msgid "Custom SVG"
-msgstr ""
+msgstr "Aangepaste SVG"
 
 #: includes/elements/animated-heading.php:207
 msgid "Upload your own SVG path. <br>Create 510px x 170px transparent rectangle and draw your path inside of that. Group it export it."
-msgstr ""
+msgstr "Upload uw eigen SVG-pad. <br>Maak een transparante rechthoek van 510px x 170px en teken uw pad daarin. Groepeer het en exporteer het."
 
 #: includes/elements/animated-vfx-text.php:16
 msgid "Animated VFX Text"
-msgstr ""
+msgstr "Geanimeerde VFX-tekst"
 
 #: includes/elements/animated-vfx-text.php:27
 msgid "Animated Text"
-msgstr ""
+msgstr "Geanimeerde tekst"
 
 #: includes/elements/animated-vfx-text.php:29
 msgid "Lorem ipsum dolor sinan amet animated text"
-msgstr ""
+msgstr "Geanimeerde tekst lorem ipsum dolor sinan amet"
 
 #: includes/elements/animated-vfx-text.php:35
 msgid "Animation Effect"
-msgstr ""
+msgstr "Animatie-effect"
 
 #: includes/elements/animated-vfx-text.php:38
 msgid "Glitch"
-msgstr ""
+msgstr "Glitch"
 
 #: includes/elements/animated-vfx-text.php:39
 msgid "RGB Shift"
-msgstr ""
+msgstr "RGB-verschuiving"
 
 #: includes/elements/animated-vfx-text.php:40
 msgid "Rainbow"
-msgstr ""
+msgstr "Regenboog"
 
 #: includes/elements/animated-vfx-text.php:41
 msgid "Warp Transition"
-msgstr ""
+msgstr "Warp-overgang"
 
 #: includes/elements/animated-vfx-text.php:42
 msgid "Slit Scan Transition"
-msgstr ""
+msgstr "Split-scan-overgang"
 
 #: includes/elements/animated-vfx-text.php:43
 msgid "Pixelate Transition"
-msgstr ""
+msgstr "Gepixelde overgang"
 
 #: includes/elements/animated-vfx-text.php:45
 msgid "Wavevy Wave Shader"
-msgstr ""
+msgstr "Golvende golf-shader"
 
 #: includes/elements/animated-vfx-text.php:53
 #: includes/elements/gsap-text-animations.php:50
 msgid "DOM Element Tag"
-msgstr ""
+msgstr "DOM-elementtag"
 
 #: includes/elements/animated-vfx-text.php:78
 #: includes/elements/breadcrumbs.php:145
 #: includes/elements/gsap-text-animations.php:373
 #: includes/elements/smoke-text.php:40
 msgid "Typography"
-msgstr ""
+msgstr "Typografie"
 
 #: includes/elements/audio-player.php:17
 msgid "Audio Player"
-msgstr ""
+msgstr "Audiospeler"
 
 #: includes/elements/audio-player.php:23
 msgid "Audio File (Media Library)"
-msgstr ""
+msgstr "Audiobestand (mediabibliotheek)"
 
 #: includes/elements/audio-player.php:29
 msgid "Audio URL (Manual)"
-msgstr ""
+msgstr "Audio-URL (handmatig)"
 
 #: includes/elements/audio-player.php:32
 msgid "Enter a direct URL to your audio file. This will override the Media Library selection."
-msgstr ""
+msgstr "Voer een directe URL naar uw audiobestand in. Dit overschrijft de selectie uit de mediabibliotheek."
 
 #: includes/elements/audio-player.php:37
 #: includes/elements/dynamic-pdf.php:29
 msgid "Cover Image"
-msgstr ""
+msgstr "Omslagafbeelding"
 
 #: includes/elements/audio-player.php:43
 #: includes/elements/video-player.php:92
 msgid "Autoplay"
-msgstr ""
+msgstr "Automatisch afspelen"
 
 #: includes/elements/audio-player.php:50
 #: includes/elements/video-player.php:99
 msgid "Muted"
-msgstr ""
+msgstr "Gedempt"
 
 #: includes/elements/audio-player.php:57
 msgid "Audio Chapters"
-msgstr ""
+msgstr "Audiohoofdstukken"
 
 #: includes/elements/audio-player.php:64 includes/elements/query.php:120
 #: includes/features/post-types-settings.php:179
 #: includes/features/post-types-settings.php:25
 msgid "Title"
-msgstr ""
+msgstr "Titel"
 
 #: includes/elements/audio-player.php:65
 msgid "Time (e.g., 1:45)"
-msgstr ""
+msgstr "Tijd (bijv. 1:45)"
 
 #: includes/elements/audio-player.php:71
 #: includes/elements/video-player.php:153
 msgid "Player Height"
-msgstr ""
+msgstr "Hoogte van de speler"
 
 #: includes/elements/audio-player.php:79
 #: includes/elements/video-player.php:167
 msgid "Player Max Width"
-msgstr ""
+msgstr "Maximale breedte van de speler"
 
 #: includes/elements/audio-player.php:88
 msgid "Player Background"
-msgstr ""
+msgstr "Achtergrond van de speler"
 
 #: includes/elements/audio-player.php:95
 #: includes/elements/video-player.php:196
 msgid "Primary Accent"
-msgstr ""
+msgstr "Primair accent"
 
 #: includes/elements/audio-player.php:102
 #: includes/elements/video-player.php:210
 msgid "Text & Icons Color"
-msgstr ""
+msgstr "Kleur van tekst en pictogrammen"
 
 #: includes/elements/audio-player.php:110
 #: includes/elements/profile-settings.php:178
 msgid "Button Background"
-msgstr ""
+msgstr "Achtergrond van de knop"
 
 #: includes/elements/audio-player.php:117
 #: includes/elements/video-player.php:217
 msgid "Slider Track"
-msgstr ""
+msgstr "Schuifbalkspoor"
 
 #: includes/elements/audio-player.php:124
 #: includes/elements/video-player.php:224
 msgid "Chapter Dot"
-msgstr ""
+msgstr "Hoofdstukpunt"
 
 #: includes/elements/audio-player.php:131
 #: includes/elements/video-player.php:231
 msgid "Button Hover BG"
-msgstr ""
+msgstr "Achtergrond bij hover op knop"
 
 #: includes/elements/breadcrumbs.php:16
 msgid "SNN Breadcrumbs"
-msgstr ""
+msgstr "SNN-broodkruimel"
 
 #: includes/elements/breadcrumbs.php:23
 msgid "Breadcrumb Items"
-msgstr ""
+msgstr "Broodkruimelitems"
 
 #: includes/elements/breadcrumbs.php:26
 msgid "Breadcrumb Item"
-msgstr ""
+msgstr "Broodkruimelitem"
 
 #: includes/elements/breadcrumbs.php:47
 msgid "Item Type"
-msgstr ""
+msgstr "Itemtype"
 
 #: includes/elements/breadcrumbs.php:50
 msgid "Home"
-msgstr ""
+msgstr "Home"
 
 #: includes/elements/breadcrumbs.php:51
 msgid "Current Post Title"
-msgstr ""
+msgstr "Titel van huidig bericht"
 
 #: includes/elements/breadcrumbs.php:52
 msgid "All Post Ancestors (Recursive)"
-msgstr ""
+msgstr "Alle voorouderberichten (recursief)"
 
 #: includes/elements/breadcrumbs.php:53
 msgid "Post Type Archive"
-msgstr ""
+msgstr "Archief van berichttype"
 
 #: includes/elements/breadcrumbs.php:54
 msgid "Current Post Type Archive"
-msgstr ""
+msgstr "Archief van huidig berichttype"
 
 #: includes/elements/breadcrumbs.php:55
 msgid "Current Term (Auto Detect)"
-msgstr ""
+msgstr "Huidige term (automatisch gedetecteerd)"
 
 #: includes/elements/breadcrumbs.php:56
 msgid "All Term Ancestors (Recursive)"
-msgstr ""
+msgstr "Alle voorouderentermen (recursief)"
 
 #: includes/elements/breadcrumbs.php:57
 msgid "Current Category"
-msgstr ""
+msgstr "Huidige categorie"
 
 #: includes/elements/breadcrumbs.php:58
 msgid "All Category Ancestors (Recursive)"
-msgstr ""
+msgstr "Alle voorouderscategorieën (recursief)"
 
 #: includes/elements/breadcrumbs.php:59
 msgid "Current Tag"
-msgstr ""
+msgstr "Huidige tag"
 
 #: includes/elements/breadcrumbs.php:60
 msgid "Custom Taxonomy Term"
-msgstr ""
+msgstr "Aangepaste taxonomieterm"
 
 #: includes/elements/breadcrumbs.php:61
 msgid "Post Author"
-msgstr ""
+msgstr "Berichtauteur"
 
 #: includes/elements/breadcrumbs.php:62
 msgid "Author Archive Link"
-msgstr ""
+msgstr "Link naar auteurarchief"
 
 #: includes/elements/breadcrumbs.php:63
 msgid "Date Archive - Year"
-msgstr ""
+msgstr "Datumarchief - jaar"
 
 #: includes/elements/breadcrumbs.php:64
 msgid "Date Archive - Month"
-msgstr ""
+msgstr "Datumarchief - maand"
 
 #: includes/elements/breadcrumbs.php:65
 msgid "Date Archive - Day"
-msgstr ""
+msgstr "Datumarchief - dag"
 
 #: includes/elements/breadcrumbs.php:66
 #: includes/features/search-loggins.php:221
 #: includes/features/search-loggins.php:284
 msgid "Search Query"
-msgstr ""
+msgstr "Zoekopdracht"
 
 #: includes/elements/breadcrumbs.php:67
 msgid "Search Results Label"
-msgstr ""
+msgstr "Label voor zoekresultaten"
 
 #: includes/elements/breadcrumbs.php:68
 msgid "404 Page"
-msgstr ""
+msgstr "404-pagina"
 
 #: includes/elements/breadcrumbs.php:69
 msgid "Blog Page"
-msgstr ""
+msgstr "Blogpagina"
 
 #: includes/elements/breadcrumbs.php:70
 msgid "Shop Page (WooCommerce)"
-msgstr ""
+msgstr "Winkelpagina (WooCommerce)"
 
 #: includes/elements/breadcrumbs.php:71
 msgid "Product Categories (WooCommerce)"
-msgstr ""
+msgstr "Productcategorieën (WooCommerce)"
 
 #: includes/elements/breadcrumbs.php:72
 msgid "Pagination (Page X)"
-msgstr ""
+msgstr "Paginering (pagina X)"
 
 #: includes/elements/breadcrumbs.php:73
 msgid "bbPress Forum"
-msgstr ""
+msgstr "bbPress-forum"
 
 #: includes/elements/breadcrumbs.php:74
 msgid "bbPress Topic"
-msgstr ""
+msgstr "bbPress-onderwerp"
 
 #: includes/elements/breadcrumbs.php:103
 #: includes/elements/breadcrumbs.php:75
 msgid "Custom Text"
-msgstr ""
+msgstr "Aangepaste tekst"
 
 #: includes/elements/breadcrumbs.php:76
 msgid "Custom Link"
-msgstr ""
+msgstr "Aangepaste link"
 
 #: includes/elements/breadcrumbs.php:81
 msgid "Custom Home Text"
-msgstr ""
+msgstr "Aangepaste starttekst"
 
 #: includes/elements/breadcrumbs.php:83
 msgid "Leave empty for site name"
-msgstr ""
+msgstr "Laat leeg om de sitenaam te gebruiken"
 
 #: includes/elements/breadcrumbs.php:87
 #: includes/features/taxonomy-settings.php:202
 #: includes/features/taxonomy-settings.php:98
 msgid "Taxonomy Slug"
-msgstr ""
+msgstr "Taxonomieslug"
 
 #: includes/elements/breadcrumbs.php:89
 msgid "e.g., product_cat, genre"
-msgstr ""
+msgstr "bijv. product_cat, genre"
 
 #: includes/elements/breadcrumbs.php:93
 #: includes/elements/custom-maps.php:59
 #: includes/elements/image-hotspot.php:138
 #: includes/elements/text-action-social-share.php:48
 msgid "Icon"
-msgstr ""
+msgstr "Pictogram"
 
 #: includes/elements/breadcrumbs.php:98
 msgid "Show Icon"
-msgstr ""
+msgstr "Pictogram weergeven"
 
 #: includes/elements/breadcrumbs.php:105
 msgid "Enter custom text"
-msgstr ""
+msgstr "Voer aangepaste tekst in"
 
 #: includes/elements/breadcrumbs.php:109
 msgid "Custom URL"
-msgstr ""
+msgstr "Aangepaste URL"
 
 #: includes/elements/breadcrumbs.php:111
 msgid "Enter custom URL"
-msgstr ""
+msgstr "Voer aangepaste URL in"
 
 #: includes/elements/breadcrumbs.php:120
 msgid "Separator"
-msgstr ""
+msgstr "Scheidingsteken"
 
 #: includes/elements/breadcrumbs.php:133
 msgid "Separator Icon"
-msgstr ""
+msgstr "Pictogram voor scheidingsteken"
 
 #: includes/elements/breadcrumbs.php:158
 #: includes/features/mail-customizer.php:261
 msgid "Link Color"
-msgstr ""
+msgstr "Linkkleur"
 
 #: includes/elements/breadcrumbs.php:171
 msgid "Link Hover Color"
-msgstr ""
+msgstr "Linkkleur bij hover"
 
 #: includes/elements/breadcrumbs.php:184
 msgid "Current Item Color"
-msgstr ""
+msgstr "Kleur van huidig item"
 
 #: includes/elements/breadcrumbs.php:197
 msgid "Separator Spacing"
-msgstr ""
+msgstr "Ruimte rond scheidingsteken"
 
 #: includes/elements/breadcrumbs.php:214
 msgid "Icon Size"
-msgstr ""
+msgstr "Pictogramgrootte"
 
 #: includes/elements/breadcrumbs.php:228
 msgid "Icon Spacing"
-msgstr ""
+msgstr "Ruimte rond pictogram"
 
 #: includes/elements/breadcrumbs.php:243
 msgid "Enable Schema.org Markup"
-msgstr ""
+msgstr "Schema.org-markup inschakelen"
 
 #: includes/elements/breadcrumbs.php:251
 msgid "Max Title Length"
-msgstr ""
+msgstr "Maximale titellengte"
 
 #: includes/elements/breadcrumbs.php:255
 msgid "0 = No limit"
-msgstr ""
+msgstr "0 = geen limiet"
 
 #: includes/elements/breadcrumbs.php:592
 msgid "Search Results"
-msgstr ""
+msgstr "Zoekresultaten"
 
 #: includes/elements/breadcrumbs.php:601
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - pagina niet gevonden"
 
 #: includes/elements/breadcrumbs.php:670
 #, php-format
 msgid "Page %s"
-msgstr ""
+msgstr "Pagina %s"
 
 #: includes/elements/breadcrumbs.php:752
 msgid "No breadcrumb items defined."
-msgstr ""
+msgstr "Geen broodkruimelitems gedefinieerd."
 
 #: includes/elements/comment-form.php:19
 msgid "Comment Form"
-msgstr ""
+msgstr "Reactieformulier"
 
 #: includes/elements/comment-form.php:28
 #: includes/elements/frontend-post-form.php:69
 msgid "Submit button label"
-msgstr ""
+msgstr "Label van verzendknop"
 
 #: includes/elements/comment-form.php:186
 #: includes/elements/comment-form.php:30
 #: includes/elements/comment-form.php:31
 msgid "Post Comment"
-msgstr ""
+msgstr "Reactie plaatsen"
 
 #: includes/elements/comment-form.php:37
 msgid "Enable media upload"
-msgstr ""
+msgstr "Media-upload inschakelen"
 
 #: includes/elements/comment-form.php:45
 msgid "Show Website input"
-msgstr ""
+msgstr "Website-invoerveld weergeven"
 
 #: includes/elements/comment-form.php:53
 msgid "Hide “logged-in as” info"
-msgstr ""
+msgstr "\"Ingelogd als\"-info verbergen"
 
 #: includes/elements/comment-form.php:61
 msgid "Reply title"
-msgstr ""
+msgstr "Titel van antwoord"
 
 #: includes/elements/comment-form.php:189
 #: includes/elements/comment-form.php:63
 #: includes/elements/comment-form.php:64
 msgid "Leave a Reply"
-msgstr ""
+msgstr "Een antwoord achterlaten"
 
 #: includes/elements/comment-form.php:70
 msgid "Enable rating"
-msgstr ""
+msgstr "Beoordeling inschakelen"
 
 #: includes/elements/comment-form.php:74
 msgid "Show 5-star rating selector. Rating is saved to comment custom field: snn_rating_comment"
-msgstr ""
+msgstr "Toon een selector voor beoordeling met 5 sterren. De beoordeling wordt opgeslagen in het aangepaste reactieveld: snn_rating_comment"
 
 #: includes/elements/comment-form.php:81
 #: includes/elements/frontend-post-form.php:163
 msgid "Button typography"
-msgstr ""
+msgstr "Typografie van de knop"
 
 #: includes/elements/comment-form.php:93
 #: includes/elements/frontend-post-form.php:175
 msgid "Button background"
-msgstr ""
+msgstr "Achtergrond van de knop"
 
 #: includes/elements/comment-form.php:106
 #: includes/elements/frontend-post-form.php:188
 msgid "Toolbar background"
-msgstr ""
+msgstr "Achtergrond van de werkbalk"
 
 #: includes/elements/comment-form.php:119
 #: includes/elements/frontend-post-form.php:201
 msgid "Toolbar text color"
-msgstr ""
+msgstr "Tekstkleur van de werkbalk"
 
 #: includes/elements/comment-form.php:132
 #: includes/elements/frontend-post-form.php:214
 msgid "Toolbar button background"
-msgstr ""
+msgstr "Achtergrond van de werkbalkknop"
 
 #: includes/elements/comment-form.php:146
 #: includes/elements/frontend-post-form.php:228
 msgid "Editor background"
-msgstr ""
+msgstr "Achtergrond van de editor"
 
 #: includes/elements/comment-form.php:159
 #: includes/elements/frontend-post-form.php:241
 msgid "Editor text color"
-msgstr ""
+msgstr "Tekstkleur van de editor"
 
 #: includes/elements/comment-form.php:172
 msgid "Button padding"
-msgstr ""
+msgstr "Padding van de knop"
 
 #: includes/elements/comment-form.php:208
 msgid "Error: Unable to determine post ID."
-msgstr ""
+msgstr "Fout: kan het bericht-ID niet bepalen."
 
 #: includes/elements/comment-form.php:237
 msgid "You already rated."
-msgstr ""
+msgstr "U heeft al beoordeeld."
 
 #: includes/elements/comment-form.php:291
 msgid "Name"
-msgstr ""
+msgstr "Naam"
 
 #: includes/elements/comment-form.php:296
 #: includes/elements/profile-settings.php:40
@@ -2212,15 +2212,15 @@ msgstr ""
 #: includes/features/custom-field-settings.php:160
 #: includes/features/custom-field-settings.php:424
 msgid "Email"
-msgstr ""
+msgstr "E-mail"
 
 #: includes/elements/comment-form.php:303
 msgid "Website"
-msgstr ""
+msgstr "Website"
 
 #: includes/elements/comment-form.php:312
 msgid "Rating"
-msgstr ""
+msgstr "Beoordeling"
 
 #: includes/elements/comment-form.php:674
 #: includes/features/custom-code-snippets.php:1978
@@ -2232,433 +2232,433 @@ msgstr ""
 #: includes/features/media-image-opt.php:3352
 #: includes/features/role-manager.php:759
 msgid "Permission denied."
-msgstr ""
+msgstr "Toegang geweigerd."
 
 #: includes/elements/comment-form.php:677
 msgid "No file received."
-msgstr ""
+msgstr "Geen bestand ontvangen."
 
 #: includes/elements/comment-list.php:17
 msgid "Comment List"
-msgstr ""
+msgstr "Reactielijst"
 
 #: includes/elements/comment-list.php:22
 msgid "Avatar size"
-msgstr ""
+msgstr "Avatargrootte"
 
 #: includes/elements/comment-list.php:31
 #: includes/features/post-types-settings.php:815
 msgid "Order"
-msgstr ""
+msgstr "Volgorde"
 
 #: includes/elements/comment-list.php:39
 msgid "Number of comments"
-msgstr ""
+msgstr "Aantal reacties"
 
 #: includes/elements/comment-list.php:42
 msgid "WordPress default"
-msgstr ""
+msgstr "WordPress-standaard"
 
 #: includes/elements/comment-list.php:46
 msgid "Enable inline edit"
-msgstr ""
+msgstr "Inline bewerken inschakelen"
 
 #: includes/elements/comment-list.php:53
 msgid "Show ratings"
-msgstr ""
+msgstr "Beoordelingen weergeven"
 
 #: includes/elements/comment-list.php:57
 msgid "Display star ratings from comment custom field: snn_rating_comment"
-msgstr ""
+msgstr "Toon sterbeoordelingen uit het aangepaste reactieveld: snn_rating_comment"
 
 #: includes/elements/comment-list.php:61
 msgid "Comment typography"
-msgstr ""
+msgstr "Typografie van de reactie"
 
 #: includes/elements/comment-list.php:72
 msgid "Moderation notice text"
-msgstr ""
+msgstr "Tekst voor moderatiemelding"
 
 #: includes/elements/comment-list.php:74
 #: includes/elements/comment-list.php:75
 #: includes/elements/comment-list.php:96
 msgid "Your comment is saved and waiting for approval."
-msgstr ""
+msgstr "Uw reactie is opgeslagen en wacht op goedkeuring."
 
 #: includes/elements/compare-image.php:17
 msgid "Compare Image"
-msgstr ""
+msgstr "Afbeeldingen vergelijken"
 
 #: includes/elements/compare-image.php:28
 msgid "Left Image"
-msgstr ""
+msgstr "Linkerafbeelding"
 
 #: includes/elements/compare-image.php:35
 msgid "Right Image"
-msgstr ""
+msgstr "Rechterafbeelding"
 
 #: includes/elements/compare-image.php:42
 msgid "Left Label"
-msgstr ""
+msgstr "Linkerlabel"
 
 #: includes/elements/compare-image.php:44
 msgid "Original"
-msgstr ""
+msgstr "Origineel"
 
 #: includes/elements/compare-image.php:50
 msgid "Right Label"
-msgstr ""
+msgstr "Rechterlabel"
 
 #: includes/elements/compare-image.php:52
 msgid "Modified"
-msgstr ""
+msgstr "Gewijzigd"
 
 #: includes/elements/compare-image.php:58
 msgid "Slider Icon"
-msgstr ""
+msgstr "Schuifpictogram"
 
 #: includes/elements/compare-image.php:69
 msgid "Slider Icon Color"
-msgstr ""
+msgstr "Kleur van schuifpictogram"
 
 #: includes/elements/compare-image.php:86
 msgid "Slider Button Background Color"
-msgstr ""
+msgstr "Achtergrondkleur van schuifknop"
 
 #: includes/elements/conditions.php:28
 msgid "Conditions (Nestable)"
-msgstr ""
+msgstr "Voorwaarden (nestbaar)"
 
 #: includes/elements/conditions.php:37
 msgid "Custom Selector (optional)"
-msgstr ""
+msgstr "Aangepaste selector (optioneel)"
 
 #: includes/elements/conditions.php:39
 msgid "Any valid DOM selector. If set, conditions apply to target(s) instead of this element."
-msgstr ""
+msgstr "Elke geldige DOM-selector. Indien ingesteld, gelden de voorwaarden voor het/de doel(en) in plaats van dit element."
 
 #: includes/elements/conditions.php:46
 msgid "Show once"
-msgstr ""
+msgstr "Eenmalig weergeven"
 
 #: includes/elements/conditions.php:53
 msgid "Max views (global)"
-msgstr ""
+msgstr "Maximale weergaven (algemeen)"
 
 #: includes/elements/conditions.php:62
 msgid "Views per session"
-msgstr ""
+msgstr "Weergaven per sessie"
 
 #: includes/elements/conditions.php:71
 msgid "Delay (sec)"
-msgstr ""
+msgstr "Vertraging (sec)"
 
 #: includes/elements/conditions.php:80
 msgid "Cooldown (sec)"
-msgstr ""
+msgstr "Afkoeltijd (sec)"
 
 #: includes/elements/conditions.php:89
 msgid "Start date"
-msgstr ""
+msgstr "Startdatum"
 
 #: includes/elements/conditions.php:105
 msgid "End date"
-msgstr ""
+msgstr "Einddatum"
 
 #: includes/elements/conditions.php:120
 msgid "Condition key ="
-msgstr ""
+msgstr "Voorwaardesleutel ="
 
 #: includes/elements/conditions.php:126
 msgid "= Condition value"
-msgstr ""
+msgstr "= Voorwaardewaarde"
 
 #: includes/elements/conditions.php:134
 msgid "Device / OS"
-msgstr ""
+msgstr "Apparaat / OS"
 
 #: includes/elements/conditions.php:139 includes/elements/query.php:313
 #: includes/elements/query.php:36 includes/elements/query.php:64
 msgid "Any"
-msgstr ""
+msgstr "Alle"
 
 #: includes/elements/conditions.php:140
 msgid "Desktop"
-msgstr ""
+msgstr "Desktop"
 
 #: includes/elements/conditions.php:141
 msgid "Mobile"
-msgstr ""
+msgstr "Mobiel"
 
 #: includes/elements/conditions.php:142
 msgid "Windows"
-msgstr ""
+msgstr "Windows"
 
 #: includes/elements/conditions.php:143
 msgid "macOS"
-msgstr ""
+msgstr "macOS"
 
 #: includes/elements/conditions.php:144
 msgid "iOS"
-msgstr ""
+msgstr "iOS"
 
 #: includes/elements/conditions.php:145
 msgid "Android"
-msgstr ""
+msgstr "Android"
 
 #: includes/elements/conditions.php:153
 msgid "Referrer contains (comma-separated)"
-msgstr ""
+msgstr "Verwijzer bevat (komma-gescheiden)"
 
 #: includes/elements/conditions.php:161
 msgid "URL contains (comma-separated)"
-msgstr ""
+msgstr "URL bevat (komma-gescheiden)"
 
 #: includes/elements/conditions.php:169
 msgid "User Roles"
-msgstr ""
+msgstr "Gebruikersrollen"
 
 #: includes/elements/conditions.php:180
 msgid "Custom Code Action"
-msgstr ""
+msgstr "Aangepaste code-actie"
 
 #: includes/elements/conditions.php:184
 msgid "Custom code (CSS, JS, or HTML). Will be rendered if all conditions pass. Safe: JS is output in a <script> tag, CSS in <style>, HTML direct. Don’t include <script> or <style> tags in the code."
-msgstr ""
+msgstr "Aangepaste code (CSS, JS of HTML). Wordt weergegeven als aan alle voorwaarden wordt voldaan. Veilig: JS wordt uitgevoerd in een <script>-tag, CSS in <style>, HTML direct. Neem geen <script>- of <style>-tags op in de code."
 
 #: includes/elements/conditions.php:440
 msgid "Guest"
-msgstr ""
+msgstr "Gast"
 
 #: includes/elements/cursor.php:17
 msgid "Custom Cursor"
-msgstr ""
+msgstr "Aangepaste cursor"
 
 #: includes/elements/cursor.php:24
 msgid "Default Body Cursor Size"
-msgstr ""
+msgstr "Standaardgrootte van de body-cursor"
 
 #: includes/elements/cursor.php:35
 msgid "Default Cursor Color"
-msgstr ""
+msgstr "Standaardkleur van de cursor"
 
 #: includes/elements/cursor.php:44
 msgid "Default Cursor Border"
-msgstr ""
+msgstr "Standaardrand van de cursor"
 
 #: includes/elements/cursor.php:70
 msgid "Cursor Speed"
-msgstr ""
+msgstr "Cursorsnelheid"
 
 #: includes/elements/cursor.php:80
 msgid "Cursor Z-Index"
-msgstr ""
+msgstr "Z-index van de cursor"
 
 #: includes/elements/cursor.php:90
 msgid "Cursor Aspect Ratio"
-msgstr ""
+msgstr "Beeldverhouding van de cursor"
 
 #: includes/elements/cursor.php:100
 msgid "Hide Native Browser Cursor"
-msgstr ""
+msgstr "Native browsercursor verbergen"
 
 #: includes/elements/cursor.php:103
 msgid "When enabled, the native browser cursor is hidden everywhere, per-element hover cursors will still show"
-msgstr ""
+msgstr "Indien ingeschakeld, wordt de native browsercursor overal verborgen; hovercursors per element blijven wel zichtbaar"
 
 #: includes/elements/cursor.php:109
 msgid "Disable Cursor Below 991px"
-msgstr ""
+msgstr "Cursor uitschakelen onder 991px"
 
 #: includes/elements/cursor.php:112
 msgid "Disables the custom cursor on tablet and mobile (≤ 991px)."
-msgstr ""
+msgstr "Schakelt de aangepaste cursor uit op tablet en mobiel (≤ 991px)."
 
 #: includes/elements/cursor.php:117
 msgid "Disable Cursor Below 767px"
-msgstr ""
+msgstr "Cursor uitschakelen onder 767px"
 
 #: includes/elements/cursor.php:120
 msgid "Disables the custom cursor on small tablet and mobile (≤ 767px)."
-msgstr ""
+msgstr "Schakelt de aangepaste cursor uit op kleine tablet en mobiel (≤ 767px)."
 
 #: includes/elements/cursor.php:125
 msgid "Disable Cursor Below 478px"
-msgstr ""
+msgstr "Cursor uitschakelen onder 478px"
 
 #: includes/elements/cursor.php:128
 msgid "Disables the custom cursor on mobile (≤ 478px)."
-msgstr ""
+msgstr "Schakelt de aangepaste cursor uit op mobiel (≤ 478px)."
 
 #: includes/elements/cursor.php:134
 msgid "Hover Cursors"
-msgstr ""
+msgstr "Hovercursors"
 
 #: includes/elements/cursor.php:140
 msgid "Cursor Selector"
-msgstr ""
+msgstr "Cursorselector"
 
 #: includes/elements/cursor.php:143
 msgid "CSS selector for the DOM element that will BE the cursor (e.g., .project-hover, .karriere-hover)"
-msgstr ""
+msgstr "CSS-selector voor het DOM-element dat de cursor ZAL zijn (bijv. .project-hover, .karriere-hover)"
 
 #: includes/elements/cursor.php:146
 msgid "Target Hover Selector"
-msgstr ""
+msgstr "Selector voor hoverdoel"
 
 #: includes/elements/cursor.php:149
 msgid "CSS selector for elements that when hovered will show this cursor (e.g., .project, #brxe-vzibxz)"
-msgstr ""
+msgstr "CSS-selector voor elementen die bij hover deze cursor tonen (bijv. .project, #brxe-vzibxz)"
 
 #: includes/elements/cursor.php:152
 msgid "Cursor X Position"
-msgstr ""
+msgstr "X-positie van de cursor"
 
 #: includes/elements/cursor.php:156
 msgid "Horizontal offset from center in pixels"
-msgstr ""
+msgstr "Horizontale verschuiving vanaf het midden in pixels"
 
 #: includes/elements/cursor.php:160
 msgid "Cursor Y Position"
-msgstr ""
+msgstr "Y-positie van de cursor"
 
 #: includes/elements/cursor.php:164
 msgid "Vertical offset from center in pixels"
-msgstr ""
+msgstr "Verticale verschuiving vanaf het midden in pixels"
 
 #: includes/elements/cursor.php:168
 msgid "Hide Default Cursor"
-msgstr ""
+msgstr "Standaardcursor verbergen"
 
 #: includes/elements/cursor.php:171
 msgid "When enabled, the default cursor will be hidden and only this custom cursor will be shown on hover."
-msgstr ""
+msgstr "Indien ingeschakeld, wordt de standaardcursor verborgen en wordt bij hover alleen deze aangepaste cursor getoond."
 
 #: includes/elements/custom-maps.php:22
 msgid "Enable Scroll Zoom"
-msgstr ""
+msgstr "Scrollzoom inschakelen"
 
 #: includes/elements/custom-maps.php:38
 msgid "Latitude"
-msgstr ""
+msgstr "Breedtegraad"
 
 #: includes/elements/custom-maps.php:46
 msgid "Longitude"
-msgstr ""
+msgstr "Lengtegraad"
 
 #: includes/elements/custom-maps.php:54
 msgid "Popup Text"
-msgstr ""
+msgstr "Pop-uptekst"
 
 #: includes/elements/custom-maps.php:67
 #: includes/elements/image-hotspot.php:142
 msgid "Icon Size (px)"
-msgstr ""
+msgstr "Pictogramgrootte (px)"
 
 #: includes/elements/custom-maps.php:82
 #: includes/elements/image-hotspot.php:151
 msgid "Icon Color"
-msgstr ""
+msgstr "Pictogramkleur"
 
 #: includes/elements/custom-maps.php:95
 msgid "Map Center Latitude"
-msgstr ""
+msgstr "Breedtegraad van kaartmiddelpunt"
 
 #: includes/elements/custom-maps.php:105
 msgid "Map Center Longitude"
-msgstr ""
+msgstr "Lengtegraad van kaartmiddelpunt"
 
 #: includes/elements/custom-maps.php:115
 msgid "Zoom Level"
-msgstr ""
+msgstr "Zoomniveau"
 
 #: includes/elements/custom-maps.php:125
 msgid "Map Height"
-msgstr ""
+msgstr "Hoogte van de kaart"
 
 #: includes/elements/custom-maps.php:141
 msgid "Popup Font Size"
-msgstr ""
+msgstr "Lettergrootte van pop-up"
 
 #: includes/elements/custom-maps.php:158
 msgid "Map Style"
-msgstr ""
+msgstr "Kaartstijl"
 
 #: includes/elements/custom-maps.php:171
 msgid "Leaflet Pane Filters"
-msgstr ""
+msgstr "Leaflet-paneelfilters"
 
 #: includes/elements/custom-maps.php:185
 msgid "Use Post Type for Markers"
-msgstr ""
+msgstr "Berichttype gebruiken voor markeringen"
 
 #: includes/elements/custom-maps.php:189
 msgid "Enable to populate map markers from a custom post type. Uses custom fields: location_latitude, location_longitude"
-msgstr ""
+msgstr "Schakel in om kaartmarkeringen te vullen vanuit een aangepast berichttype. Gebruikt aangepaste velden: location_latitude, location_longitude"
 
 #: includes/elements/custom-maps.php:202
 msgid "Select Post Type"
-msgstr ""
+msgstr "Berichttype selecteren"
 
 #: includes/elements/custom-maps.php:206
 msgid "Select post type"
-msgstr ""
+msgstr "Berichttype selecteren"
 
 #: includes/elements/dynamic-pdf.php:16
 msgid "Dynamic PDF Embed"
-msgstr ""
+msgstr "Dynamische PDF-insluiting"
 
 #: includes/elements/dynamic-pdf.php:22
 msgid "PDF File"
-msgstr ""
+msgstr "PDF-bestand"
 
 #: includes/elements/dynamic-pdf.php:24
 msgid "Enter the full PDF URL"
-msgstr ""
+msgstr "Voer de volledige PDF-URL in"
 
 #: includes/elements/dynamic-pdf.php:31
 msgid "Leave empty to auto-load PDF"
-msgstr ""
+msgstr "Laat leeg om de PDF automatisch te laden"
 
 #: includes/elements/dynamic-pdf.php:36
 msgid "Chevron Color"
-msgstr ""
+msgstr "Chevron-kleur"
 
 #: includes/elements/dynamic-pdf.php:46
 msgid "Chevron Size"
-msgstr ""
+msgstr "Chevron-grootte"
 
 #: includes/elements/dynamic-pdf.php:55
 msgid "Left Arrow Icon"
-msgstr ""
+msgstr "Pictogram linkerpijl"
 
 #: includes/elements/dynamic-pdf.php:65
 msgid "Right Arrow Icon"
-msgstr ""
+msgstr "Pictogram rechterpijl"
 
 #: includes/elements/dynamic-pdf.php:75
 msgid "Display Two Pages"
-msgstr ""
+msgstr "Twee pagina's weergeven"
 
 #: includes/elements/dynamic-pdf.php:128
 msgid "No PDF URL provided."
-msgstr ""
+msgstr "Geen PDF-URL opgegeven."
 
 #: includes/elements/dynamic-pdf.php:129
 msgid "Please add a PDF URL in the element settings."
-msgstr ""
+msgstr "Voeg een PDF-URL toe in de elementinstellingen."
 
 #: includes/elements/element-event-action-selector.php:19
 msgid "Event ⇄ Action"
-msgstr ""
+msgstr "Gebeurtenis ⇄ Actie"
 
 #: includes/elements/element-event-action-selector.php:87
 msgid "DOM selector (event trigger)"
-msgstr ""
+msgstr "DOM-selector (gebeurtenistrigger)"
 
 #: includes/elements/element-event-action-selector.php:95
 msgid "Event"
-msgstr ""
+msgstr "Gebeurtenis"
 
 #: includes/elements/element-event-action-selector.php:106
 #: includes/elements/text-action-social-share.php:39
@@ -2670,152 +2670,152 @@ msgstr ""
 #: includes/features/role-manager.php:531
 #: includes/features/role-manager.php:563
 msgid "Actions"
-msgstr ""
+msgstr "Acties"
 
 #: includes/elements/element-event-action-selector.php:109
 msgid "Select Action"
-msgstr ""
+msgstr "Actie selecteren"
 
 #: includes/elements/element-event-action-selector.php:112
 msgid "DOM selector (action target)"
-msgstr ""
+msgstr "DOM-selector (actiedoel)"
 
 #: includes/elements/element-event-action-selector.php:118
 #: includes/features/activity-logs.php:1754
 msgid "Action"
-msgstr ""
+msgstr "Actie"
 
 #: includes/elements/element-event-action-selector.php:126
 msgid "Class Name"
-msgstr ""
+msgstr "Klassenaam"
 
 #: includes/elements/element-event-action-selector.php:133
 msgid "Attribute Name"
-msgstr ""
+msgstr "Attribuutnaam"
 
 #: includes/elements/element-event-action-selector.php:140
 msgid "Attribute Value"
-msgstr ""
+msgstr "Attribuutwaarde"
 
 #: includes/elements/element-event-action-selector.php:147
 msgid "Replace HTML"
-msgstr ""
+msgstr "HTML vervangen"
 
 #: includes/elements/element-event-action-selector.php:153
 msgid "Append HTML"
-msgstr ""
+msgstr "HTML toevoegen aan einde"
 
 #: includes/elements/element-event-action-selector.php:159
 msgid "Prepend HTML"
-msgstr ""
+msgstr "HTML toevoegen aan begin"
 
 #: includes/elements/element-event-action-selector.php:165
 msgid "Style Property"
-msgstr ""
+msgstr "Stijleigenschap"
 
 #: includes/elements/element-event-action-selector.php:172
 msgid "Style Value"
-msgstr ""
+msgstr "Stijlwaarde"
 
 #: includes/elements/element-event-action-selector.php:179
 msgid "Custom Event Name"
-msgstr ""
+msgstr "Naam van aangepaste gebeurtenis"
 
 #: includes/elements/element-event-action-selector.php:185
 msgid "Custom JS Function Body"
-msgstr ""
+msgstr "Body van aangepaste JS-functie"
 
 #: includes/elements/element-event-action-selector.php:191
 msgid "Text Value"
-msgstr ""
+msgstr "Tekstwaarde"
 
 #: includes/elements/element-event-action-selector.php:197
 msgid "Download File URL"
-msgstr ""
+msgstr "URL van te downloaden bestand"
 
 #: includes/elements/element-event-action-selector.php:203
 msgid "Copy This Text"
-msgstr ""
+msgstr "Deze tekst kopiëren"
 
 #: includes/elements/element-event-action-selector.php:209
 msgid "Scroll Behavior"
-msgstr ""
+msgstr "Scrollgedrag"
 
 #: includes/elements/element-event-action-selector.php:216
 msgid "Scroll To Position"
-msgstr ""
+msgstr "Scrollen naar positie"
 
 #: includes/elements/element-event-action-selector.php:236
 msgid "Define trigger selector, event and at least one action."
-msgstr ""
+msgstr "Definieer de triggerselector, gebeurtenis en ten minste één actie."
 
 #: includes/elements/flip-box.php:19
 msgid "Flipbox (Nestable)"
-msgstr ""
+msgstr "Flipbox (nestbaar)"
 
 #: includes/elements/flip-box.php:27
 msgid "Flipbox Height"
-msgstr ""
+msgstr "Hoogte van de flipbox"
 
 #: includes/elements/flip-box.php:44
 msgid "Flipbox Perspective"
-msgstr ""
+msgstr "Perspectief van de flipbox"
 
 #: includes/elements/flip-box.php:53
 msgid "Flipbox Animation"
-msgstr ""
+msgstr "Animatie van de flipbox"
 
 #: includes/elements/flip-box.php:56
 msgid "Left to Right (Flip)"
-msgstr ""
+msgstr "Links naar rechts (omdraaien)"
 
 #: includes/elements/flip-box.php:57
 msgid "Right to Left (Flip)"
-msgstr ""
+msgstr "Rechts naar links (omdraaien)"
 
 #: includes/elements/flip-box.php:58
 msgid "Top to Bottom (Flip)"
-msgstr ""
+msgstr "Boven naar onder (omdraaien)"
 
 #: includes/elements/flip-box.php:59
 msgid "Bottom to Top (Flip)"
-msgstr ""
+msgstr "Onder naar boven (omdraaien)"
 
 #: includes/elements/flip-box.php:60
 msgid "Fade"
-msgstr ""
+msgstr "Vervagen"
 
 #: includes/elements/flip-box.php:61
 msgid "Spin Flip"
-msgstr ""
+msgstr "Draaiend omdraaien"
 
 #: includes/elements/flip-box.php:62
 msgid "Left to Right Slide"
-msgstr ""
+msgstr "Van links naar rechts schuiven"
 
 #: includes/elements/flip-box.php:63
 msgid "Right to Left Slide"
-msgstr ""
+msgstr "Van rechts naar links schuiven"
 
 #: includes/elements/flip-box.php:64
 msgid "Top to Down Slide"
-msgstr ""
+msgstr "Van boven naar onder schuiven"
 
 #: includes/elements/flip-box.php:65
 msgid "Bottom to Top Slide"
-msgstr ""
+msgstr "Van onder naar boven schuiven"
 
 #: includes/elements/frontend-post-form.php:14
 msgid "Frontend Post Form"
-msgstr ""
+msgstr "Frontend-berichtformulier"
 
 #: includes/elements/frontend-post-form.php:38
 msgid "Post type"
-msgstr ""
+msgstr "Berichttype"
 
 #: includes/elements/frontend-post-form.php:47
 msgid "Taxonomy (Optional)"
-msgstr ""
+msgstr "Taxonomie (optioneel)"
 
 #: includes/elements/frontend-post-form.php:49
 #: includes/elements/marquee-slider-carousel.php:179
@@ -2828,37 +2828,37 @@ msgstr ""
 #: includes/features/role-manager.php:527
 #: includes/features/smtp-settings.php:150
 msgid "None"
-msgstr ""
+msgstr "Geen"
 
 #: includes/elements/frontend-post-form.php:56
 msgid "Post status"
-msgstr ""
+msgstr "Berichtstatus"
 
 #: includes/elements/frontend-post-form.php:71
 msgid "Save Post"
-msgstr ""
+msgstr "Bericht opslaan"
 
 #: includes/elements/frontend-post-form.php:77
 msgid "Enable featured image"
-msgstr ""
+msgstr "Uitgelichte afbeelding inschakelen"
 
 #: includes/elements/frontend-post-form.php:85
 msgid "Guest warning text"
-msgstr ""
+msgstr "Waarschuwingstekst voor gasten"
 
 #: includes/elements/frontend-post-form.php:271
 #: includes/elements/frontend-post-form.php:87
 #: includes/elements/frontend-post-form.php:88
 msgid "You do not have permission to post."
-msgstr ""
+msgstr "U heeft geen toestemming om te plaatsen."
 
 #: includes/elements/frontend-post-form.php:94
 msgid "Allowed user roles"
-msgstr ""
+msgstr "Toegestane gebruikersrollen"
 
 #: includes/elements/frontend-post-form.php:100
 msgid "Select allowed roles"
-msgstr ""
+msgstr "Toegestane rollen selecteren"
 
 #: includes/elements/frontend-post-form.php:107
 #: includes/features/custom-field-settings.php:7
@@ -2868,11 +2868,11 @@ msgstr ""
 #: includes/features/post-types-settings.php:32
 #: includes/features/settings-page.php:33
 msgid "Custom Fields"
-msgstr ""
+msgstr "Aangepaste velden"
 
 #: includes/elements/frontend-post-form.php:110
 msgid "Add Custom Field"
-msgstr ""
+msgstr "Aangepast veld toevoegen"
 
 #: includes/elements/frontend-post-form.php:113
 #: includes/elements/profile-settings.php:34
@@ -2880,7 +2880,7 @@ msgstr ""
 #: includes/features/custom-field-settings.php:142
 #: includes/features/custom-field-settings.php:406
 msgid "Field Type"
-msgstr ""
+msgstr "Veldtype"
 
 #: includes/elements/frontend-post-form.php:116
 #: includes/elements/marquee-slider-carousel.php:34
@@ -2888,92 +2888,92 @@ msgstr ""
 #: includes/features/custom-field-settings.php:144
 #: includes/features/custom-field-settings.php:408
 msgid "Text"
-msgstr ""
+msgstr "Tekst"
 
 #: includes/elements/frontend-post-form.php:117
 #: includes/elements/profile-settings.php:92
 #: includes/features/custom-field-settings.php:147
 #: includes/features/custom-field-settings.php:411
 msgid "Textarea"
-msgstr ""
+msgstr "Tekstgebied"
 
 #: includes/elements/frontend-post-form.php:118
 #: includes/features/custom-field-settings.php:156
 #: includes/features/custom-field-settings.php:420
 msgid "Checkbox"
-msgstr ""
+msgstr "Selectievakje"
 
 #: includes/elements/frontend-post-form.php:123
 #: includes/elements/profile-settings.php:75
 #: includes/features/custom-field-settings.php:122
 #: includes/features/custom-field-settings.php:401
 msgid "Field Label"
-msgstr ""
+msgstr "Veldlabel"
 
 #: includes/elements/frontend-post-form.php:125
 msgid "Enter field label"
-msgstr ""
+msgstr "Voer veldlabel in"
 
 #: includes/elements/frontend-post-form.php:129
 msgid "Field Name (meta key)"
-msgstr ""
+msgstr "Veldnaam (metasleutel)"
 
 #: includes/elements/frontend-post-form.php:131
 msgid "custom_field_name"
-msgstr ""
+msgstr "custom_field_name"
 
 #: includes/elements/frontend-post-form.php:135
 #: includes/elements/profile-settings.php:102
 msgid "Placeholder"
-msgstr ""
+msgstr "Plaatshouder"
 
 #: includes/elements/frontend-post-form.php:137
 msgid "Enter placeholder text"
-msgstr ""
+msgstr "Voer plaatshoudertekst in"
 
 #: includes/elements/frontend-post-form.php:142
 msgid "Required Field"
-msgstr ""
+msgstr "Verplicht veld"
 
 #: includes/elements/frontend-post-form.php:147
 msgid "Default Checked"
-msgstr ""
+msgstr "Standaard aangevinkt"
 
 #: includes/elements/frontend-post-form.php:153
 msgid "Field Width"
-msgstr ""
+msgstr "Veldbreedte"
 
 #: includes/elements/frontend-post-form.php:155
 msgid "100% (e.g., 50%, 300px)"
-msgstr ""
+msgstr "100% (bijv. 50%, 300px)"
 
 #: includes/elements/gallery-and-thumbnails.php:17
 msgid "Image Gallery and Thumbnails"
-msgstr ""
+msgstr "Afbeeldingengalerij en miniaturen"
 
 #: includes/elements/gallery-and-thumbnails.php:24
 msgid "Images"
-msgstr ""
+msgstr "Afbeeldingen"
 
 #: includes/elements/gallery-and-thumbnails.php:26
 msgid "Select images from media library"
-msgstr ""
+msgstr "Afbeeldingen selecteren uit mediabibliotheek"
 
 #: includes/elements/gallery-and-thumbnails.php:32
 msgid "Thumbnail Position"
-msgstr ""
+msgstr "Positie van miniatuur"
 
 #: includes/elements/gallery-and-thumbnails.php:35
 #: includes/elements/image-hotspot.php:105
 #: includes/features/cookie-banner.php:1015
 msgid "Bottom"
-msgstr ""
+msgstr "Onder"
 
 #: includes/elements/gallery-and-thumbnails.php:36
 #: includes/elements/image-hotspot.php:103
 #: includes/features/cookie-banner.php:1017
 msgid "Top"
-msgstr ""
+msgstr "Boven"
 
 #: includes/elements/gallery-and-thumbnails.php:37
 #: includes/elements/image-hotspot.php:106
@@ -2981,7 +2981,7 @@ msgstr ""
 #: includes/features/accessibility-settings.php:334
 #: includes/features/cookie-banner.php:1004
 msgid "Left"
-msgstr ""
+msgstr "Links"
 
 #: includes/elements/gallery-and-thumbnails.php:38
 #: includes/elements/image-hotspot.php:104
@@ -2989,146 +2989,146 @@ msgstr ""
 #: includes/features/accessibility-settings.php:335
 #: includes/features/cookie-banner.php:1006
 msgid "Right"
-msgstr ""
+msgstr "Rechts"
 
 #: includes/elements/gallery-and-thumbnails.php:47
 #: includes/elements/marquee-slider-carousel.php:70
 msgid "Gap"
-msgstr ""
+msgstr "Ruimte"
 
 #: includes/elements/gallery-and-thumbnails.php:63
 msgid "Thumbnail Gap"
-msgstr ""
+msgstr "Ruimte tussen miniaturen"
 
 #: includes/elements/gallery-and-thumbnails.php:79
 msgid "Thumbnail Size"
-msgstr ""
+msgstr "Grootte van miniatuur"
 
 #: includes/elements/gallery-and-thumbnails.php:107
 msgid "Main Image Aspect Ratio"
-msgstr ""
+msgstr "Beeldverhouding van hoofdafbeelding"
 
 #: includes/elements/gallery-and-thumbnails.php:123
 msgid "Enable Thumbnail Zoom on Hover"
-msgstr ""
+msgstr "Miniatuurzoom bij hover inschakelen"
 
 #: includes/elements/gallery-and-thumbnails.php:304
 msgid "No image(s) selected."
-msgstr ""
+msgstr "Geen afbeeldingen geselecteerd."
 
 #: includes/elements/gsap-animations-code.php:18
 msgid "GSAP Animations CODE (Nestable)"
-msgstr ""
+msgstr "CODE voor GSAP-animaties (nestbaar)"
 
 #: includes/elements/gsap-animations-code.php:28
 msgid "GSAP data-animate CSS"
-msgstr ""
+msgstr "GSAP data-animate CSS"
 
 #: includes/elements/gsap-animations-code.php:32
 msgid "Enter your GSAP data-animate string. It will be output as the data-animate attribute."
-msgstr ""
+msgstr "Voer uw GSAP data-animate-string in. Deze wordt uitgevoerd als het data-animate-attribuut."
 
 #: includes/elements/gsap-animations.php:18
 msgid "GSAP Animations (Nestable)"
-msgstr ""
+msgstr "GSAP-animaties (nestbaar)"
 
 #: includes/elements/gsap-animations.php:46
 msgid "GSAP Animations"
-msgstr ""
+msgstr "GSAP-animaties"
 
 #: includes/elements/gsap-animations.php:69
 msgid "Animation"
-msgstr ""
+msgstr "Animatie"
 
 #: includes/elements/gsap-animations.php:72
 msgid "X Start"
-msgstr ""
+msgstr "Begin X"
 
 #: includes/elements/gsap-animations.php:77
 msgid "X End"
-msgstr ""
+msgstr "Einde X"
 
 #: includes/elements/gsap-animations.php:82
 msgid "Y Start"
-msgstr ""
+msgstr "Begin Y"
 
 #: includes/elements/gsap-animations.php:87
 msgid "Y End"
-msgstr ""
+msgstr "Einde Y"
 
 #: includes/elements/gsap-animations.php:92
 msgid "Scale Start"
-msgstr ""
+msgstr "Begin schaal"
 
 #: includes/elements/gsap-animations.php:97
 msgid "Scale End"
-msgstr ""
+msgstr "Einde schaal"
 
 #: includes/elements/gsap-animations.php:102
 msgid "Rotate Start"
-msgstr ""
+msgstr "Begin rotatie"
 
 #: includes/elements/gsap-animations.php:107
 msgid "Rotate End"
-msgstr ""
+msgstr "Einde rotatie"
 
 #: includes/elements/gsap-animations.php:112
 msgid "Opacity Start"
-msgstr ""
+msgstr "Begin dekking"
 
 #: includes/elements/gsap-animations.php:120
 msgid "Opacity End"
-msgstr ""
+msgstr "Einde dekking"
 
 #: includes/elements/gsap-animations.php:128
 msgid "Blur Start"
-msgstr ""
+msgstr "Begin vervaging"
 
 #: includes/elements/gsap-animations.php:133
 msgid "Blur End"
-msgstr ""
+msgstr "Einde vervaging"
 
 #: includes/elements/gsap-animations.php:138
 msgid "Grayscale Start (%)"
-msgstr ""
+msgstr "Begin grijstinten (%)"
 
 #: includes/elements/gsap-animations.php:146
 msgid "Grayscale End (%)"
-msgstr ""
+msgstr "Einde grijstinten (%)"
 
 #: includes/elements/gsap-animations.php:154
 msgid "Style Start (Custom CSS)"
-msgstr ""
+msgstr "Beginstijl (aangepaste CSS)"
 
 #: includes/elements/gsap-animations.php:157
 msgid "Enter custom CSS properties for start state (without selectors or braces)"
-msgstr ""
+msgstr "Voer aangepaste CSS-eigenschappen in voor de beginstatus (zonder selectors of accolades)"
 
 #: includes/elements/gsap-animations.php:160
 msgid "Style End (Custom CSS)"
-msgstr ""
+msgstr "Eindstijl (aangepaste CSS)"
 
 #: includes/elements/gsap-animations.php:163
 msgid "Enter custom CSS properties for end state (without selectors or braces)"
-msgstr ""
+msgstr "Voer aangepaste CSS-eigenschappen in voor de eindstatus (zonder selectors of accolades)"
 
 #: includes/elements/gsap-animations.php:170
 msgid "Loop / yoyo"
-msgstr ""
+msgstr "Loop / yoyo"
 
 #: includes/elements/gsap-animations.php:173
 #: includes/elements/gsap-animations.php:186
 #: includes/elements/gsap-animations.php:199
 #: includes/elements/gsap-animations.php:246
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 #: includes/elements/gsap-animations.php:174
 #: includes/elements/gsap-animations.php:187
 #: includes/elements/gsap-animations.php:200
 #: includes/elements/gsap-animations.php:247
 msgid "No"
-msgstr ""
+msgstr "Nee"
 
 #: includes/elements/gsap-animations.php:178
 #: includes/elements/gsap-animations.php:191
@@ -3146,1692 +3146,1692 @@ msgstr ""
 #: includes/features/custom-field-settings.php:2569
 #: includes/features/custom-field-settings.php:419
 msgid "Select"
-msgstr ""
+msgstr "Selecteren"
 
 #: includes/elements/gsap-animations.php:183
 #: includes/elements/gsap-text-animations.php:269
 msgid "Scroll"
-msgstr ""
+msgstr "Scrollen"
 
 #: includes/elements/gsap-animations.php:196
 #: includes/elements/gsap-text-animations.php:308
 msgid "Pin"
-msgstr ""
+msgstr "Vastzetten"
 
 #: includes/elements/gsap-animations.php:218
 msgid "Delay"
-msgstr ""
+msgstr "Vertraging"
 
 #: includes/elements/gsap-animations.php:227
 #: includes/elements/gsap-text-animations.php:330
 msgid "Scrub"
-msgstr ""
+msgstr "Scrub"
 
 #: includes/elements/gsap-animations.php:235
 #: includes/elements/gsap-text-animations.php:321
 msgid "Stagger"
-msgstr ""
+msgstr "Staffeling"
 
 #: includes/elements/gsap-animations.php:243
 #: includes/elements/gsap-text-animations.php:339
 msgid "Markers"
-msgstr ""
+msgstr "Markeringen"
 
 #: includes/elements/gsap-animations.php:256
 msgid "Scroll Start"
-msgstr ""
+msgstr "Begin scrollen"
 
 #: includes/elements/gsap-animations.php:263
 msgid "Scroll End"
-msgstr ""
+msgstr "Einde scrollen"
 
 #: includes/elements/gsap-multi-element-register.php:13
 msgid "Select Animation"
-msgstr ""
+msgstr "Animatie selecteren"
 
 #: includes/elements/gsap-multi-element-register.php:21
 msgid "Fade In "
-msgstr ""
+msgstr "Invagen "
 
 #: includes/elements/gsap-multi-element-register.php:22
 msgid "Fade Out "
-msgstr ""
+msgstr "Uitvagen "
 
 #: includes/elements/gsap-multi-element-register.php:24
 msgid "Fade In Down"
-msgstr ""
+msgstr "Invagen van onder"
 
 #: includes/elements/gsap-multi-element-register.php:177
 #: includes/elements/gsap-multi-element-register.php:25
 msgid "Fade Out Down"
-msgstr ""
+msgstr "Uitvagen naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:26
 msgid "Fade In Left"
-msgstr ""
+msgstr "Invagen van links"
 
 #: includes/elements/gsap-multi-element-register.php:27
 msgid "Fade Out Left"
-msgstr ""
+msgstr "Uitvagen naar links"
 
 #: includes/elements/gsap-multi-element-register.php:28
 msgid "Fade In Right"
-msgstr ""
+msgstr "Invagen van rechts"
 
 #: includes/elements/gsap-multi-element-register.php:29
 msgid "Fade Out Right"
-msgstr ""
+msgstr "Uitvagen naar rechts"
 
 #: includes/elements/gsap-multi-element-register.php:176
 #: includes/elements/gsap-multi-element-register.php:30
 msgid "Fade In Up"
-msgstr ""
+msgstr "Invagen van boven"
 
 #: includes/elements/gsap-multi-element-register.php:31
 msgid "Fade Out Up"
-msgstr ""
+msgstr "Uitvagen naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:32
 msgid "Fade In Top Left"
-msgstr ""
+msgstr "Invagen vanaf linksboven"
 
 #: includes/elements/gsap-multi-element-register.php:33
 msgid "Fade Out Top Left"
-msgstr ""
+msgstr "Uitvagen naar linksboven"
 
 #: includes/elements/gsap-multi-element-register.php:34
 msgid "Fade In Top Right"
-msgstr ""
+msgstr "Invagen vanaf rechtsboven"
 
 #: includes/elements/gsap-multi-element-register.php:35
 msgid "Fade Out Top Right"
-msgstr ""
+msgstr "Uitvagen naar rechtsboven"
 
 #: includes/elements/gsap-multi-element-register.php:36
 msgid "Fade In Bottom Left"
-msgstr ""
+msgstr "Invagen vanaf linksonder"
 
 #: includes/elements/gsap-multi-element-register.php:37
 msgid "Fade Out Bottom Left"
-msgstr ""
+msgstr "Uitvagen naar linksonder"
 
 #: includes/elements/gsap-multi-element-register.php:38
 msgid "Fade In Bottom Right"
-msgstr ""
+msgstr "Invagen vanaf rechtsonder"
 
 #: includes/elements/gsap-multi-element-register.php:39
 msgid "Fade Out Bottom Right"
-msgstr ""
+msgstr "Uitvagen naar rechtsonder"
 
 #: includes/elements/gsap-multi-element-register.php:42
 msgid "Zoom In"
-msgstr ""
+msgstr "Inzoomen"
 
 #: includes/elements/gsap-multi-element-register.php:43
 msgid "Zoom Out"
-msgstr ""
+msgstr "Uitzoomen"
 
 #: includes/elements/gsap-multi-element-register.php:44
 msgid "Zoom In Down"
-msgstr ""
+msgstr "Inzoomen van onder"
 
 #: includes/elements/gsap-multi-element-register.php:45
 msgid "Zoom Out Down"
-msgstr ""
+msgstr "Uitzoomen naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:46
 msgid "Zoom In Left"
-msgstr ""
+msgstr "Inzoomen van links"
 
 #: includes/elements/gsap-multi-element-register.php:47
 msgid "Zoom Out Left"
-msgstr ""
+msgstr "Uitzoomen naar links"
 
 #: includes/elements/gsap-multi-element-register.php:48
 msgid "Zoom In Right"
-msgstr ""
+msgstr "Inzoomen van rechts"
 
 #: includes/elements/gsap-multi-element-register.php:49
 msgid "Zoom Out Right"
-msgstr ""
+msgstr "Uitzoomen naar rechts"
 
 #: includes/elements/gsap-multi-element-register.php:50
 msgid "Zoom In Up"
-msgstr ""
+msgstr "Inzoomen van boven"
 
 #: includes/elements/gsap-multi-element-register.php:51
 msgid "Zoom Out Up"
-msgstr ""
+msgstr "Uitzoomen naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:54
 #: includes/elements/gsap-text-animations.php:109
 #: includes/elements/gsap-text-animations.php:82
 msgid "Slide In Down "
-msgstr ""
+msgstr "Inschuiven van onder "
 
 #: includes/elements/gsap-multi-element-register.php:55
 #: includes/elements/gsap-text-animations.php:110
 #: includes/elements/gsap-text-animations.php:83
 msgid "Slide Out Down "
-msgstr ""
+msgstr "Uitschuiven naar onder "
 
 #: includes/elements/gsap-multi-element-register.php:56
 #: includes/elements/gsap-text-animations.php:111
 #: includes/elements/gsap-text-animations.php:84
 msgid "Slide In Left "
-msgstr ""
+msgstr "Inschuiven van links "
 
 #: includes/elements/gsap-multi-element-register.php:57
 #: includes/elements/gsap-text-animations.php:112
 #: includes/elements/gsap-text-animations.php:85
 msgid "Slide Out Left "
-msgstr ""
+msgstr "Uitschuiven naar links "
 
 #: includes/elements/gsap-multi-element-register.php:58
 #: includes/elements/gsap-text-animations.php:113
 #: includes/elements/gsap-text-animations.php:86
 msgid "Slide In Right "
-msgstr ""
+msgstr "Inschuiven van rechts "
 
 #: includes/elements/gsap-multi-element-register.php:59
 #: includes/elements/gsap-text-animations.php:114
 #: includes/elements/gsap-text-animations.php:87
 msgid "Slide Out Right "
-msgstr ""
+msgstr "Uitschuiven naar rechts "
 
 #: includes/elements/gsap-multi-element-register.php:60
 #: includes/elements/gsap-text-animations.php:115
 #: includes/elements/gsap-text-animations.php:88
 msgid "Slide In Up "
-msgstr ""
+msgstr "Inschuiven van boven "
 
 #: includes/elements/gsap-multi-element-register.php:61
 #: includes/elements/gsap-text-animations.php:116
 #: includes/elements/gsap-text-animations.php:89
 msgid "Slide Out Up "
-msgstr ""
+msgstr "Uitschuiven naar boven "
 
 #: includes/elements/gsap-multi-element-register.php:64
 #: includes/elements/gsap-text-animations.php:119
 msgid "Slide In Left 100% "
-msgstr ""
+msgstr "Inschuiven van links 100% "
 
 #: includes/elements/gsap-multi-element-register.php:65
 #: includes/elements/gsap-text-animations.php:120
 msgid "Slide In Right 100%"
-msgstr ""
+msgstr "Inschuiven van rechts 100%"
 
 #: includes/elements/gsap-multi-element-register.php:67
 #: includes/elements/gsap-text-animations.php:122
 msgid "Slide In Left 150% "
-msgstr ""
+msgstr "Inschuiven van links 150% "
 
 #: includes/elements/gsap-multi-element-register.php:68
 #: includes/elements/gsap-text-animations.php:123
 msgid "Slide In Right 150%"
-msgstr ""
+msgstr "Inschuiven van rechts 150%"
 
 #: includes/elements/gsap-multi-element-register.php:70
 #: includes/elements/gsap-text-animations.php:125
 msgid "Slide In Left 3000px "
-msgstr ""
+msgstr "Inschuiven van links 3000px "
 
 #: includes/elements/gsap-multi-element-register.php:71
 #: includes/elements/gsap-text-animations.php:126
 msgid "Slide In Right 3000px"
-msgstr ""
+msgstr "Inschuiven van rechts 3000px"
 
 #: includes/elements/gsap-multi-element-register.php:73
 msgid "Slide In Left 100px "
-msgstr ""
+msgstr "Inschuiven van links 100px "
 
 #: includes/elements/gsap-multi-element-register.php:74
 msgid "Slide In Right 100px"
-msgstr ""
+msgstr "Inschuiven van rechts 100px"
 
 #: includes/elements/gsap-multi-element-register.php:76
 msgid "Slide In Top 100px"
-msgstr ""
+msgstr "Inschuiven van boven 100px"
 
 #: includes/elements/gsap-multi-element-register.php:77
 msgid "Slide In Bottom 100px"
-msgstr ""
+msgstr "Inschuiven van onder 100px"
 
 #: includes/elements/gsap-multi-element-register.php:85
 #: includes/elements/gsap-text-animations.php:134
 msgid "Rotate 3"
-msgstr ""
+msgstr "Rotatie 3"
 
 #: includes/elements/gsap-multi-element-register.php:86
 #: includes/elements/gsap-text-animations.php:135
 msgid "Rotate 5"
-msgstr ""
+msgstr "Rotatie 5"
 
 #: includes/elements/gsap-multi-element-register.php:87
 #: includes/elements/gsap-text-animations.php:136
 msgid "Rotate 15"
-msgstr ""
+msgstr "Rotatie 15"
 
 #: includes/elements/gsap-multi-element-register.php:88
 #: includes/elements/gsap-text-animations.php:137
 msgid "Rotate 45"
-msgstr ""
+msgstr "Rotatie 45"
 
 #: includes/elements/gsap-multi-element-register.php:89
 #: includes/elements/gsap-text-animations.php:138
 msgid "Rotate 90"
-msgstr ""
+msgstr "Rotatie 90"
 
 #: includes/elements/gsap-multi-element-register.php:90
 #: includes/elements/gsap-text-animations.php:139
 msgid "Rotate 180"
-msgstr ""
+msgstr "Rotatie 180"
 
 #: includes/elements/gsap-multi-element-register.php:91
 #: includes/elements/gsap-text-animations.php:140
 msgid "Rotate 360"
-msgstr ""
+msgstr "Rotatie 360"
 
 #: includes/elements/gsap-multi-element-register.php:95
 #: includes/elements/gsap-text-animations.php:144
 msgid "Rotate -3"
-msgstr ""
+msgstr "Rotatie -3"
 
 #: includes/elements/gsap-multi-element-register.php:96
 #: includes/elements/gsap-text-animations.php:145
 msgid "Rotate -5"
-msgstr ""
+msgstr "Rotatie -5"
 
 #: includes/elements/gsap-multi-element-register.php:97
 #: includes/elements/gsap-text-animations.php:146
 msgid "Rotate -15"
-msgstr ""
+msgstr "Rotatie -15"
 
 #: includes/elements/gsap-multi-element-register.php:98
 #: includes/elements/gsap-text-animations.php:147
 msgid "Rotate -45"
-msgstr ""
+msgstr "Rotatie -45"
 
 #: includes/elements/gsap-multi-element-register.php:99
 #: includes/elements/gsap-text-animations.php:148
 msgid "Rotate -90"
-msgstr ""
+msgstr "Rotatie -90"
 
 #: includes/elements/gsap-multi-element-register.php:100
 #: includes/elements/gsap-text-animations.php:149
 msgid "Rotate -180"
-msgstr ""
+msgstr "Rotatie -180"
 
 #: includes/elements/gsap-multi-element-register.php:101
 #: includes/elements/gsap-text-animations.php:150
 msgid "Rotate -360"
-msgstr ""
+msgstr "Rotatie -360"
 
 #: includes/elements/gsap-multi-element-register.php:109
 msgid "Rotate In"
-msgstr ""
+msgstr "Rotatie in"
 
 #: includes/elements/gsap-multi-element-register.php:110
 msgid "Rotate Out"
-msgstr ""
+msgstr "Rotatie uit"
 
 #: includes/elements/gsap-multi-element-register.php:111
 msgid "Rotate In Down Left"
-msgstr ""
+msgstr "Rotatie in vanaf linksonder"
 
 #: includes/elements/gsap-multi-element-register.php:112
 msgid "Rotate Out Down Left"
-msgstr ""
+msgstr "Rotatie uit naar linksonder"
 
 #: includes/elements/gsap-multi-element-register.php:113
 msgid "Rotate In Down Right"
-msgstr ""
+msgstr "Rotatie in vanaf rechtsonder"
 
 #: includes/elements/gsap-multi-element-register.php:114
 msgid "Rotate Out Down Right"
-msgstr ""
+msgstr "Rotatie uit naar rechtsonder"
 
 #: includes/elements/gsap-multi-element-register.php:115
 msgid "Rotate In Up Left"
-msgstr ""
+msgstr "Rotatie in vanaf linksboven"
 
 #: includes/elements/gsap-multi-element-register.php:116
 msgid "Rotate Out Up Left"
-msgstr ""
+msgstr "Rotatie uit naar linksboven"
 
 #: includes/elements/gsap-multi-element-register.php:117
 msgid "Rotate In Up Right"
-msgstr ""
+msgstr "Rotatie in vanaf rechtsboven"
 
 #: includes/elements/gsap-multi-element-register.php:118
 msgid "Rotate Out Up Right"
-msgstr ""
+msgstr "Rotatie uit naar rechtsboven"
 
 #: includes/elements/gsap-multi-element-register.php:121
 msgid "Flip In X"
-msgstr ""
+msgstr "Omdraaien in X"
 
 #: includes/elements/gsap-multi-element-register.php:122
 msgid "Flip Out X"
-msgstr ""
+msgstr "Omdraaien uit X"
 
 #: includes/elements/gsap-multi-element-register.php:123
 msgid "Flip In Y"
-msgstr ""
+msgstr "Omdraaien in Y"
 
 #: includes/elements/gsap-multi-element-register.php:124
 msgid "Flip Out Y"
-msgstr ""
+msgstr "Omdraaien uit Y"
 
 #: includes/elements/gsap-multi-element-register.php:125
 msgid "Flip In 3D"
-msgstr ""
+msgstr "Omdraaien in 3D"
 
 #: includes/elements/gsap-multi-element-register.php:126
 msgid "Flip Out 3D"
-msgstr ""
+msgstr "Omdraaien uit 3D"
 
 #: includes/elements/gsap-multi-element-register.php:127
 #: includes/elements/gsap-multi-element-register.php:334
 msgid "Cube Rotate In"
-msgstr ""
+msgstr "Kubusrotatie in"
 
 #: includes/elements/gsap-multi-element-register.php:128
 #: includes/elements/gsap-multi-element-register.php:335
 msgid "Cube Rotate Out"
-msgstr ""
+msgstr "Kubusrotatie uit"
 
 #: includes/elements/gsap-multi-element-register.php:129
 #: includes/elements/gsap-multi-element-register.php:325
 msgid "Card Flip In"
-msgstr ""
+msgstr "Kaart omdraaien in"
 
 #: includes/elements/gsap-multi-element-register.php:130
 #: includes/elements/gsap-multi-element-register.php:326
 msgid "Card Flip Out"
-msgstr ""
+msgstr "Kaart omdraaien uit"
 
 #: includes/elements/gsap-multi-element-register.php:133
 msgid "Blur In"
-msgstr ""
+msgstr "Vervagen in"
 
 #: includes/elements/gsap-multi-element-register.php:134
 msgid "Blur Out"
-msgstr ""
+msgstr "Vervagen uit"
 
 #: includes/elements/gsap-multi-element-register.php:135
 msgid "Focus In"
-msgstr ""
+msgstr "Focussen in"
 
 #: includes/elements/gsap-multi-element-register.php:136
 msgid "Focus Out"
-msgstr ""
+msgstr "Focussen uit"
 
 #: includes/elements/gsap-multi-element-register.php:140
 msgid "Morph In"
-msgstr ""
+msgstr "Morph in"
 
 #: includes/elements/gsap-multi-element-register.php:141
 msgid "Morph Out"
-msgstr ""
+msgstr "Morph uit"
 
 #: includes/elements/gsap-multi-element-register.php:142
 msgid "Blob Morph In (Legacy)"
-msgstr ""
+msgstr "Blob-morph in (verouderd)"
 
 #: includes/elements/gsap-multi-element-register.php:143
 msgid "Blob Morph Out (Legacy)"
-msgstr ""
+msgstr "Blob-morph uit (verouderd)"
 
 #: includes/elements/gsap-multi-element-register.php:148
 msgid "Light Speed In Right"
-msgstr ""
+msgstr "Lichtsnelheid in vanaf rechts"
 
 #: includes/elements/gsap-multi-element-register.php:149
 msgid "Light Speed Out Right"
-msgstr ""
+msgstr "Lichtsnelheid uit naar rechts"
 
 #: includes/elements/gsap-multi-element-register.php:150
 msgid "Light Speed In Left"
-msgstr ""
+msgstr "Lichtsnelheid in vanaf links"
 
 #: includes/elements/gsap-multi-element-register.php:151
 msgid "Light Speed Out Left"
-msgstr ""
+msgstr "Lichtsnelheid uit naar links"
 
 #: includes/elements/gsap-multi-element-register.php:154
 msgid "Roll In"
-msgstr ""
+msgstr "Oprollen in"
 
 #: includes/elements/gsap-multi-element-register.php:155
 msgid "Roll Out"
-msgstr ""
+msgstr "Oprollen uit"
 
 #: includes/elements/gsap-multi-element-register.php:156
 msgid "Hinge"
-msgstr ""
+msgstr "Scharnier"
 
 #: includes/elements/gsap-multi-element-register.php:157
 msgid "Jack In The Box"
-msgstr ""
+msgstr "Verrassingsdoos"
 
 #: includes/elements/gsap-multi-element-register.php:158
 msgid "Drop In"
-msgstr ""
+msgstr "Vallen in"
 
 #: includes/elements/gsap-multi-element-register.php:159
 msgid "Drop Out"
-msgstr ""
+msgstr "Vallen uit"
 
 #: includes/elements/gsap-multi-element-register.php:160
 msgid "Explode In"
-msgstr ""
+msgstr "Exploderen in"
 
 #: includes/elements/gsap-multi-element-register.php:161
 msgid "Explode Out"
-msgstr ""
+msgstr "Exploderen uit"
 
 #: includes/elements/gsap-multi-element-register.php:162
 msgid "Puff In"
-msgstr ""
+msgstr "Opblazen in"
 
 #: includes/elements/gsap-multi-element-register.php:163
 msgid "Puff Out"
-msgstr ""
+msgstr "Opblazen uit"
 
 #: includes/elements/gsap-multi-element-register.php:164
 msgid "Smoke In"
-msgstr ""
+msgstr "Rook in"
 
 #: includes/elements/gsap-multi-element-register.php:165
 msgid "Smoke Out"
-msgstr ""
+msgstr "Rook uit"
 
 #: includes/elements/gsap-multi-element-register.php:166
 msgid "Firework In"
-msgstr ""
+msgstr "Vuurwerk in"
 
 #: includes/elements/gsap-multi-element-register.php:167
 msgid "Firework Out"
-msgstr ""
+msgstr "Vuurwerk uit"
 
 #: includes/elements/gsap-multi-element-register.php:170
 msgid "Parallax In"
-msgstr ""
+msgstr "Parallax in"
 
 #: includes/elements/gsap-multi-element-register.php:171
 msgid "Parallax Out"
-msgstr ""
+msgstr "Parallax uit"
 
 #: includes/elements/gsap-multi-element-register.php:172
 msgid "Depth In"
-msgstr ""
+msgstr "Diepte in"
 
 #: includes/elements/gsap-multi-element-register.php:173
 msgid "Depth Out"
-msgstr ""
+msgstr "Diepte uit"
 
 #: includes/elements/gsap-multi-element-register.php:178
 msgid "Zoom In Rotate"
-msgstr ""
+msgstr "Inzoomen met rotatie"
 
 #: includes/elements/gsap-multi-element-register.php:179
 msgid "Zoom Out Rotate"
-msgstr ""
+msgstr "Uitzoomen met rotatie"
 
 #: includes/elements/gsap-multi-element-register.php:180
 msgid "Flip In Fade"
-msgstr ""
+msgstr "Omdraaien in met vervaging"
 
 #: includes/elements/gsap-multi-element-register.php:181
 msgid "Flip Out Fade"
-msgstr ""
+msgstr "Omdraaien uit met vervaging"
 
 #: includes/elements/gsap-multi-element-register.php:186
 msgid "Bounce"
-msgstr ""
+msgstr "Bounce"
 
 #: includes/elements/gsap-multi-element-register.php:187
 msgid "Flash"
-msgstr ""
+msgstr "Flits"
 
 #: includes/elements/gsap-multi-element-register.php:188
 msgid "Pulse"
-msgstr ""
+msgstr "Puls"
 
 #: includes/elements/gsap-multi-element-register.php:189
 msgid "Rubber Band"
-msgstr ""
+msgstr "Elastiek"
 
 #: includes/elements/gsap-multi-element-register.php:190
 msgid "Shake"
-msgstr ""
+msgstr "Schudden"
 
 #: includes/elements/gsap-multi-element-register.php:191
 msgid "Shake X"
-msgstr ""
+msgstr "Schudden X"
 
 #: includes/elements/gsap-multi-element-register.php:192
 msgid "Shake Y"
-msgstr ""
+msgstr "Schudden Y"
 
 #: includes/elements/gsap-multi-element-register.php:193
 msgid "Head Shake"
-msgstr ""
+msgstr "Hoofd schudden"
 
 #: includes/elements/gsap-multi-element-register.php:194
 msgid "Swing"
-msgstr ""
+msgstr "Zwaaien"
 
 #: includes/elements/gsap-multi-element-register.php:195
 msgid "Tada"
-msgstr ""
+msgstr "Tada"
 
 #: includes/elements/gsap-multi-element-register.php:196
 msgid "Wobble"
-msgstr ""
+msgstr "Wiebelen"
 
 #: includes/elements/gsap-multi-element-register.php:197
 msgid "Jello"
-msgstr ""
+msgstr "Gelei"
 
 #: includes/elements/gsap-multi-element-register.php:198
 msgid "Heart Beat"
-msgstr ""
+msgstr "Hartslag"
 
 #: includes/elements/gsap-multi-element-register.php:199
 msgid "Blink"
-msgstr ""
+msgstr "Knipperen"
 
 #: includes/elements/gsap-multi-element-register.php:200
 msgid "Wiggle"
-msgstr ""
+msgstr "Wiebelen"
 
 #: includes/elements/gsap-multi-element-register.php:201
 msgid "Flicker"
-msgstr ""
+msgstr "Flikkeren"
 
 #: includes/elements/gsap-multi-element-register.php:204
 msgid "Bounce In"
-msgstr ""
+msgstr "Bounce in"
 
 #: includes/elements/gsap-multi-element-register.php:205
 msgid "Bounce Out"
-msgstr ""
+msgstr "Bounce uit"
 
 #: includes/elements/gsap-multi-element-register.php:206
 msgid "Bounce In Down"
-msgstr ""
+msgstr "Bounce in van onder"
 
 #: includes/elements/gsap-multi-element-register.php:207
 msgid "Bounce Out Down"
-msgstr ""
+msgstr "Bounce uit naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:208
 msgid "Bounce In Left"
-msgstr ""
+msgstr "Bounce in van links"
 
 #: includes/elements/gsap-multi-element-register.php:209
 msgid "Bounce Out Left"
-msgstr ""
+msgstr "Bounce uit naar links"
 
 #: includes/elements/gsap-multi-element-register.php:210
 msgid "Bounce In Right"
-msgstr ""
+msgstr "Bounce in van rechts"
 
 #: includes/elements/gsap-multi-element-register.php:211
 msgid "Bounce Out Right"
-msgstr ""
+msgstr "Bounce uit naar rechts"
 
 #: includes/elements/gsap-multi-element-register.php:212
 msgid "Bounce In Up"
-msgstr ""
+msgstr "Bounce in van boven"
 
 #: includes/elements/gsap-multi-element-register.php:213
 msgid "Bounce Out Up"
-msgstr ""
+msgstr "Bounce uit naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:220
 #: includes/elements/gsap-text-animations.php:94
 msgid "Scale 0 to 1"
-msgstr ""
+msgstr "Schaal 0 naar 1"
 
 #: includes/elements/gsap-multi-element-register.php:221
 #: includes/elements/gsap-text-animations.php:95
 msgid "Scale 10 to 1"
-msgstr ""
+msgstr "Schaal 10 naar 1"
 
 #: includes/elements/gsap-multi-element-register.php:222
 #: includes/elements/gsap-text-animations.php:96
 msgid "Scale 1 to 0"
-msgstr ""
+msgstr "Schaal 1 naar 0"
 
 #: includes/elements/gsap-multi-element-register.php:227
 msgid "Width 0% to 100%"
-msgstr ""
+msgstr "Breedte 0% naar 100%"
 
 #: includes/elements/gsap-multi-element-register.php:228
 msgid "Width 100% to 0%"
-msgstr ""
+msgstr "Breedte 100% naar 0%"
 
 #: includes/elements/gsap-multi-element-register.php:229
 msgid "Height 0% to 100%"
-msgstr ""
+msgstr "Hoogte 0% naar 100%"
 
 #: includes/elements/gsap-multi-element-register.php:230
 msgid "Height 100% to 0%"
-msgstr ""
+msgstr "Hoogte 100% naar 0%"
 
 #: includes/elements/gsap-multi-element-register.php:233
 #: includes/elements/gsap-text-animations.php:100
 msgid "Opacity 0 to 1"
-msgstr ""
+msgstr "Dekking 0 naar 1"
 
 #: includes/elements/gsap-multi-element-register.php:234
 msgid "Opacity 0.1 to 1"
-msgstr ""
+msgstr "Dekking 0.1 naar 1"
 
 #: includes/elements/gsap-multi-element-register.php:235
 #: includes/elements/gsap-text-animations.php:101
 msgid "Opacity 1 to 0"
-msgstr ""
+msgstr "Dekking 1 naar 0"
 
 #: includes/elements/gsap-multi-element-register.php:238
 #: includes/elements/gsap-text-animations.php:104
 msgid "Rotate 0 to 180"
-msgstr ""
+msgstr "Rotatie 0 naar 180"
 
 #: includes/elements/gsap-multi-element-register.php:239
 #: includes/elements/gsap-text-animations.php:105
 msgid "Rotate 180 to 0"
-msgstr ""
+msgstr "Rotatie 180 naar 0"
 
 #: includes/elements/gsap-multi-element-register.php:243
 msgid "Clip Blob Morph In"
-msgstr ""
+msgstr "Blob-morph clip in"
 
 #: includes/elements/gsap-multi-element-register.php:244
 msgid "Clip Blob Morph Out"
-msgstr ""
+msgstr "Blob-morph clip uit"
 
 #: includes/elements/gsap-multi-element-register.php:248
 msgid "Clip Mask Reveal In"
-msgstr ""
+msgstr "Clipmasker onthullen in"
 
 #: includes/elements/gsap-multi-element-register.php:249
 msgid "Clip Mask Reveal Out"
-msgstr ""
+msgstr "Clipmasker onthullen uit"
 
 #: includes/elements/gsap-multi-element-register.php:250
 msgid "Gradient Reveal In"
-msgstr ""
+msgstr "Gradiënt onthullen in"
 
 #: includes/elements/gsap-multi-element-register.php:251
 msgid "Gradient Reveal Out"
-msgstr ""
+msgstr "Gradiënt onthullen uit"
 
 #: includes/elements/gsap-multi-element-register.php:252
 msgid "Clip Reveal In"
-msgstr ""
+msgstr "Clip onthullen in"
 
 #: includes/elements/gsap-multi-element-register.php:253
 msgid "Clip Reveal Out"
-msgstr ""
+msgstr "Clip onthullen uit"
 
 #: includes/elements/gsap-multi-element-register.php:257
 msgid "Clip Reveal Left to Right"
-msgstr ""
+msgstr "Clip onthullen van links naar rechts"
 
 #: includes/elements/gsap-multi-element-register.php:260
 msgid "Clip Hide Right to Left"
-msgstr ""
+msgstr "Clip verbergen van rechts naar links"
 
 #: includes/elements/gsap-multi-element-register.php:263
 msgid "Clip Reveal Top to Bottom"
-msgstr ""
+msgstr "Clip onthullen van boven naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:266
 msgid "Clip Hide Bottom to Top"
-msgstr ""
+msgstr "Clip verbergen van onder naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:269
 msgid "Clip Reveal Diagonal Top Left"
-msgstr ""
+msgstr "Clip onthullen diagonaal linksboven"
 
 #: includes/elements/gsap-multi-element-register.php:272
 msgid "Clip Hide Diagonal Bottom Right"
-msgstr ""
+msgstr "Clip verbergen diagonaal rechtsonder"
 
 #: includes/elements/gsap-multi-element-register.php:275
 msgid "Clip Circle Center Out"
-msgstr ""
+msgstr "Cirkelclip van midden naar buiten"
 
 #: includes/elements/gsap-multi-element-register.php:278
 msgid "Clip Circle Out to Center"
-msgstr ""
+msgstr "Cirkelclip van buiten naar midden"
 
 #: includes/elements/gsap-multi-element-register.php:281
 msgid "Clip Ellipse Horizontal Reveal"
-msgstr ""
+msgstr "Ellips onthullen horizontaal"
 
 #: includes/elements/gsap-multi-element-register.php:284
 msgid "Clip Ellipse Vertical Reveal"
-msgstr ""
+msgstr "Ellips onthullen verticaal"
 
 #: includes/elements/gsap-multi-element-register.php:287
 msgid "Clip Triangle Left Reveal"
-msgstr ""
+msgstr "Driehoek onthullen links"
 
 #: includes/elements/gsap-multi-element-register.php:290
 msgid "Clip Triangle Right Reveal"
-msgstr ""
+msgstr "Driehoek onthullen rechts"
 
 #: includes/elements/gsap-multi-element-register.php:293
 msgid "Clip Diamond Center Out"
-msgstr ""
+msgstr "Ruitclip van midden naar buiten"
 
 #: includes/elements/gsap-multi-element-register.php:296
 msgid "Clip Diamond In to Center"
-msgstr ""
+msgstr "Ruitclip van buiten naar midden"
 
 #: includes/elements/gsap-multi-element-register.php:299
 msgid "Clip Hexagon Center Out"
-msgstr ""
+msgstr "Zeshoekclip van midden naar buiten"
 
 #: includes/elements/gsap-multi-element-register.php:304
 msgid "Grayscale In"
-msgstr ""
+msgstr "Grijstinten in"
 
 #: includes/elements/gsap-multi-element-register.php:305
 msgid "Grayscale Out"
-msgstr ""
+msgstr "Grijstinten uit"
 
 #: includes/elements/gsap-multi-element-register.php:306
 msgid "Sepia In"
-msgstr ""
+msgstr "Sepia in"
 
 #: includes/elements/gsap-multi-element-register.php:307
 msgid "Brightness In"
-msgstr ""
+msgstr "Helderheid in"
 
 #: includes/elements/gsap-multi-element-register.php:308
 msgid "Contrast In"
-msgstr ""
+msgstr "Contrast in"
 
 #: includes/elements/gsap-multi-element-register.php:309
 msgid "Desaturate In"
-msgstr ""
+msgstr "Verzadiging verminderen in"
 
 #: includes/elements/gsap-multi-element-register.php:313
 msgid "Skew In"
-msgstr ""
+msgstr "Kantelen in"
 
 #: includes/elements/gsap-multi-element-register.php:314
 msgid "Skew Out"
-msgstr ""
+msgstr "Kantelen uit"
 
 #: includes/elements/gsap-multi-element-register.php:319
 msgid "Door Open In (Left)"
-msgstr ""
+msgstr "Deur openen in (links)"
 
 #: includes/elements/gsap-multi-element-register.php:320
 msgid "Door Open In (Right)"
-msgstr ""
+msgstr "Deur openen in (rechts)"
 
 #: includes/elements/gsap-multi-element-register.php:322
 msgid "Fold In Down"
-msgstr ""
+msgstr "Vouwen in naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:323
 msgid "Fold In Up"
-msgstr ""
+msgstr "Vouwen in naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:328
 msgid "Flip In Diagonal"
-msgstr ""
+msgstr "Omdraaien in diagonaal"
 
 #: includes/elements/gsap-multi-element-register.php:329
 msgid "Flip Out Diagonal"
-msgstr ""
+msgstr "Omdraaien uit diagonaal"
 
 #: includes/elements/gsap-multi-element-register.php:331
 msgid "Pop In Z"
-msgstr ""
+msgstr "Verschijnen met Z-diepte"
 
 #: includes/elements/gsap-multi-element-register.php:332
 msgid "Pop Out Z"
-msgstr ""
+msgstr "Verdwijnen met Z-diepte"
 
 #: includes/elements/gsap-multi-element-register.php:337
 msgid "Barrel Roll In"
-msgstr ""
+msgstr "Rollen in"
 
 #: includes/elements/gsap-multi-element-register.php:338
 msgid "Barrel Roll Out"
-msgstr ""
+msgstr "Rollen uit"
 
 #: includes/elements/gsap-multi-element-register.php:342
 msgid "Fly In (Center)"
-msgstr ""
+msgstr "Vliegen in (midden)"
 
 #: includes/elements/gsap-multi-element-register.php:343
 msgid "Fly Out (Center)"
-msgstr ""
+msgstr "Vliegen uit (midden)"
 
 #: includes/elements/gsap-multi-element-register.php:346
 msgid "Peek In Left"
-msgstr ""
+msgstr "Piepen in links"
 
 #: includes/elements/gsap-multi-element-register.php:347
 msgid "Peek Out Left"
-msgstr ""
+msgstr "Piepen uit links"
 
 #: includes/elements/gsap-multi-element-register.php:348
 msgid "Peek In Right"
-msgstr ""
+msgstr "Piepen in rechts"
 
 #: includes/elements/gsap-multi-element-register.php:349
 msgid "Peek Out Right"
-msgstr ""
+msgstr "Piepen uit rechts"
 
 #: includes/elements/gsap-multi-element-register.php:352
 msgid "Peek In Down"
-msgstr ""
+msgstr "Piepen in van onder"
 
 #: includes/elements/gsap-multi-element-register.php:353
 msgid "Peek Out Down"
-msgstr ""
+msgstr "Piepen uit naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:354
 msgid "Peek In Up"
-msgstr ""
+msgstr "Piepen in van boven"
 
 #: includes/elements/gsap-multi-element-register.php:355
 msgid "Peek Out Up"
-msgstr ""
+msgstr "Piepen uit naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:358
 msgid "Tilt In Diagonal"
-msgstr ""
+msgstr "Kantelen in diagonaal"
 
 #: includes/elements/gsap-multi-element-register.php:359
 msgid "Tilt Out Diagonal"
-msgstr ""
+msgstr "Kantelen uit diagonaal"
 
 #: includes/elements/gsap-multi-element-register.php:362
 msgid "Tunnel In"
-msgstr ""
+msgstr "Tunnel in"
 
 #: includes/elements/gsap-multi-element-register.php:363
 msgid "Tunnel Out"
-msgstr ""
+msgstr "Tunnel uit"
 
 #: includes/elements/gsap-multi-element-register.php:368
 msgid "Background Position Left to Right"
-msgstr ""
+msgstr "Achtergrondpositie links naar rechts"
 
 #: includes/elements/gsap-multi-element-register.php:369
 msgid "Background Position Right to Left"
-msgstr ""
+msgstr "Achtergrondpositie rechts naar links"
 
 #: includes/elements/gsap-multi-element-register.php:370
 msgid "Background Position -100% to 0% (Left In)"
-msgstr ""
+msgstr "Achtergrondpositie -100% naar 0% (in links)"
 
 #: includes/elements/gsap-multi-element-register.php:371
 msgid "Background Position 0% to -100% (Left Out)"
-msgstr ""
+msgstr "Achtergrondpositie 0% naar -100% (uit links)"
 
 #: includes/elements/gsap-multi-element-register.php:372
 msgid "Background Position 0% to 200% (Sweep Right)"
-msgstr ""
+msgstr "Achtergrondpositie 0% naar 200% (sweep rechts)"
 
 #: includes/elements/gsap-multi-element-register.php:373
 msgid "Background Position 200% to 0% (Sweep Left In)"
-msgstr ""
+msgstr "Achtergrondpositie 200% naar 0% (sweep in links)"
 
 #: includes/elements/gsap-multi-element-register.php:374
 msgid "Background Position 100% to 200%"
-msgstr ""
+msgstr "Achtergrondpositie 100% naar 200%"
 
 #: includes/elements/gsap-multi-element-register.php:375
 #: includes/elements/gsap-multi-element-register.php:385
 msgid "Background Position 200% to 100%"
-msgstr ""
+msgstr "Achtergrondpositie 200% naar 100%"
 
 #: includes/elements/gsap-multi-element-register.php:378
 msgid "Background Position Top to Bottom"
-msgstr ""
+msgstr "Achtergrondpositie boven naar onder"
 
 #: includes/elements/gsap-multi-element-register.php:379
 msgid "Background Position Bottom to Top"
-msgstr ""
+msgstr "Achtergrondpositie onder naar boven"
 
 #: includes/elements/gsap-multi-element-register.php:380
 msgid "Background Position -100% to 0% (Top In)"
-msgstr ""
+msgstr "Achtergrondpositie -100% naar 0% (in boven)"
 
 #: includes/elements/gsap-multi-element-register.php:381
 msgid "Background Position 0% to -100% (Top Out)"
-msgstr ""
+msgstr "Achtergrondpositie 0% naar -100% (uit boven)"
 
 #: includes/elements/gsap-multi-element-register.php:382
 msgid "Background Position 0% to 200% (Sweep Down)"
-msgstr ""
+msgstr "Achtergrondpositie 0% naar 200% (sweep onder)"
 
 #: includes/elements/gsap-multi-element-register.php:383
 msgid "Background Position 200% to 0% (Sweep Up In)"
-msgstr ""
+msgstr "Achtergrondpositie 200% naar 0% (sweep in boven)"
 
 #: includes/elements/gsap-multi-element-register.php:384
 msgid "Background Position 100% to 200% (Bottom Extend)"
-msgstr ""
+msgstr "Achtergrondpositie 100% naar 200% (uitbreiding onder)"
 
 #: includes/elements/gsap-multi-element-register.php:390
 msgid "Background Size 100% to 200%"
-msgstr ""
+msgstr "Achtergrondgrootte 100% naar 200%"
 
 #: includes/elements/gsap-multi-element-register.php:391
 msgid "Background Size 200% to 100%"
-msgstr ""
+msgstr "Achtergrondgrootte 200% naar 100%"
 
 #: includes/elements/gsap-multi-element-register.php:392
 msgid "Background Size 0% to 100%"
-msgstr ""
+msgstr "Achtergrondgrootte 0% naar 100%"
 
 #: includes/elements/gsap-multi-element-register.php:393
 msgid "Background Size 100% to 0%"
-msgstr ""
+msgstr "Achtergrondgrootte 100% naar 0%"
 
 #: includes/elements/gsap-multi-element-register.php:394
 msgid "Background Size 50% to 100%"
-msgstr ""
+msgstr "Achtergrondgrootte 50% naar 100%"
 
 #: includes/elements/gsap-multi-element-register.php:395
 msgid "Background Size 100% to 50%"
-msgstr ""
+msgstr "Achtergrondgrootte 100% naar 50%"
 
 #: includes/elements/gsap-multi-element-register.php:396
 msgid "Background Size Tall to Normal"
-msgstr ""
+msgstr "Achtergrondgrootte hoog naar normaal"
 
 #: includes/elements/gsap-multi-element-register.php:397
 msgid "Background Size Wide to Normal"
-msgstr ""
+msgstr "Achtergrondgrootte breed naar normaal"
 
 #: includes/elements/gsap-multi-element-register.php:398
 msgid "Background Size Normal to Wide"
-msgstr ""
+msgstr "Achtergrondgrootte normaal naar breed"
 
 #: includes/elements/gsap-multi-element-register.php:399
 msgid "Background Size Normal to Tall"
-msgstr ""
+msgstr "Achtergrondgrootte normaal naar hoog"
 
 #: includes/elements/gsap-multi-element-register.php:400
 msgid "Background Size Auto to Full Width"
-msgstr ""
+msgstr "Achtergrondgrootte auto naar volledige breedte"
 
 #: includes/elements/gsap-multi-element-register.php:401
 msgid "Background Size Auto to Full Height"
-msgstr ""
+msgstr "Achtergrondgrootte auto naar volledige hoogte"
 
 #: includes/elements/gsap-multi-element-register.php:405
 #: includes/elements/gsap-text-animations.php:242
 msgid "Random True"
-msgstr ""
+msgstr "Willekeurig: waar"
 
 #: includes/elements/gsap-multi-element-register.php:407
 #: includes/elements/gsap-text-animations.php:155
 msgid "Splittext True"
-msgstr ""
+msgstr "Tekst splitsen: waar"
 
 #: includes/elements/gsap-multi-element-register.php:408
 #: includes/elements/gsap-text-animations.php:156
 msgid "Splittext Words"
-msgstr ""
+msgstr "Tekst splitsen op woorden"
 
 #: includes/elements/gsap-multi-element-register.php:409
 msgid "Splittext Line"
-msgstr ""
+msgstr "Tekst splitsen op regel"
 
 #: includes/elements/gsap-multi-element-register.php:438
 #: includes/elements/gsap-text-animations.php:162
 msgid "Start 0%"
-msgstr ""
+msgstr "Begin 0%"
 
 #: includes/elements/gsap-multi-element-register.php:439
 #: includes/elements/gsap-text-animations.php:163
 msgid "Start 10%"
-msgstr ""
+msgstr "Begin 10%"
 
 #: includes/elements/gsap-multi-element-register.php:440
 #: includes/elements/gsap-text-animations.php:164
 msgid "Start 20%"
-msgstr ""
+msgstr "Begin 20%"
 
 #: includes/elements/gsap-multi-element-register.php:441
 #: includes/elements/gsap-text-animations.php:165
 msgid "Start 30%"
-msgstr ""
+msgstr "Begin 30%"
 
 #: includes/elements/gsap-multi-element-register.php:442
 #: includes/elements/gsap-text-animations.php:166
 msgid "Start 40%"
-msgstr ""
+msgstr "Begin 40%"
 
 #: includes/elements/gsap-multi-element-register.php:443
 #: includes/elements/gsap-text-animations.php:167
 msgid "Start 50%"
-msgstr ""
+msgstr "Begin 50%"
 
 #: includes/elements/gsap-multi-element-register.php:444
 #: includes/elements/gsap-text-animations.php:168
 msgid "Start 60%"
-msgstr ""
+msgstr "Begin 60%"
 
 #: includes/elements/gsap-multi-element-register.php:445
 #: includes/elements/gsap-text-animations.php:169
 msgid "Start 70%"
-msgstr ""
+msgstr "Begin 70%"
 
 #: includes/elements/gsap-multi-element-register.php:446
 #: includes/elements/gsap-text-animations.php:170
 msgid "Start 80%"
-msgstr ""
+msgstr "Begin 80%"
 
 #: includes/elements/gsap-multi-element-register.php:447
 #: includes/elements/gsap-text-animations.php:171
 msgid "Start 90%"
-msgstr ""
+msgstr "Begin 90%"
 
 #: includes/elements/gsap-multi-element-register.php:448
 #: includes/elements/gsap-text-animations.php:172
 msgid "Start 100%"
-msgstr ""
+msgstr "Begin 100%"
 
 #: includes/elements/gsap-multi-element-register.php:450
 #: includes/elements/gsap-text-animations.php:174
 msgid "End 0%"
-msgstr ""
+msgstr "Einde 0%"
 
 #: includes/elements/gsap-multi-element-register.php:451
 #: includes/elements/gsap-text-animations.php:175
 msgid "End 10%"
-msgstr ""
+msgstr "Einde 10%"
 
 #: includes/elements/gsap-multi-element-register.php:452
 #: includes/elements/gsap-text-animations.php:176
 msgid "End 20%"
-msgstr ""
+msgstr "Einde 20%"
 
 #: includes/elements/gsap-multi-element-register.php:453
 #: includes/elements/gsap-text-animations.php:177
 msgid "End 30%"
-msgstr ""
+msgstr "Einde 30%"
 
 #: includes/elements/gsap-multi-element-register.php:454
 #: includes/elements/gsap-text-animations.php:178
 msgid "End 40%"
-msgstr ""
+msgstr "Einde 40%"
 
 #: includes/elements/gsap-multi-element-register.php:455
 #: includes/elements/gsap-text-animations.php:179
 msgid "End 50%"
-msgstr ""
+msgstr "Einde 50%"
 
 #: includes/elements/gsap-multi-element-register.php:456
 #: includes/elements/gsap-text-animations.php:180
 msgid "End 60%"
-msgstr ""
+msgstr "Einde 60%"
 
 #: includes/elements/gsap-multi-element-register.php:457
 #: includes/elements/gsap-text-animations.php:181
 msgid "End 70%"
-msgstr ""
+msgstr "Einde 70%"
 
 #: includes/elements/gsap-multi-element-register.php:458
 #: includes/elements/gsap-text-animations.php:182
 msgid "End 80%"
-msgstr ""
+msgstr "Einde 80%"
 
 #: includes/elements/gsap-multi-element-register.php:459
 #: includes/elements/gsap-text-animations.php:183
 msgid "End 90%"
-msgstr ""
+msgstr "Einde 90%"
 
 #: includes/elements/gsap-multi-element-register.php:460
 #: includes/elements/gsap-text-animations.php:184
 msgid "End 100%"
-msgstr ""
+msgstr "Einde 100%"
 
 #: includes/elements/gsap-multi-element-register.php:461
 #: includes/elements/gsap-text-animations.php:185
 msgid "End 200%"
-msgstr ""
+msgstr "Einde 200%"
 
 #: includes/elements/gsap-multi-element-register.php:464
 #: includes/elements/gsap-text-animations.php:188
 msgid "End 0%+=1000px"
-msgstr ""
+msgstr "Einde 0%+=1000px"
 
 #: includes/elements/gsap-multi-element-register.php:465
 msgid "End 0%+=1500px"
-msgstr ""
+msgstr "Einde 0%+=1500px"
 
 #: includes/elements/gsap-multi-element-register.php:466
 #: includes/elements/gsap-text-animations.php:189
 msgid "End 0%+=2000px"
-msgstr ""
+msgstr "Einde 0%+=2000px"
 
 #: includes/elements/gsap-multi-element-register.php:467
 msgid "End 0%+=3000px"
-msgstr ""
+msgstr "Einde 0%+=3000px"
 
 #: includes/elements/gsap-multi-element-register.php:468
 msgid "End 0%+=4000px"
-msgstr ""
+msgstr "Einde 0%+=4000px"
 
 #: includes/elements/gsap-multi-element-register.php:473
 #: includes/elements/gsap-text-animations.php:196
 msgid "Markers True"
-msgstr ""
+msgstr "Markeringen: waar"
 
 #: includes/elements/gsap-multi-element-register.php:474
 #: includes/elements/gsap-text-animations.php:197
 msgid "Scroll False"
-msgstr ""
+msgstr "Scrollen: onwaar"
 
 #: includes/elements/gsap-multi-element-register.php:475
 #: includes/elements/gsap-text-animations.php:198
 msgid "Loop True"
-msgstr ""
+msgstr "Loop: waar"
 
 #: includes/elements/gsap-multi-element-register.php:476
 #: includes/elements/gsap-text-animations.php:199
 msgid "Pin True"
-msgstr ""
+msgstr "Vastzetten: waar"
 
 #: includes/elements/gsap-multi-element-register.php:477
 msgid "Scrub False"
-msgstr ""
+msgstr "Scrub: onwaar"
 
 #: includes/elements/gsap-multi-element-register.php:479
 #: includes/elements/gsap-text-animations.php:207
 msgid "Stagger 0.01"
-msgstr ""
+msgstr "Staffeling 0.01"
 
 #: includes/elements/gsap-multi-element-register.php:480
 msgid "Stagger 0.02"
-msgstr ""
+msgstr "Staffeling 0.02"
 
 #: includes/elements/gsap-multi-element-register.php:481
 msgid "Stagger 0.03"
-msgstr ""
+msgstr "Staffeling 0.03"
 
 #: includes/elements/gsap-multi-element-register.php:482
 msgid "Stagger 0.04"
-msgstr ""
+msgstr "Staffeling 0.04"
 
 #: includes/elements/gsap-multi-element-register.php:483
 #: includes/elements/gsap-text-animations.php:208
 msgid "Stagger 0.05"
-msgstr ""
+msgstr "Staffeling 0.05"
 
 #: includes/elements/gsap-multi-element-register.php:484
 msgid "Stagger 0.06"
-msgstr ""
+msgstr "Staffeling 0.06"
 
 #: includes/elements/gsap-multi-element-register.php:485
 msgid "Stagger 0.07"
-msgstr ""
+msgstr "Staffeling 0.07"
 
 #: includes/elements/gsap-multi-element-register.php:486
 msgid "Stagger 0.08"
-msgstr ""
+msgstr "Staffeling 0.08"
 
 #: includes/elements/gsap-multi-element-register.php:487
 msgid "Stagger 0.09"
-msgstr ""
+msgstr "Staffeling 0.09"
 
 #: includes/elements/gsap-multi-element-register.php:488
 #: includes/elements/gsap-text-animations.php:209
 msgid "Stagger 0.1"
-msgstr ""
+msgstr "Staffeling 0.1"
 
 #: includes/elements/gsap-multi-element-register.php:489
 #: includes/elements/gsap-text-animations.php:210
 msgid "Stagger 0.5"
-msgstr ""
+msgstr "Staffeling 0.5"
 
 #: includes/elements/gsap-multi-element-register.php:490
 #: includes/elements/gsap-text-animations.php:211
 msgid "Stagger 1"
-msgstr ""
+msgstr "Staffeling 1"
 
 #: includes/elements/gsap-multi-element-register.php:491
 #: includes/elements/gsap-text-animations.php:212
 msgid "Stagger 2"
-msgstr ""
+msgstr "Staffeling 2"
 
 #: includes/elements/gsap-multi-element-register.php:492
 #: includes/elements/gsap-text-animations.php:213
 msgid "Stagger 3"
-msgstr ""
+msgstr "Staffeling 3"
 
 #: includes/elements/gsap-multi-element-register.php:493
 msgid "Stagger 4"
-msgstr ""
+msgstr "Staffeling 4"
 
 #: includes/elements/gsap-multi-element-register.php:494
 msgid "Stagger 5"
-msgstr ""
+msgstr "Staffeling 5"
 
 #: includes/elements/gsap-multi-element-register.php:495
 #: includes/elements/gsap-text-animations.php:214
 msgid "Stagger 6"
-msgstr ""
+msgstr "Staffeling 6"
 
 #: includes/elements/gsap-multi-element-register.php:496
 msgid "Stagger 7"
-msgstr ""
+msgstr "Staffeling 7"
 
 #: includes/elements/gsap-multi-element-register.php:497
 msgid "Stagger 8"
-msgstr ""
+msgstr "Staffeling 8"
 
 #: includes/elements/gsap-multi-element-register.php:498
 msgid "Stagger 9"
-msgstr ""
+msgstr "Staffeling 9"
 
 #: includes/elements/gsap-multi-element-register.php:499
 msgid "Stagger 10"
-msgstr ""
+msgstr "Staffeling 10"
 
 #: includes/elements/gsap-multi-element-register.php:502
 #: includes/elements/gsap-text-animations.php:217
 msgid "Duration 0.01"
-msgstr ""
+msgstr "Duur 0.01"
 
 #: includes/elements/gsap-multi-element-register.php:503
 msgid "Duration 0.02"
-msgstr ""
+msgstr "Duur 0.02"
 
 #: includes/elements/gsap-multi-element-register.php:504
 msgid "Duration 0.03"
-msgstr ""
+msgstr "Duur 0.03"
 
 #: includes/elements/gsap-multi-element-register.php:505
 msgid "Duration 0.04"
-msgstr ""
+msgstr "Duur 0.04"
 
 #: includes/elements/gsap-multi-element-register.php:506
 #: includes/elements/gsap-text-animations.php:218
 msgid "Duration 0.05"
-msgstr ""
+msgstr "Duur 0.05"
 
 #: includes/elements/gsap-multi-element-register.php:507
 #: includes/elements/gsap-text-animations.php:219
 msgid "Duration 0.1"
-msgstr ""
+msgstr "Duur 0.1"
 
 #: includes/elements/gsap-multi-element-register.php:508
 #: includes/elements/gsap-text-animations.php:220
 msgid "Duration 0.2"
-msgstr ""
+msgstr "Duur 0.2"
 
 #: includes/elements/gsap-multi-element-register.php:509
 msgid "Duration 0.3"
-msgstr ""
+msgstr "Duur 0.3"
 
 #: includes/elements/gsap-multi-element-register.php:510
 msgid "Duration 0.4"
-msgstr ""
+msgstr "Duur 0.4"
 
 #: includes/elements/gsap-multi-element-register.php:511
 msgid "Duration 0.5"
-msgstr ""
+msgstr "Duur 0.5"
 
 #: includes/elements/gsap-multi-element-register.php:512
 msgid "Duration 0.6"
-msgstr ""
+msgstr "Duur 0.6"
 
 #: includes/elements/gsap-multi-element-register.php:513
 msgid "Duration 0.7"
-msgstr ""
+msgstr "Duur 0.7"
 
 #: includes/elements/gsap-multi-element-register.php:514
 msgid "Duration 0.8"
-msgstr ""
+msgstr "Duur 0.8"
 
 #: includes/elements/gsap-multi-element-register.php:515
 msgid "Duration 0.9"
-msgstr ""
+msgstr "Duur 0.9"
 
 #: includes/elements/gsap-multi-element-register.php:516
 #: includes/elements/gsap-text-animations.php:221
 msgid "Duration 1"
-msgstr ""
+msgstr "Duur 1"
 
 #: includes/elements/gsap-multi-element-register.php:517
 #: includes/elements/gsap-text-animations.php:222
 msgid "Duration 2"
-msgstr ""
+msgstr "Duur 2"
 
 #: includes/elements/gsap-multi-element-register.php:518
 #: includes/elements/gsap-text-animations.php:223
 msgid "Duration 3"
-msgstr ""
+msgstr "Duur 3"
 
 #: includes/elements/gsap-multi-element-register.php:519
 #: includes/elements/gsap-text-animations.php:224
 msgid "Duration 4"
-msgstr ""
+msgstr "Duur 4"
 
 #: includes/elements/gsap-multi-element-register.php:520
 #: includes/elements/gsap-text-animations.php:225
 msgid "Duration 5"
-msgstr ""
+msgstr "Duur 5"
 
 #: includes/elements/gsap-multi-element-register.php:521
 #: includes/elements/gsap-text-animations.php:226
 msgid "Duration 10"
-msgstr ""
+msgstr "Duur 10"
 
 #: includes/elements/gsap-multi-element-register.php:522
 #: includes/elements/gsap-text-animations.php:227
 msgid "Duration 20"
-msgstr ""
+msgstr "Duur 20"
 
 #: includes/elements/gsap-multi-element-register.php:524
 #: includes/elements/gsap-text-animations.php:229
 msgid "Delay 0.1"
-msgstr ""
+msgstr "Vertraging 0.1"
 
 #: includes/elements/gsap-multi-element-register.php:525
 msgid "Delay 0.2"
-msgstr ""
+msgstr "Vertraging 0.2"
 
 #: includes/elements/gsap-multi-element-register.php:526
 #: includes/elements/gsap-text-animations.php:230
 msgid "Delay 0.3"
-msgstr ""
+msgstr "Vertraging 0.3"
 
 #: includes/elements/gsap-multi-element-register.php:527
 msgid "Delay 0.4"
-msgstr ""
+msgstr "Vertraging 0.4"
 
 #: includes/elements/gsap-multi-element-register.php:528
 #: includes/elements/gsap-text-animations.php:231
 msgid "Delay 0.5"
-msgstr ""
+msgstr "Vertraging 0.5"
 
 #: includes/elements/gsap-multi-element-register.php:529
 msgid "Delay 0.6"
-msgstr ""
+msgstr "Vertraging 0.6"
 
 #: includes/elements/gsap-multi-element-register.php:530
 msgid "Delay 0.7"
-msgstr ""
+msgstr "Vertraging 0.7"
 
 #: includes/elements/gsap-multi-element-register.php:531
 msgid "Delay 0.8"
-msgstr ""
+msgstr "Vertraging 0.8"
 
 #: includes/elements/gsap-multi-element-register.php:532
 msgid "Delay 0.9"
-msgstr ""
+msgstr "Vertraging 0.9"
 
 #: includes/elements/gsap-multi-element-register.php:533
 #: includes/elements/gsap-text-animations.php:232
 msgid "Delay 1"
-msgstr ""
+msgstr "Vertraging 1"
 
 #: includes/elements/gsap-multi-element-register.php:534
 #: includes/elements/gsap-text-animations.php:233
 msgid "Delay 2"
-msgstr ""
+msgstr "Vertraging 2"
 
 #: includes/elements/gsap-multi-element-register.php:535
 #: includes/elements/gsap-text-animations.php:234
 msgid "Delay 3"
-msgstr ""
+msgstr "Vertraging 3"
 
 #: includes/elements/gsap-multi-element-register.php:536
 #: includes/elements/gsap-text-animations.php:235
 msgid "Delay 4"
-msgstr ""
+msgstr "Vertraging 4"
 
 #: includes/elements/gsap-multi-element-register.php:537
 #: includes/elements/gsap-text-animations.php:236
 msgid "Delay 5"
-msgstr ""
+msgstr "Vertraging 5"
 
 #: includes/elements/gsap-multi-element-register.php:538
 msgid "Delay 6"
-msgstr ""
+msgstr "Vertraging 6"
 
 #: includes/elements/gsap-multi-element-register.php:539
 msgid "Delay 7"
-msgstr ""
+msgstr "Vertraging 7"
 
 #: includes/elements/gsap-multi-element-register.php:540
 #: includes/elements/gsap-text-animations.php:237
 msgid "Delay 8"
-msgstr ""
+msgstr "Vertraging 8"
 
 #: includes/elements/gsap-multi-element-register.php:541
 msgid "Delay 9"
-msgstr ""
+msgstr "Vertraging 9"
 
 #: includes/elements/gsap-multi-element-register.php:542
 #: includes/elements/gsap-text-animations.php:238
 msgid "Delay 10"
-msgstr ""
+msgstr "Vertraging 10"
 
 #: includes/elements/gsap-multi-element-register.php:543
 #: includes/elements/gsap-text-animations.php:239
 msgid "Delay 20"
-msgstr ""
+msgstr "Vertraging 20"
 
 #: includes/elements/gsap-multi-element-register.php:548
 msgid "Easing: Linear"
-msgstr ""
+msgstr "Easing: lineair"
 
 #: includes/elements/gsap-multi-element-register.php:551
 msgid "Easing: Ease In (power1)"
-msgstr ""
+msgstr "Easing: Ease In (power1)"
 
 #: includes/elements/gsap-multi-element-register.php:552
 msgid "Easing: Ease In (power2)"
-msgstr ""
+msgstr "Easing: Ease In (power2)"
 
 #: includes/elements/gsap-multi-element-register.php:553
 msgid "Easing: Ease In (power3)"
-msgstr ""
+msgstr "Easing: Ease In (power3)"
 
 #: includes/elements/gsap-multi-element-register.php:554
 msgid "Easing: Ease In (power4)"
-msgstr ""
+msgstr "Easing: Ease In (power4)"
 
 #: includes/elements/gsap-multi-element-register.php:557
 msgid "Easing: Ease Out (power1)"
-msgstr ""
+msgstr "Easing: Ease Out (power1)"
 
 #: includes/elements/gsap-multi-element-register.php:558
 msgid "Easing: Ease Out (power2)"
-msgstr ""
+msgstr "Easing: Ease Out (power2)"
 
 #: includes/elements/gsap-multi-element-register.php:559
 msgid "Easing: Ease Out (power3)"
-msgstr ""
+msgstr "Easing: Ease Out (power3)"
 
 #: includes/elements/gsap-multi-element-register.php:560
 msgid "Easing: Ease Out (power4)"
-msgstr ""
+msgstr "Easing: Ease Out (power4)"
 
 #: includes/elements/gsap-multi-element-register.php:563
 msgid "Easing: InOut (power1)"
-msgstr ""
+msgstr "Easing: InOut (power1)"
 
 #: includes/elements/gsap-multi-element-register.php:564
 msgid "Easing: InOut (power2)"
-msgstr ""
+msgstr "Easing: InOut (power2)"
 
 #: includes/elements/gsap-multi-element-register.php:565
 msgid "Easing: InOut (power3)"
-msgstr ""
+msgstr "Easing: InOut (power3)"
 
 #: includes/elements/gsap-multi-element-register.php:566
 msgid "Easing: InOut (power4)"
-msgstr ""
+msgstr "Easing: InOut (power4)"
 
 #: includes/elements/gsap-multi-element-register.php:569
 msgid "Easing: Sine In"
-msgstr ""
+msgstr "Easing: Sine In"
 
 #: includes/elements/gsap-multi-element-register.php:570
 msgid "Easing: Sine Out"
-msgstr ""
+msgstr "Easing: Sine Out"
 
 #: includes/elements/gsap-multi-element-register.php:571
 msgid "Easing: Sine InOut"
-msgstr ""
+msgstr "Easing: Sine InOut"
 
 #: includes/elements/gsap-multi-element-register.php:574
 msgid "Easing: Expo In"
-msgstr ""
+msgstr "Easing: Expo In"
 
 #: includes/elements/gsap-multi-element-register.php:575
 msgid "Easing: Expo Out"
-msgstr ""
+msgstr "Easing: Expo Out"
 
 #: includes/elements/gsap-multi-element-register.php:576
 msgid "Easing: Expo InOut"
-msgstr ""
+msgstr "Easing: Expo InOut"
 
 #: includes/elements/gsap-multi-element-register.php:579
 msgid "Easing: Circ In"
-msgstr ""
+msgstr "Easing: Circ In"
 
 #: includes/elements/gsap-multi-element-register.php:580
 msgid "Easing: Circ Out"
-msgstr ""
+msgstr "Easing: Circ Out"
 
 #: includes/elements/gsap-multi-element-register.php:581
 msgid "Easing: Circ InOut"
-msgstr ""
+msgstr "Easing: Circ InOut"
 
 #: includes/elements/gsap-multi-element-register.php:584
 msgid "Easing: Back In"
-msgstr ""
+msgstr "Easing: Back In"
 
 #: includes/elements/gsap-multi-element-register.php:585
 msgid "Easing: Back Out"
-msgstr ""
+msgstr "Easing: Back Out"
 
 #: includes/elements/gsap-multi-element-register.php:586
 msgid "Easing: Back InOut"
-msgstr ""
+msgstr "Easing: Back InOut"
 
 #: includes/elements/gsap-multi-element-register.php:589
 msgid "Easing: Elastic Out"
-msgstr ""
+msgstr "Easing: Elastic Out"
 
 #: includes/elements/gsap-multi-element-register.php:590
 msgid "Easing: Elastic In"
-msgstr ""
+msgstr "Easing: Elastic In"
 
 #: includes/elements/gsap-multi-element-register.php:591
 msgid "Easing: Elastic InOut"
-msgstr ""
+msgstr "Easing: Elastic InOut"
 
 #: includes/elements/gsap-multi-element-register.php:594
 msgid "Easing: Bounce In"
-msgstr ""
+msgstr "Easing: Bounce In"
 
 #: includes/elements/gsap-multi-element-register.php:595
 msgid "Easing: Bounce Out"
-msgstr ""
+msgstr "Easing: Bounce Out"
 
 #: includes/elements/gsap-multi-element-register.php:596
 msgid "Easing: Bounce InOut"
-msgstr ""
+msgstr "Easing: Bounce InOut"
 
 #: includes/elements/gsap-multi-element-register.php:600
 msgid "Desktop False"
-msgstr ""
+msgstr "Desktop: onwaar"
 
 #: includes/elements/gsap-multi-element-register.php:601
 msgid "Tablet False"
-msgstr ""
+msgstr "Tablet: onwaar"
 
 #: includes/elements/gsap-multi-element-register.php:602
 msgid "Mobile False"
-msgstr ""
+msgstr "Mobiel: onwaar"
 
 #: includes/elements/gsap-multi-element-register.php:605
 msgid "Once True"
-msgstr ""
+msgstr "Eenmaal: waar"
 
 #: includes/elements/gsap-multi-element-register.php:608
 msgid "/ Custom data-animate"
-msgstr ""
+msgstr "/ Aangepaste data-animate"
 
 #: includes/elements/gsap-multi-element-register.php:626
 msgid "Custom animation string"
-msgstr ""
+msgstr "Aangepaste animatiestring"
 
 #: includes/elements/gsap-text-animations.php:17
 msgid "GSAP Text Animations"
-msgstr ""
+msgstr "GSAP-tekstanimaties"
 
 #: includes/elements/gsap-text-animations.php:42
 #: includes/elements/read-more-toggle-text.php:23
 #: includes/elements/smoke-text.php:28
 msgid "Text Content"
-msgstr ""
+msgstr "Tekstinhoud"
 
 #: includes/elements/gsap-text-animations.php:44
 msgid "Enter your text content here"
-msgstr ""
+msgstr "Voer hier uw tekstinhoud in"
 
 #: includes/elements/gsap-text-animations.php:69
 msgid "Select Animation Preset"
-msgstr ""
+msgstr "Animatiepreset selecteren"
 
 #: includes/elements/gsap-text-animations.php:78
 msgid "Opacity 0 to 1 Fade in"
-msgstr ""
+msgstr "Dekking 0 naar 1 invagen"
 
 #: includes/elements/gsap-text-animations.php:79
 msgid "Opacity 1 to 0 Fade out"
-msgstr ""
+msgstr "Dekking 1 naar 0 uitvagen"
 
 #: includes/elements/gsap-text-animations.php:200
 #: includes/elements/gsap-text-animations.php:201
 msgid "Scrub True"
-msgstr ""
+msgstr "Scrub: waar"
 
 #: includes/elements/gsap-text-animations.php:202
 msgid "Scrub 2"
-msgstr ""
+msgstr "Scrub 2"
 
 #: includes/elements/gsap-text-animations.php:203
 msgid "Scrub 4"
-msgstr ""
+msgstr "Scrub 4"
 
 #: includes/elements/gsap-text-animations.php:204
 msgid "Scrub 8"
-msgstr ""
+msgstr "Scrub 8"
 
 #: includes/elements/gsap-text-animations.php:251
 msgid "Select Preset"
-msgstr ""
+msgstr "Preset selecteren"
 
 #: includes/elements/gsap-text-animations.php:256
 #: includes/elements/video-player.php:106
 msgid "Loop"
-msgstr ""
+msgstr "Loop"
 
 #: includes/elements/gsap-text-animations.php:259
 #: includes/elements/gsap-text-animations.php:272
@@ -4840,7 +4840,7 @@ msgstr ""
 #: includes/elements/gsap-text-animations.php:311
 #: includes/elements/gsap-text-animations.php:342
 msgid "True"
-msgstr ""
+msgstr "Waar"
 
 #: includes/elements/gsap-text-animations.php:260
 #: includes/elements/gsap-text-animations.php:273
@@ -4849,788 +4849,788 @@ msgstr ""
 #: includes/elements/gsap-text-animations.php:312
 #: includes/elements/gsap-text-animations.php:343
 msgid "False"
-msgstr ""
+msgstr "Onwaar"
 
 #: includes/elements/gsap-text-animations.php:282
 msgid "Split Text"
-msgstr ""
+msgstr "Tekst splitsen"
 
 #: includes/elements/gsap-text-animations.php:295
 #: includes/elements/query.php:126
 msgid "Random"
-msgstr ""
+msgstr "Willekeurig"
 
 #: includes/elements/gsap-text-animations.php:332
 msgid "true, 1, 2"
-msgstr ""
+msgstr "true, 1, 2"
 
 #: includes/elements/gsap-text-animations.php:352
 msgid "Scroll Start (%)"
-msgstr ""
+msgstr "Begin scrollen (%)"
 
 #: includes/elements/gsap-text-animations.php:362
 msgid "Scroll End (%)"
-msgstr ""
+msgstr "Einde scrollen (%)"
 
 #: includes/elements/image-hotspot.php:14
 msgid "Image Hotspots"
-msgstr ""
+msgstr "Afbeeldingshotspots"
 
 #: includes/elements/image-hotspot.php:28
 msgid "Hover/Click"
-msgstr ""
+msgstr "Hover/klik"
 
 #: includes/elements/image-hotspot.php:38
 msgid "Dot Size (px)"
-msgstr ""
+msgstr "Puntgrootte (px)"
 
 #: includes/elements/image-hotspot.php:47
 msgid "Dot Radius (%)"
-msgstr ""
+msgstr "Puntstraal (%)"
 
 #: includes/elements/image-hotspot.php:56
 #: includes/elements/scroll-line-vertical-indicator.php:53
 msgid "Dot Color"
-msgstr ""
+msgstr "Puntkleur"
 
 #: includes/elements/image-hotspot.php:63
 msgid "Dot Border"
-msgstr ""
+msgstr "Puntrand"
 
 #: includes/elements/image-hotspot.php:72
 msgid "Hotspots"
-msgstr ""
+msgstr "Hotspots"
 
 #: includes/elements/image-hotspot.php:77
 msgid "Tooltip Content"
-msgstr ""
+msgstr "Inhoud tooltip"
 
 #: includes/elements/image-hotspot.php:84
 msgid "X (%)"
-msgstr ""
+msgstr "X (%)"
 
 #: includes/elements/image-hotspot.php:92
 msgid "Y (%)"
-msgstr ""
+msgstr "Y (%)"
 
 #: includes/elements/image-hotspot.php:100
 msgid "Tooltip Position"
-msgstr ""
+msgstr "Positie tooltip"
 
 #: includes/elements/image-hotspot.php:111
 msgid "Tooltip Background"
-msgstr ""
+msgstr "Achtergrond tooltip"
 
 #: includes/elements/image-hotspot.php:116
 #: includes/elements/video-player.php:245
 msgid "Tooltip Text Color"
-msgstr ""
+msgstr "Tekstkleur tooltip"
 
 #: includes/elements/image-hotspot.php:121
 msgid "Tooltip Width (px)"
-msgstr ""
+msgstr "Breedte tooltip (px)"
 
 #: includes/elements/image-hotspot.php:129
 msgid "Tooltip Border Radius (px)"
-msgstr ""
+msgstr "Randstraal tooltip (px)"
 
 #: includes/elements/image-hotspot.php:443
 #: includes/features/301-redirect.php:360
 #: includes/features/mail-logging.php:269
 msgid "Close"
-msgstr ""
+msgstr "Sluiten"
 
 #: includes/elements/like-button.php:28
 msgid "Like Button (Logged User Only)"
-msgstr ""
+msgstr "Vind-ik-leukknop (alleen ingelogde gebruiker)"
 
 #: includes/elements/like-button.php:35
 msgid "Button Icon"
-msgstr ""
+msgstr "Knoppictogram"
 
 #: includes/elements/like-button.php:42
 msgid "Liked Icon"
-msgstr ""
+msgstr "Pictogram \"vind ik leuk\""
 
 #: includes/elements/like-button.php:49
 msgid "Show Like Count"
-msgstr ""
+msgstr "Aantal vind-ik-leuks weergeven"
 
 #: includes/elements/like-button.php:58
 msgid "Custom Identifier"
-msgstr ""
+msgstr "Aangepaste identifier"
 
 #: includes/elements/like-button.php:67
 msgid "Balloon Text (Like)"
-msgstr ""
+msgstr "Ballontekst (vind ik leuk)"
 
 #: includes/elements/like-button.php:68
 #: includes/elements/like-button.php:69
 msgid "Like"
-msgstr ""
+msgstr "Vind ik leuk"
 
 #: includes/elements/like-button.php:75
 msgid "Balloon Text (Unlike)"
-msgstr ""
+msgstr "Ballontekst (vind ik niet meer leuk)"
 
 #: includes/elements/like-button.php:76
 #: includes/elements/like-button.php:77
 msgid "Unlike"
-msgstr ""
+msgstr "Vind ik niet meer leuk"
 
 #: includes/elements/like-button.php:102
 msgid "Click to Like"
-msgstr ""
+msgstr "Klik om te liken"
 
 #: includes/elements/like-button.php:103
 msgid "Click to Unlike"
-msgstr ""
+msgstr "Klik om unlike te doen"
 
 #: includes/elements/lottie-animation.php:23
 msgid "Lottie JSON File"
-msgstr ""
+msgstr "Lottie JSON-bestand"
 
 #: includes/elements/lottie-animation.php:32
 msgid "Or External JSON URL"
-msgstr ""
+msgstr "Of externe JSON-URL"
 
 #: includes/elements/lottie-animation.php:34
 msgid "https://example.com/animation.json"
-msgstr ""
+msgstr "https://example.com/animation.json"
 
 #: includes/elements/lottie-animation.php:51
 msgid "Autoplay Animation"
-msgstr ""
+msgstr "Animatie automatisch afspelen"
 
 #: includes/elements/lottie-animation.php:61
 msgid "Autoplay on Viewport Entry"
-msgstr ""
+msgstr "Automatisch afspelen bij binnenkomst in viewport"
 
 #: includes/elements/lottie-animation.php:71
 msgid "Play on Hover"
-msgstr ""
+msgstr "Afspelen bij hover"
 
 #: includes/elements/lottie-animation.php:81
 msgid "Reset/Reverse State on Mouse Leave"
-msgstr ""
+msgstr "Status resetten/omkeren wanneer muis verlaat"
 
 #: includes/elements/lottie-animation.php:92
 msgid "Pause on Mouse Leave"
-msgstr ""
+msgstr "Pauzeren wanneer muis verlaat"
 
 #: includes/elements/lottie-animation.php:103
 msgid "Play on Click"
-msgstr ""
+msgstr "Afspelen bij klik"
 
 #: includes/elements/lottie-animation.php:114
 msgid "Animation Speed"
-msgstr ""
+msgstr "Animatiesnelheid"
 
 #: includes/elements/lottie-animation.php:126
 msgid "Animation Height (px)"
-msgstr ""
+msgstr "Hoogte van animatie (px)"
 
 #: includes/elements/lottie-animation.php:139
 msgid "Enable Scroll Trigger"
-msgstr ""
+msgstr "Scrolltrigger inschakelen"
 
 #: includes/elements/lottie-animation.php:150
 msgid "Scroll Trigger Start"
-msgstr ""
+msgstr "Begin scrolltrigger"
 
 #: includes/elements/lottie-animation.php:161
 msgid "Scroll Trigger End"
-msgstr ""
+msgstr "Einde scrolltrigger"
 
 #: includes/elements/lottie-animation.php:176
 msgid "Show Scroll Trigger Markers"
-msgstr ""
+msgstr "Markeringen scrolltrigger tonen"
 
 #: includes/elements/lottie-animation.php:190
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: includes/elements/lottie-animation.php:193
 msgid "http://yoursite.com"
-msgstr ""
+msgstr "http://uwsite.com"
 
 #: includes/elements/lottie-animation.php:253
 msgid "Please upload a Lottie JSON file or provide an external JSON URL."
-msgstr ""
+msgstr "Upload een Lottie JSON-bestand of geef een externe JSON-URL op."
 
 #: includes/elements/marquee-slider-carousel.php:17
 msgid "Marquee Slider Carousel"
-msgstr ""
+msgstr "Marquee-schuifcarrousel"
 
 #: includes/elements/marquee-slider-carousel.php:24
 msgid "Marquee Items"
-msgstr ""
+msgstr "Marquee-items"
 
 #: includes/elements/marquee-slider-carousel.php:27
 msgid "Marquee Item"
-msgstr ""
+msgstr "Marquee-item"
 
 #: includes/elements/marquee-slider-carousel.php:38
 msgid "Link (Optional)"
-msgstr ""
+msgstr "Link (optioneel)"
 
 #: includes/elements/marquee-slider-carousel.php:47
 msgid "Direction"
-msgstr ""
+msgstr "Richting"
 
 #: includes/elements/marquee-slider-carousel.php:52
 msgid "Up"
-msgstr ""
+msgstr "Omhoog"
 
 #: includes/elements/marquee-slider-carousel.php:53
 msgid "Down"
-msgstr ""
+msgstr "Omlaag"
 
 #: includes/elements/marquee-slider-carousel.php:61
 msgid "Duration (Speed)"
-msgstr ""
+msgstr "Duur (snelheid)"
 
 #: includes/elements/marquee-slider-carousel.php:85
 msgid "Pause on Hover"
-msgstr ""
+msgstr "Pauzeren bij hover"
 
 #: includes/elements/marquee-slider-carousel.php:93
 msgid "Enable Edge Fade"
-msgstr ""
+msgstr "Randvervaging inschakelen"
 
 #: includes/elements/marquee-slider-carousel.php:101
 msgid "Enable Drag Scroll"
-msgstr ""
+msgstr "Sleepscrollen inschakelen"
 
 #: includes/elements/marquee-slider-carousel.php:105
 msgid "Let users grab & drag the marquee, flick to slide faster. Momentum gradually slows back to normal speed — like phone scrolling."
-msgstr ""
+msgstr "Hiermee kunnen gebruikers de marquee vastpakken en slepen, en flitsen om sneller te schuiven. De impuls vertraagt geleidelijk tot normale snelheid — zoals scrollen op een telefoon."
 
 #: includes/elements/marquee-slider-carousel.php:110
 msgid "Vertical Max Height"
-msgstr ""
+msgstr "Maximale hoogte verticaal"
 
 #: includes/elements/marquee-slider-carousel.php:127
 msgid "Item Max Width"
-msgstr ""
+msgstr "Maximale breedte item"
 
 #: includes/elements/marquee-slider-carousel.php:142
 msgid "Image Height"
-msgstr ""
+msgstr "Hoogte afbeelding"
 
 #: includes/elements/marquee-slider-carousel.php:156
 msgid "Image Aspect Ratio"
-msgstr ""
+msgstr "Beeldverhouding afbeelding"
 
 #: includes/elements/marquee-slider-carousel.php:173
 msgid "Image Object Fit"
-msgstr ""
+msgstr "Objectpassing afbeelding"
 
 #: includes/elements/marquee-slider-carousel.php:176
 #: includes/elements/video-player.php:185
 msgid "Cover"
-msgstr ""
+msgstr "Cover"
 
 #: includes/elements/marquee-slider-carousel.php:177
 msgid "Contain"
-msgstr ""
+msgstr "Contain"
 
 #: includes/elements/marquee-slider-carousel.php:178
 #: includes/elements/video-player.php:186
 msgid "Fill"
-msgstr ""
+msgstr "Vullen"
 
 #: includes/elements/marquee-slider-carousel.php:180
 #: includes/elements/video-player.php:187
 msgid "Scale Down"
-msgstr ""
+msgstr "Verkleinen"
 
 #: includes/elements/marquee-slider-carousel.php:194
 msgid "Image Effect on Hover"
-msgstr ""
+msgstr "Effect op afbeelding bij hover"
 
 #: includes/elements/marquee-slider-carousel.php:198
 msgid "Grayscale to Color"
-msgstr ""
+msgstr "Van grijstinten naar kleur"
 
 #: includes/elements/marquee-slider-carousel.php:199
 msgid "Fade In"
-msgstr ""
+msgstr "Invagen"
 
 #: includes/elements/marquee-slider-carousel.php:207
 #: includes/elements/read-more-toggle-text.php:57
 msgid "Text Typography"
-msgstr ""
+msgstr "Typografie tekst"
 
 #: includes/elements/matrix.php:14
 msgid "Matrix Rain"
-msgstr ""
+msgstr "Matrix-regen"
 
 #: includes/elements/matrix.php:20
 #: includes/elements/text-action-social-share.php:28
 msgid "DOM Selector"
-msgstr ""
+msgstr "DOM-selector"
 
 #: includes/elements/matrix.php:24
 msgid "Which element to overlay Matrix Rain on? CSS selector. Default is body."
-msgstr ""
+msgstr "Op welk element de Matrix-regen weergeven? CSS-selector. Standaard is body."
 
 #: includes/elements/matrix.php:29
 #: includes/features/mail-customizer.php:252
 msgid "Text Color"
-msgstr ""
+msgstr "Tekstkleur"
 
 #: includes/elements/matrix.php:38
 msgid "Background Color (fade trail)"
-msgstr ""
+msgstr "Achtergrondkleur (vervaagspoor)"
 
 #: includes/elements/matrix.php:44
 msgid "Controls the trail/fade effect. Use semi-transparent for classic Matrix (e.g., rgba(0,0,0,0.1)). Set fully transparent (alpha 0) for no overlay clearing (letters will stack)."
-msgstr ""
+msgstr "Bepaalt het spoor-/vervaageffect. Gebruik semi-transparant voor de klassieke Matrix (bijv. rgba(0,0,0,0.1)). Stel volledig transparant in (alpha 0) om de overlay niet te wissen (letters stapelen zich op)."
 
 #: includes/elements/matrix.php:48
 msgid "Overlay Opacity (0-1)"
-msgstr ""
+msgstr "Dekking overlay (0-1)"
 
 #: includes/elements/matrix.php:58
 msgid "Rain Speed"
-msgstr ""
+msgstr "Regensnelheid"
 
 #: includes/elements/matrix.php:71
 msgid "Column Density (baseline 20)"
-msgstr ""
+msgstr "Kolomdichtheid (basis 20)"
 
 #: includes/elements/matrix.php:78
 msgid "Controls horizontal density. 20 = columns spaced by font size. Higher = denser. Lower = sparser."
-msgstr ""
+msgstr "Bepaalt de horizontale dichtheid. 20 = kolommen op basis van lettergrootte. Hoger = dichter. Lager = spaarzamer."
 
 #: includes/elements/matrix.php:82
 msgid "Font Size (px)"
-msgstr ""
+msgstr "Lettergrootte (px)"
 
 #: includes/elements/matrix.php:91
 msgid "Custom Characters (optional)"
-msgstr ""
+msgstr "Aangepaste tekens (optioneel)"
 
 #: includes/elements/matrix.php:94
 msgid "Leave blank for random Japanese + ASCII. Enter your own for custom effect!"
-msgstr ""
+msgstr "Laat leeg voor willekeurige Japanse tekens + ASCII. Voer uw eigen tekens in voor een aangepast effect!"
 
 #: includes/elements/matrix.php:98
 msgid "Reverse Direction (Upwards)?"
-msgstr ""
+msgstr "Richting omkeren (omhoog)?"
 
 #: includes/elements/multi-step-form.php:15
 msgid "Multi-Step Form"
-msgstr ""
+msgstr "Meerstapsformulier"
 
 #: includes/elements/multi-step-form.php:22
 msgid "Form Selector"
-msgstr ""
+msgstr "Formulierselector"
 
 #: includes/elements/multi-step-form.php:35
 #: includes/features/cookie-banner.php:968
 msgid "Button Background Color"
-msgstr ""
+msgstr "Achtergrondkleur van knop"
 
 #: includes/elements/multi-step-form.php:48
 #: includes/elements/profile-settings.php:166
 msgid "Button Typography"
-msgstr ""
+msgstr "Typografie van knop"
 
 #: includes/elements/multi-step-form.php:60
 msgid "Progress Bar Color"
-msgstr ""
+msgstr "Kleur van voortgangsbalk"
 
 #: includes/elements/multi-step-form.php:73
 msgid "Progress Indicator Color"
-msgstr ""
+msgstr "Kleur van voortgangsindicator"
 
 #: includes/elements/multi-step-form.php:87
 msgid "Back Button Text"
-msgstr ""
+msgstr "Tekst van terugknop"
 
 #: includes/elements/multi-step-form.php:89
 #: includes/elements/multi-step-form.php:90
 msgid "Back"
-msgstr ""
+msgstr "Terug"
 
 #: includes/elements/multi-step-form.php:97
 msgid "Next Button Text"
-msgstr ""
+msgstr "Tekst van volgendeknop"
 
 #: includes/elements/multi-step-form.php:100
 #: includes/elements/multi-step-form.php:99
 msgid "Next"
-msgstr ""
+msgstr "Volgende"
 
 #: includes/elements/polkadot-effect.php:15
 msgid "Polkadot Halftone Image"
-msgstr ""
+msgstr "Halftoonafbeelding met stippen"
 
 #: includes/elements/polkadot-effect.php:27
 msgid "Grid Size"
-msgstr ""
+msgstr "Rastergrootte"
 
 #: includes/elements/polkadot-effect.php:66
 msgid "Gamma"
-msgstr ""
+msgstr "Gamma"
 
 #: includes/elements/polkadot-effect.php:79
 msgid "Smoothing"
-msgstr ""
+msgstr "Verzachten"
 
 #: includes/elements/polkadot-effect.php:92
 msgid "Dither Type"
-msgstr ""
+msgstr "Type dithering"
 
 #: includes/elements/polkadot-effect.php:96
 msgid "Floyd-Steinberg"
-msgstr ""
+msgstr "Floyd-Steinberg"
 
 #: includes/elements/polkadot-effect.php:97
 msgid "Ordered"
-msgstr ""
+msgstr "Geordend"
 
 #: includes/elements/polkadot-effect.php:98
 msgid "Noise"
-msgstr ""
+msgstr "Ruis"
 
 #: includes/elements/polkadot-effect.php:129
 msgid "Halftone Image"
-msgstr ""
+msgstr "Halftoonafbeelding"
 
 #: includes/elements/print.php:15
 msgid "Print Page/PDF"
-msgstr ""
+msgstr "Pagina/PDF afdrukken"
 
 #: includes/elements/print.php:21
 msgid "Print Selector"
-msgstr ""
+msgstr "Afdrukselector"
 
 #: includes/elements/print.php:25
 msgid "If you want to print only a specific section, enter a CSS selector (#brxe-xxxx). Leave blank to print the full page."
-msgstr ""
+msgstr "Als u alleen een specifieke sectie wilt afdrukken, voer dan een CSS-selector in (#brxe-xxxx). Laat leeg om de volledige pagina af te drukken."
 
 #: includes/elements/print.php:29
 msgid "Button Selector"
-msgstr ""
+msgstr "Knopselector"
 
 #: includes/elements/print.php:33
 msgid "Provide a CSS selector for the button you want to trigger the print action (#brxe-xxxx)."
-msgstr ""
+msgstr "Geef een CSS-selector op voor de knop die de afdrukactie moet activeren (#brxe-xxxx)."
 
 #: includes/elements/print.php:37
 msgid "Print Button Text"
-msgstr ""
+msgstr "Tekst van afdrukknop"
 
 #: includes/elements/print.php:41
 msgid "Change the print button text in the popup."
-msgstr ""
+msgstr "Wijzig de tekst van de afdrukknop in de pop-up."
 
 #: includes/elements/profile-settings.php:20
 msgid "Profile Settings"
-msgstr ""
+msgstr "Profielinstellingen"
 
 #: includes/elements/profile-settings.php:29
 msgid "Profile Fields (Drag to Reorder)"
-msgstr ""
+msgstr "Profielvelden (slepen om te herschikken)"
 
 #: includes/elements/profile-settings.php:37
 msgid "Avatar Upload"
-msgstr ""
+msgstr "Avatar uploaden"
 
 #: includes/elements/profile-settings.php:313
 #: includes/elements/profile-settings.php:38
 msgid "First Name"
-msgstr ""
+msgstr "Voornaam"
 
 #: includes/elements/profile-settings.php:320
 #: includes/elements/profile-settings.php:39
 msgid "Last Name"
-msgstr ""
+msgstr "Achternaam"
 
 #: includes/elements/profile-settings.php:41
 msgid "Description/Bio"
-msgstr ""
+msgstr "Beschrijving/bio"
 
 #: includes/elements/profile-settings.php:42
 msgid "Password Change"
-msgstr ""
+msgstr "Wachtwoord wijzigen"
 
 #: includes/elements/profile-settings.php:334
 #: includes/elements/profile-settings.php:43
 msgid "Website URL"
-msgstr ""
+msgstr "Website-URL"
 
 #: includes/elements/profile-settings.php:49
 #: includes/features/activity-logs.php:1660
 msgid "Enable"
-msgstr ""
+msgstr "Inschakelen"
 
 #: includes/elements/profile-settings.php:70
 msgid "Custom Meta Fields"
-msgstr ""
+msgstr "Aangepaste metavelden"
 
 #: includes/elements/profile-settings.php:77
 msgid "Custom Field"
-msgstr ""
+msgstr "Aangepast veld"
 
 #: includes/elements/profile-settings.php:81
 msgid "Meta Key"
-msgstr ""
+msgstr "Metasleutel"
 
 #: includes/elements/profile-settings.php:84
 msgid "Use unique key (e.g., twitter_handle, phone_number)"
-msgstr ""
+msgstr "Gebruik een unieke sleutel (bijv. twitter_handle, phone_number)"
 
 #: includes/elements/profile-settings.php:93
 #: includes/features/404-logging.php:263
 #: includes/features/custom-field-settings.php:159
 #: includes/features/custom-field-settings.php:423
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: includes/elements/profile-settings.php:95
 #: includes/features/custom-field-settings.php:145
 #: includes/features/custom-field-settings.php:409
 msgid "Number"
-msgstr ""
+msgstr "Getal"
 
 #: includes/elements/profile-settings.php:96
 msgid "Checkbox (Boolean)"
-msgstr ""
+msgstr "Selectievakje (booleaans)"
 
 #: includes/elements/profile-settings.php:113
 msgid "Submit Button Text"
-msgstr ""
+msgstr "Tekst van verzendknop"
 
 #: includes/elements/profile-settings.php:115
 #: includes/elements/profile-settings.php:116
 #: includes/elements/profile-settings.php:209
 msgid "Update Profile"
-msgstr ""
+msgstr "Profiel bijwerken"
 
 #: includes/elements/profile-settings.php:122
 msgid "Success Message"
-msgstr ""
+msgstr "Succesbericht"
 
 #: includes/elements/profile-settings.php:124
 #: includes/elements/profile-settings.php:210
 #: includes/elements/profile-settings.php:718
 msgid "Profile updated successfully!"
-msgstr ""
+msgstr "Profiel succesvol bijgewerkt!"
 
 #: includes/elements/profile-settings.php:130
 msgid "Label Typography"
-msgstr ""
+msgstr "Typografie van label"
 
 #: includes/elements/profile-settings.php:142
 msgid "Input Background"
-msgstr ""
+msgstr "Achtergrond van invoerveld"
 
 #: includes/elements/profile-settings.php:154
 msgid "Input Border"
-msgstr ""
+msgstr "Rand van invoerveld"
 
 #: includes/elements/profile-settings.php:302
 msgid "Profile Avatar"
-msgstr ""
+msgstr "Profielavatar"
 
 #: includes/elements/profile-settings.php:304
 msgid "Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP."
-msgstr ""
+msgstr "Maximale bestandsgrootte: 5MB. Toegestane formaten: JPG, PNG, GIF, WebP."
 
 #: includes/elements/profile-settings.php:327
 msgid "Email Address"
-msgstr ""
+msgstr "E-mailadres"
 
 #: includes/elements/profile-settings.php:341
 msgid "Bio / Description"
-msgstr ""
+msgstr "Bio / beschrijving"
 
 #: includes/elements/profile-settings.php:348
 msgid "Change Password"
-msgstr ""
+msgstr "Wachtwoord wijzigen"
 
 #: includes/elements/profile-settings.php:351
 msgid "New Password"
-msgstr ""
+msgstr "Nieuw wachtwoord"
 
 #: includes/elements/profile-settings.php:353
 msgid "Leave blank to keep current password"
-msgstr ""
+msgstr "Laat leeg om het huidige wachtwoord te behouden"
 
 #: includes/elements/profile-settings.php:357
 msgid "Confirm New Password"
-msgstr ""
+msgstr "Nieuw wachtwoord bevestigen"
 
 #: includes/elements/profile-settings.php:369
 msgid "Additional Information"
-msgstr ""
+msgstr "Aanvullende informatie"
 
 #: includes/elements/profile-settings.php:438
 msgid "Passwords do not match!"
-msgstr ""
+msgstr "Wachtwoorden komen niet overeen!"
 
 #: includes/elements/profile-settings.php:445
 msgid "Updating..."
-msgstr ""
+msgstr "Bezig met bijwerken..."
 
 #: includes/elements/profile-settings.php:483
 msgid "Network error. Please try again."
-msgstr ""
+msgstr "Netwerkfout. Probeer het opnieuw."
 
 #: includes/elements/profile-settings.php:518
 msgid "You must be logged in to update your profile."
-msgstr ""
+msgstr "U moet ingelogd zijn om uw profiel bij te werken."
 
 #: includes/elements/profile-settings.php:529
 msgid "Security check failed: User ID mismatch."
-msgstr ""
+msgstr "Beveiligingscontrole mislukt: gebruikers-ID komt niet overeen."
 
 #: includes/elements/profile-settings.php:537
 msgid "Security check failed: Invalid nonce."
-msgstr ""
+msgstr "Beveiligingscontrole mislukt: ongeldige nonce."
 
 #: includes/elements/profile-settings.php:544
 msgid "Invalid action."
-msgstr ""
+msgstr "Ongeldige actie."
 
 #: includes/elements/profile-settings.php:553
 msgid "Please wait a moment before updating again."
-msgstr ""
+msgstr "Wacht even voordat u opnieuw bijwerkt."
 
 #: includes/elements/profile-settings.php:580
 msgid "Invalid email address."
-msgstr ""
+msgstr "Ongeldig e-mailadres."
 
 #: includes/elements/profile-settings.php:587
 msgid "This email is already in use."
-msgstr ""
+msgstr "Dit e-mailadres is al in gebruik."
 
 #: includes/elements/profile-settings.php:621
 msgid "Passwords do not match."
-msgstr ""
+msgstr "Wachtwoorden komen niet overeen."
 
 #: includes/elements/profile-settings.php:628
 msgid "Password must be at least 8 characters long."
-msgstr ""
+msgstr "Wachtwoord moet minimaal 8 tekens lang zijn."
 
 #: includes/elements/profile-settings.php:642
 msgid "Avatar upload failed."
-msgstr ""
+msgstr "Avatar-upload mislukt."
 
 #: includes/elements/profile-settings.php:652
 msgid "Invalid file type. Only JPG, PNG, GIF, and WebP are allowed."
-msgstr ""
+msgstr "Ongeldig bestandstype. Alleen JPG, PNG, GIF en WebP zijn toegestaan."
 
 #: includes/elements/profile-settings.php:659
 msgid "File size too large. Maximum 5MB allowed."
-msgstr ""
+msgstr "Bestandsgrootte te groot. Maximaal 5MB toegestaan."
 
 #: includes/elements/profile-settings.php:672
 msgid "Avatar upload failed: "
-msgstr ""
+msgstr "Avatar-upload mislukt: "
 
 #: includes/elements/query.php:20
 msgid "Query (Nestable)"
-msgstr ""
+msgstr "Query (nestbaar)"
 
 #: includes/elements/query.php:27
 msgid "No Wrapper"
-msgstr ""
+msgstr "Geen wrapper"
 
 #: includes/elements/query.php:43
 msgid "post_type"
-msgstr ""
+msgstr "post_type"
 
 #: includes/elements/query.php:47
 msgid "Select post types"
-msgstr ""
+msgstr "Berichttypen selecteren"
 
 #: includes/elements/query.php:53
 msgid "post_status"
-msgstr ""
+msgstr "post_status"
 
 #: includes/elements/query.php:56
 msgid "Publish"
-msgstr ""
+msgstr "Gepubliceerd"
 
 #: includes/elements/query.php:57
 #: includes/features/media-image-opt.php:1505
 msgid "Pending"
-msgstr ""
+msgstr "In behandeling"
 
 #: includes/elements/query.php:58
 msgid "Draft"
-msgstr ""
+msgstr "Concept"
 
 #: includes/elements/query.php:59
 msgid "Auto-Draft"
-msgstr ""
+msgstr "Automatisch concept"
 
 #: includes/elements/query.php:60
 msgid "Future"
-msgstr ""
+msgstr "Toekomstig"
 
 #: includes/elements/query.php:61
 #: includes/features/post-types-settings.php:160
 #: includes/features/post-types-settings.php:256
 msgid "Private"
-msgstr ""
+msgstr "Privé"
 
 #: includes/elements/query.php:62
 msgid "Inherit"
-msgstr ""
+msgstr "Overgenomen"
 
 #: includes/elements/query.php:63
 msgid "Trash"
-msgstr ""
+msgstr "Prullenbak"
 
 #: includes/elements/query.php:67
 msgid "Select status"
-msgstr ""
+msgstr "Status selecteren"
 
 #: includes/elements/query.php:77
 msgid "posts_per_page"
-msgstr ""
+msgstr "posts_per_page"
 
 #: includes/elements/query.php:79
 msgid "Use -1 to show all posts"
-msgstr ""
+msgstr "Gebruik -1 om alle berichten te tonen"
 
 #: includes/elements/query.php:84
 msgid "offset"
-msgstr ""
+msgstr "offset"
 
 #: includes/elements/query.php:86
 msgid "Number of posts to skip"
-msgstr ""
+msgstr "Aantal berichten om over te slaan"
 
 #: includes/elements/query.php:91
 msgid "paged"
-msgstr ""
+msgstr "paged"
 
 #: includes/elements/query.php:93
 msgid "Page number (0 = current page)"
-msgstr ""
+msgstr "Paginanummer (0 = huidige pagina)"
 
 #: includes/elements/query.php:98
 msgid "nopaging"
-msgstr ""
+msgstr "nopaging"
 
 #: includes/elements/query.php:104
 msgid "ignore_sticky_posts"
-msgstr ""
+msgstr "ignore_sticky_posts"
 
 #: includes/elements/query.php:114
 msgid "orderby"
-msgstr ""
+msgstr "orderby"
 
 #: includes/elements/query.php:118
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: includes/elements/query.php:119
 #: includes/features/custom-field-settings.php:193
@@ -5638,15 +5638,15 @@ msgstr ""
 #: includes/features/post-types-settings.php:183
 #: includes/features/post-types-settings.php:29
 msgid "Author"
-msgstr ""
+msgstr "Auteur"
 
 #: includes/elements/query.php:121
 msgid "Name (slug)"
-msgstr ""
+msgstr "Naam (slug)"
 
 #: includes/elements/query.php:122
 msgid "Post Type"
-msgstr ""
+msgstr "Berichttype"
 
 #: includes/elements/query.php:123 includes/features/301-redirect.php:527
 #: includes/features/activity-logs.php:1752
@@ -5654,784 +5654,784 @@ msgstr ""
 #: includes/features/custom-field-settings.php:416
 #: includes/features/search-loggins.php:222
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: includes/elements/query.php:124
 msgid "Modified Date"
-msgstr ""
+msgstr "Wijzigingsdatum"
 
 #: includes/elements/query.php:125
 msgid "Parent"
-msgstr ""
+msgstr "Bovenliggend"
 
 #: includes/elements/query.php:127
 msgid "Comment Count"
-msgstr ""
+msgstr "Aantal reacties"
 
 #: includes/elements/query.php:128
 msgid "Relevance (search)"
-msgstr ""
+msgstr "Relevantie (zoeken)"
 
 #: includes/elements/query.php:129
 msgid "Menu Order"
-msgstr ""
+msgstr "Menuvolgorde"
 
 #: includes/elements/query.php:130
 msgid "Meta Value"
-msgstr ""
+msgstr "Metawaarde"
 
 #: includes/elements/query.php:131
 msgid "Meta Value (Numeric)"
-msgstr ""
+msgstr "Metawaarde (numeriek)"
 
 #: includes/elements/query.php:132
 msgid "post__in order"
-msgstr ""
+msgstr "post__in-volgorde"
 
 #: includes/elements/query.php:139
 msgid "order"
-msgstr ""
+msgstr "order"
 
 #: includes/elements/query.php:142
 msgid "Ascending"
-msgstr ""
+msgstr "Oplopend"
 
 #: includes/elements/query.php:143
 msgid "Descending"
-msgstr ""
+msgstr "Aflopend"
 
 #: includes/elements/query.php:150
 msgid "meta_key"
-msgstr ""
+msgstr "meta_key"
 
 #: includes/elements/query.php:152
 msgid "Enter meta key"
-msgstr ""
+msgstr "Voer metasleutel in"
 
 #: includes/elements/query.php:153
 msgid "Required for meta_value orderby"
-msgstr ""
+msgstr "Vereist voor orderby meta_value"
 
 #: includes/elements/query.php:163
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #: includes/elements/query.php:165
 msgid "Search keyword"
-msgstr ""
+msgstr "Zoekwoord"
 
 #: includes/elements/query.php:175
 msgid "author"
-msgstr ""
+msgstr "author"
 
 #: includes/elements/query.php:177
 msgid "e.g., 1 or 1,2,3"
-msgstr ""
+msgstr "bijv. 1 of 1,2,3"
 
 #: includes/elements/query.php:178
 msgid "Comma-separated author IDs"
-msgstr ""
+msgstr "Auteurs-ID's gescheiden door komma's"
 
 #: includes/elements/query.php:184
 msgid "author_name"
-msgstr ""
+msgstr "author_name"
 
 #: includes/elements/query.php:186
 msgid "user_nicename"
-msgstr ""
+msgstr "user_nicename"
 
 #: includes/elements/query.php:196
 msgid "cat"
-msgstr ""
+msgstr "cat"
 
 #: includes/elements/query.php:198
 msgid "Category ID(s)"
-msgstr ""
+msgstr "Categorie-ID('s)"
 
 #: includes/elements/query.php:199
 msgid "e.g., 1 or 1,2,3 or -1 to exclude"
-msgstr ""
+msgstr "bijv. 1 of 1,2,3 of -1 om uit te sluiten"
 
 #: includes/elements/query.php:205
 msgid "category_name"
-msgstr ""
+msgstr "category_name"
 
 #: includes/elements/query.php:207
 msgid "category-slug"
-msgstr ""
+msgstr "category-slug"
 
 #: includes/elements/query.php:217
 msgid "tag"
-msgstr ""
+msgstr "tag"
 
 #: includes/elements/query.php:219
 msgid "tag-slug"
-msgstr ""
+msgstr "tag-slug"
 
 #: includes/elements/query.php:220
 msgid "Comma-separated for OR, + for AND"
-msgstr ""
+msgstr "Komma-gescheiden voor OF, + voor EN"
 
 #: includes/elements/query.php:226
 msgid "tag_id"
-msgstr ""
+msgstr "tag_id"
 
 #: includes/elements/query.php:228
 msgid "Tag ID"
-msgstr ""
+msgstr "Tag-ID"
 
 #: includes/elements/query.php:238
 msgid "p"
-msgstr ""
+msgstr "p"
 
 #: includes/elements/query.php:244
 msgid "name"
-msgstr ""
+msgstr "name"
 
 #: includes/elements/query.php:246
 #: includes/features/post-types-settings.php:131
 #: includes/features/post-types-settings.php:284
 msgid "post-slug"
-msgstr ""
+msgstr "post-slug"
 
 #: includes/elements/query.php:252
 msgid "post__in"
-msgstr ""
+msgstr "post__in"
 
 #: includes/elements/query.php:254 includes/elements/query.php:262
 #: includes/elements/query.php:283 includes/elements/query.php:292
 msgid "e.g., 1,2,3"
-msgstr ""
+msgstr "bijv. 1,2,3"
 
 #: includes/elements/query.php:260
 msgid "post__not_in"
-msgstr ""
+msgstr "post__not_in"
 
 #: includes/elements/query.php:272
 msgid "post_parent"
-msgstr ""
+msgstr "post_parent"
 
 #: includes/elements/query.php:274
 msgid "Parent post ID"
-msgstr ""
+msgstr "ID van bovenliggend bericht"
 
 #: includes/elements/query.php:275
 msgid "Get children of this parent. Use 0 for top-level posts only. For nested queries, use {post_id} or {parent_id} - the tag will be processed at the correct time in the loop context."
-msgstr ""
+msgstr "Haal de onderliggende items van deze bovenliggende op. Gebruik 0 voor alleen berichten op het hoogste niveau. Gebruik voor geneste query's {post_id} of {parent_id} - de tag wordt op het juiste moment in de loopcontext verwerkt."
 
 #: includes/elements/query.php:281
 msgid "post_parent__in"
-msgstr ""
+msgstr "post_parent__in"
 
 #: includes/elements/query.php:284
 msgid "Comma-separated parent IDs to include"
-msgstr ""
+msgstr "Komma-gescheiden bovenliggende ID's om op te nemen"
 
 #: includes/elements/query.php:290
 msgid "post_parent__not_in"
-msgstr ""
+msgstr "post_parent__not_in"
 
 #: includes/elements/query.php:293
 msgid "Comma-separated parent IDs to exclude"
-msgstr ""
+msgstr "Komma-gescheiden bovenliggende ID's om uit te sluiten"
 
 #: includes/elements/query.php:299
 msgid "Direct Children Only"
-msgstr ""
+msgstr "Alleen directe onderliggende items"
 
 #: includes/elements/query.php:301
 msgid "When using post_parent, get only direct children (not grandchildren)"
-msgstr ""
+msgstr "Bij gebruik van post_parent alleen directe onderliggende items ophalen (geen kleinkinderen)"
 
 #: includes/elements/query.php:310
 msgid "has_password"
-msgstr ""
+msgstr "has_password"
 
 #: includes/elements/query.php:314
 msgid "Has Password"
-msgstr ""
+msgstr "Met wachtwoord"
 
 #: includes/elements/query.php:315
 msgid "No Password"
-msgstr ""
+msgstr "Zonder wachtwoord"
 
 #: includes/elements/query.php:326
 msgid "year"
-msgstr ""
+msgstr "year"
 
 #: includes/elements/query.php:328
 msgid "e.g., 2024"
-msgstr ""
+msgstr "bijv. 2024"
 
 #: includes/elements/query.php:333
 msgid "monthnum"
-msgstr ""
+msgstr "monthnum"
 
 #: includes/elements/query.php:335
 msgid "1-12"
-msgstr ""
+msgstr "1-12"
 
 #: includes/elements/query.php:340
 msgid "day"
-msgstr ""
+msgstr "day"
 
 #: includes/elements/query.php:342
 msgid "1-31"
-msgstr ""
+msgstr "1-31"
 
 #: includes/elements/query.php:351
 msgid "comment_count"
-msgstr ""
+msgstr "comment_count"
 
 #: includes/elements/query.php:357
 msgid "Comment Count Compare"
-msgstr ""
+msgstr "Vergelijking aantal reacties"
 
 #: includes/elements/query.php:376
 msgid "no_found_rows"
-msgstr ""
+msgstr "no_found_rows"
 
 #: includes/elements/query.php:378
 msgid "Improves performance if pagination not needed"
-msgstr ""
+msgstr "Verbetert de prestaties als paginering niet nodig is"
 
 #: includes/elements/query.php:384
 msgid "Suppress Filters"
-msgstr ""
+msgstr "Filters onderdrukken"
 
 #: includes/elements/query.php:386
 msgid "Useful for archives: prevents themes/plugins from hijacking the query."
-msgstr ""
+msgstr "Handig voor archieven: voorkomt dat thema's/plug-ins de query kapen."
 
 #: includes/elements/query.php:391
 msgid "cache_results"
-msgstr ""
+msgstr "cache_results"
 
 #: includes/elements/query.php:397
 msgid "Clear Query Cache"
-msgstr ""
+msgstr "Querycache legen"
 
 #: includes/elements/query.php:399
 msgid "Clear WordPress cache before running query to ensure fresh results"
-msgstr ""
+msgstr "Leeg de WordPress-cache voordat de query wordt uitgevoerd om actuele resultaten te garanderen"
 
 #: includes/elements/query.php:404
 msgid "update_post_meta_cache"
-msgstr ""
+msgstr "update_post_meta_cache"
 
 #: includes/elements/query.php:410
 msgid "update_post_term_cache"
-msgstr ""
+msgstr "update_post_term_cache"
 
 #: includes/elements/query.php:420
 msgid "tax_query"
-msgstr ""
+msgstr "tax_query"
 
 #: includes/elements/query.php:422
 msgid "Enter JSON for tax_query"
-msgstr ""
+msgstr "Voer JSON in voor tax_query"
 
 #: includes/elements/query.php:423
 msgid "Advanced: JSON format for complex taxonomy queries"
-msgstr ""
+msgstr "Geavanceerd: JSON-formaat voor complexe taxonomiequery's"
 
 #: includes/elements/query.php:428
 msgid "meta_query"
-msgstr ""
+msgstr "meta_query"
 
 #: includes/elements/query.php:430
 msgid "Enter JSON for meta_query"
-msgstr ""
+msgstr "Voer JSON in voor meta_query"
 
 #: includes/elements/query.php:431
 msgid "Advanced: JSON format for complex meta queries"
-msgstr ""
+msgstr "Geavanceerd: JSON-formaat voor complexe metaquery's"
 
 #: includes/elements/query.php:436
 msgid "date_query"
-msgstr ""
+msgstr "date_query"
 
 #: includes/elements/query.php:438
 msgid "Enter JSON for date_query"
-msgstr ""
+msgstr "Voer JSON in voor date_query"
 
 #: includes/elements/query.php:439
 msgid "Advanced: JSON format for complex date queries"
-msgstr ""
+msgstr "Geavanceerd: JSON-formaat voor complexe datumquery's"
 
 #: includes/elements/query.php:448
 msgid "Empty Message"
-msgstr ""
+msgstr "Lege melding"
 
 #: includes/elements/query.php:450
 msgid "No posts found"
-msgstr ""
+msgstr "Geen berichten gevonden"
 
 #: includes/elements/query.php:460
 msgid "Custom Args (PHP)"
-msgstr ""
+msgstr "Aangepaste argumenten (PHP)"
 
 #: includes/elements/query.php:464
 msgid "Advanced: Enter valid PHP array syntax for WP_Query arguments. These will be merged with (and can override) other control settings. Example: array('posts_per_page' => 5, 'orderby' => 'rand')"
-msgstr ""
+msgstr "Geavanceerd: voer geldige PHP-arraysyntax in voor WP_Query-argumenten. Deze worden samengevoegd met (en kunnen andere) besturingsinstellingen overschrijven. Voorbeeld: array('posts_per_page' => 5, 'orderby' => 'rand')"
 
 #: includes/elements/query.php:473
 msgid "Debug"
-msgstr ""
+msgstr "Foutopsporing"
 
 #: includes/elements/query.php:637
 msgid "No posts matched your criteria."
-msgstr ""
+msgstr "Geen berichten kwamen overeen met uw criteria."
 
 #: includes/elements/read-more-toggle-text.php:17
 msgid "Read More and Toggle Text"
-msgstr ""
+msgstr "Lees meer en tekst wisselen"
 
 #: includes/elements/read-more-toggle-text.php:25
 msgid "Lorem ipsum dolor sinan amet..."
-msgstr ""
+msgstr "Lorem ipsum dolor sinan amet..."
 
 #: includes/elements/read-more-toggle-text.php:31
 msgid "Text Height (px)"
-msgstr ""
+msgstr "Hoogte tekst (px)"
 
 #: includes/elements/read-more-toggle-text.php:39
 msgid "Button Selector (ID or Class)"
-msgstr ""
+msgstr "Knopselector (ID of klasse)"
 
 #: includes/elements/read-more-toggle-text.php:72
 msgid "Your content goes here..."
-msgstr ""
+msgstr "Uw content komt hier..."
 
 #: includes/elements/scroll-line-vertical-indicator.php:14
 msgid "Scroll Line Vertical Indicator"
-msgstr ""
+msgstr "Verticale scrolllijnindicator"
 
 #: includes/elements/scroll-line-vertical-indicator.php:20
 msgid "Dom Selector"
-msgstr ""
+msgstr "Dom-selector"
 
 #: includes/elements/scroll-line-vertical-indicator.php:23
 msgid "DOMs selector \"comment\" or \".post\" or \".my-comment\""
-msgstr ""
+msgstr "DOMs-selector \"comment\" of \".post\" of \".my-comment\""
 
 #: includes/elements/scroll-line-vertical-indicator.php:27
 msgid "Scroll Line Height"
-msgstr ""
+msgstr "Hoogte scrolllijn"
 
 #: includes/elements/scroll-line-vertical-indicator.php:36
 msgid "Scroll Line Width"
-msgstr ""
+msgstr "Breedte scrolllijn"
 
 #: includes/elements/scroll-line-vertical-indicator.php:45
 msgid "Line Color"
-msgstr ""
+msgstr "Lijnkleur"
 
 #: includes/elements/scroll-line-vertical-indicator.php:61
 msgid "Dot Font Color"
-msgstr ""
+msgstr "Lettertypekleur van punt"
 
 #: includes/elements/scroll-line-vertical-indicator.php:69
 msgid "Dot Width (px)"
-msgstr ""
+msgstr "Breedte van punt (px)"
 
 #: includes/elements/scroll-line-vertical-indicator.php:80
 msgid "Dot Height (px)"
-msgstr ""
+msgstr "Hoogte van punt (px)"
 
 #: includes/elements/scroll-line-vertical-indicator.php:91
 msgid "Dot Border Radius (px)"
-msgstr ""
+msgstr "Randstraal van punt (px)"
 
 #: includes/elements/scroll-line-vertical-indicator.php:102
 msgid "Dot Font Size (px)"
-msgstr ""
+msgstr "Lettergrootte van punt (px)"
 
 #: includes/elements/scroll-line-vertical-indicator.php:113
 msgid "Fixed Position"
-msgstr ""
+msgstr "Vaste positie"
 
 #: includes/elements/smoke-text.php:17
 msgid "Smoke Text"
-msgstr ""
+msgstr "Rooktekst"
 
 #: includes/elements/smoke-text.php:33
 msgid "Lorem ipsum dolor sinan amet."
-msgstr ""
+msgstr "Lorem ipsum dolor sinan amet."
 
 #: includes/elements/svg-text-path.php:17
 msgid "SVG Text Path"
-msgstr ""
+msgstr "SVG-tekstpad"
 
 #: includes/elements/svg-text-path.php:29
 msgid "Your Text Here"
-msgstr ""
+msgstr "Uw tekst hier"
 
 #: includes/elements/svg-text-path.php:37
 msgid "Wave"
-msgstr ""
+msgstr "Golf"
 
 #: includes/elements/svg-text-path.php:38
 msgid "Arc"
-msgstr ""
+msgstr "Boog"
 
 #: includes/elements/svg-text-path.php:40
 msgid "Elypse"
-msgstr ""
+msgstr "Ellips"
 
 #: includes/elements/svg-text-path.php:41
 msgid "Spiral"
-msgstr ""
+msgstr "Spiraal"
 
 #: includes/elements/svg-text-path.php:51
 msgid "Upload your own SVG path. <br>Create a 510px x 170px transparent rectangle, draw your path inside it, group and export it."
-msgstr ""
+msgstr "Upload uw eigen SVG-pad. <br>Maak een transparante rechthoek van 510px x 170px, teken uw pad daarin, groepeer het en exporteer het."
 
 #: includes/elements/svg-text-path.php:58
 msgid "Rotate Text"
-msgstr ""
+msgstr "Tekst roteren"
 
 #: includes/elements/svg-text-path.php:73
 msgid "Text Start Offset"
-msgstr ""
+msgstr "Startverschuiving tekst"
 
 #: includes/elements/svg-text-path.php:85
 msgid "Word Spacing"
-msgstr ""
+msgstr "Woordafstand"
 
 #: includes/elements/svg-text-path.php:97
 msgid "Path Stroke Color"
-msgstr ""
+msgstr "Lijnkleur van pad"
 
 #: includes/elements/svg-text-path.php:105
 msgid "Path Stroke Width"
-msgstr ""
+msgstr "Lijndikte van pad"
 
 #: includes/elements/text-action-social-share.php:14
 msgid "Text Select Action Social Share"
-msgstr ""
+msgstr "Sociaal delen via tekstselectie"
 
 #: includes/elements/text-action-social-share.php:21
 msgid "Add action buttons for selected text. Use {text}, {url}, and {image} in link - they will be replaced with user selection, page URL, and featured image URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}"
-msgstr ""
+msgstr "Voeg actieknoppen toe voor geselecteerde tekst. Gebruik {text}, {url} en {image} in de link - deze worden vervangen door de selectie van de gebruiker, de pagina-URL en de URL van de uitgelichte afbeelding. Voorbeeld: https://twitter.com/intent/tweet?text={text}%20{url}"
 
 #: includes/elements/text-action-social-share.php:31
 msgid "e.g. .selectable-comment-content-wrapper"
-msgstr ""
+msgstr "bijv. .selectable-comment-content-wrapper"
 
 #: includes/elements/text-action-social-share.php:32
 msgid "Only allow text selection & actions inside these elements. Use any valid CSS selector (e.g. .my-comments, #post-content, .comment-body). Leave blank for whole page."
-msgstr ""
+msgstr "Sta tekstselectie en acties alleen toe binnen deze elementen. Gebruik elke geldige CSS-selector (bijv. .my-comments, #post-content, .comment-body). Laat leeg voor de hele pagina."
 
 #: includes/elements/text-action-social-share.php:44
 #: includes/elements/video-player.php:75
 msgid "Label"
-msgstr ""
+msgstr "Label"
 
 #: includes/elements/text-action-social-share.php:56
 msgid "Action Link (use {text}, {url}, {image})"
-msgstr ""
+msgstr "Actielink (gebruik {text}, {url}, {image})"
 
 #: includes/elements/text-action-social-share.php:58
 msgid "https://twitter.com/intent/tweet?text={text} {url} {image}"
-msgstr ""
+msgstr "https://twitter.com/intent/tweet?text={text} {url} {image}"
 
 #: includes/elements/text-action-social-share.php:61
 msgid "Open in new tab?"
-msgstr ""
+msgstr "Openen in nieuw tabblad?"
 
 #: includes/elements/timeline.php:37
 msgid "Timeline"
-msgstr ""
+msgstr "Tijdlijn"
 
 #: includes/elements/timeline.php:49
 msgid "Timeline Line Color"
-msgstr ""
+msgstr "Lijnkleur tijdlijn"
 
 #: includes/elements/timeline.php:57
 msgid "Timeline Dot Border Color"
-msgstr ""
+msgstr "Randkleur van punt tijdlijn"
 
 #: includes/elements/timeline.php:65
 msgid "Mini Line Color"
-msgstr ""
+msgstr "Kleur mini-lijn"
 
 #: includes/elements/timeline.php:73
 msgid "Timeline Line Width"
-msgstr ""
+msgstr "Lijnbreedte tijdlijn"
 
 #: includes/elements/timeline.php:85
 msgid "Timeline Points"
-msgstr ""
+msgstr "Punten tijdlijn"
 
 #: includes/elements/timeline.php:90
 msgid "Content"
-msgstr ""
+msgstr "Inhoud"
 
 #: includes/elements/video-player.php:17
 msgid "Video Player"
-msgstr ""
+msgstr "Videospeler"
 
 #: includes/elements/video-player.php:23
 msgid "Video File (Media Library)"
-msgstr ""
+msgstr "Videobestand (mediabibliotheek)"
 
 #: includes/elements/video-player.php:32
 msgid "Video URL (Manual)"
-msgstr ""
+msgstr "Video-URL (handmatig)"
 
 #: includes/elements/video-player.php:35
 msgid "Enter a direct URL to your video file or dynamic tag."
-msgstr ""
+msgstr "Voer een directe URL naar uw videobestand of een dynamische tag in."
 
 #: includes/elements/video-player.php:40
 msgid "Poster Image URL"
-msgstr ""
+msgstr "URL van posterafbeelding"
 
 #: includes/elements/video-player.php:43
 msgid "Enter a direct URL to your poster image."
-msgstr ""
+msgstr "Voer een directe URL naar uw posterafbeelding in."
 
 #: includes/elements/video-player.php:48
 msgid "Use Featured Image as Poster"
-msgstr ""
+msgstr "Uitgelichte afbeelding gebruiken als poster"
 
 #: includes/elements/video-player.php:51
 msgid "Enable this to automatically use the current post's featured image as the video poster."
-msgstr ""
+msgstr "Schakel dit in om automatisch de uitgelichte afbeelding van het huidige bericht als videoposter te gebruiken."
 
 #: includes/elements/video-player.php:56
 msgid "Enable Subtitle Looping"
-msgstr ""
+msgstr "Ondertitellus inschakelen"
 
 #: includes/elements/video-player.php:59
 msgid "When enabled, subtitles will be automatically loaded from the current post custom fields named \"subtitle\" or \"subtitles\". Use the Double Text custom field for this."
-msgstr ""
+msgstr "Indien ingeschakeld, worden ondertitels automatisch geladen uit de aangepaste velden van het huidige bericht genaamd \"subtitle\" of \"subtitles\". Gebruik hiervoor het aangepaste veld Dubbele tekst."
 
 #: includes/elements/video-player.php:64
 msgid "Subtitles / Captions"
-msgstr ""
+msgstr "Ondertitels / bijschriften"
 
 #: includes/elements/video-player.php:67
 msgid "Subtitle language"
-msgstr ""
+msgstr "Taal van ondertitels"
 
 #: includes/elements/video-player.php:70
 msgid "WebVTT File"
-msgstr ""
+msgstr "WebVTT-bestand"
 
 #: includes/elements/video-player.php:72
 msgid "Upload a WebVTT subtitle file (.vtt)"
-msgstr ""
+msgstr "Upload een WebVTT-ondertitelbestand (.vtt)"
 
 #: includes/elements/video-player.php:77
 msgid "e.g., English, Spanish, French"
-msgstr ""
+msgstr "bijv. Engels, Spaans, Frans"
 
 #: includes/elements/video-player.php:78
 msgid "Language name shown to users. If empty, will use the filename."
-msgstr ""
+msgstr "Taalnaam getoond aan gebruikers. Indien leeg, wordt de bestandsnaam gebruikt."
 
 #: includes/elements/video-player.php:81
 msgid "Default"
-msgstr ""
+msgstr "Standaard"
 
 #: includes/elements/video-player.php:84
 msgid "Set as default subtitle"
-msgstr ""
+msgstr "Instellen als standaardondertitel"
 
 #: includes/elements/video-player.php:113
 msgid "Play on Viewport Entry"
-msgstr ""
+msgstr "Afspelen bij binnenkomst in viewport"
 
 #: includes/elements/video-player.php:116
 msgid "Automatically play when the player is more than 50% visible in the viewport, and pause when it leaves. Only one video plays at a time."
-msgstr ""
+msgstr "Automatisch afspelen wanneer de speler meer dan 50% zichtbaar is in de viewport en pauzeren wanneer deze verdwijnt. Er wordt slechts één video tegelijk afgespeeld."
 
 #: includes/elements/video-player.php:121
 msgid "Disable Auto Hide Controls"
-msgstr ""
+msgstr "Automatisch verbergen van bediening uitschakelen"
 
 #: includes/elements/video-player.php:128
 msgid "Enable Chapter Looping"
-msgstr ""
+msgstr "Hoofdstuklus inschakelen"
 
 #: includes/elements/video-player.php:131
 msgid "When enabled, chapters will be automatically loaded from the current post custom fields named \"chapter\" or \"chapters\". Use the Double Text custom field for this."
-msgstr ""
+msgstr "Indien ingeschakeld, worden hoofdstukken automatisch geladen uit de aangepaste velden van het huidige bericht genaamd \"chapter\" of \"chapters\". Gebruik hiervoor het aangepaste veld Dubbele tekst."
 
 #: includes/elements/video-player.php:136
 msgid "Video Chapters"
-msgstr ""
+msgstr "Videohoofdstukken"
 
 #: includes/elements/video-player.php:145
 msgid "Chapter Title"
-msgstr ""
+msgstr "Hoofdstuktitel"
 
 #: includes/elements/video-player.php:146
 msgid "Start Time (e.g., 0:00, 1:45)"
-msgstr ""
+msgstr "Starttijd (bijv. 0:00, 1:45)"
 
 #: includes/elements/video-player.php:181
 msgid "Video Object Fit"
-msgstr ""
+msgstr "Objectpassing video"
 
 #: includes/elements/video-player.php:184
 msgid "Contain (Default)"
-msgstr ""
+msgstr "Contain (standaard)"
 
 #: includes/elements/video-player.php:191
 msgid "Controls how the video fits within its container."
-msgstr ""
+msgstr "Bepaalt hoe de video past binnen de container."
 
 #: includes/elements/video-player.php:203
 msgid "Slider Thumb Color"
-msgstr ""
+msgstr "Kleur van schuifknop"
 
 #: includes/elements/video-player.php:238
 msgid "Button Color"
-msgstr ""
+msgstr "Kleur van knop"
 
 #: includes/elements/video-player.php:252
 msgid "Controls Bar Background"
-msgstr ""
+msgstr "Achtergrond van bedieningsbalk"
 
 #: includes/elements/video-player.php:260
 msgid "Enable Video SEO Meta Tags"
-msgstr ""
+msgstr "Video-SEO-metatags inschakelen"
 
 #: includes/elements/video-player.php:263
 msgid "Adds VideoObject microdata meta tags to the page <head> to help Google understand your video. Outputs: video name (page title), thumbnailUrl (poster image or featured image), uploadDate (post published date), contentUrl (video file URL), embedUrl (current page URL), and the site language. Enables rich video results in Google Search."
-msgstr ""
+msgstr "Voegt VideoObject-microdata-metatags toe aan de <head> van de pagina om Google te helpen uw video te begrijpen. Geeft weer: videonaam (paginatitel), thumbnailUrl (poster- of uitgelichte afbeelding), uploadDate (publicatiedatum bericht), contentUrl (URL van videobestand), embedUrl (URL van huidige pagina), en de taal van de site. Maakt rijke videoresultaten mogelijk in Google Zoeken."
 
 #: includes/features/301-redirect.php:14
 msgid "SNN 301 Redirects"
-msgstr ""
+msgstr "SNN 301-redirects"
 
 #: includes/features/301-redirect.php:29
 msgid "SNN Redirect Logs"
-msgstr ""
+msgstr "SNN-redirectlogboeken"
 
 #: includes/features/301-redirect.php:39
 #: includes/features/301-redirect.php:40
 #: includes/features/settings-page.php:38
 msgid "301 Redirects"
-msgstr ""
+msgstr "301-redirects"
 
 #: includes/features/301-redirect.php:183
 #, php-format
 msgid "%d redirects imported successfully!"
-msgstr ""
+msgstr "%d redirects succesvol geïmporteerd!"
 
 #: includes/features/301-redirect.php:186
 #, php-format
 msgid "%d redirects were skipped (invalid format or already exist)."
-msgstr ""
+msgstr "%d redirects zijn overgeslagen (ongeldig formaat of bestaan al)."
 
 #: includes/features/301-redirect.php:199
 #: includes/features/301-redirect.php:254
 msgid "Invalid redirect destination URL!"
-msgstr ""
+msgstr "Ongeldige bestemmings-URL voor redirect!"
 
 #: includes/features/301-redirect.php:214
 #: includes/features/301-redirect.php:270
 msgid "A redirect for this path already exists!"
-msgstr ""
+msgstr "Er bestaat al een redirect voor dit pad!"
 
 #: includes/features/301-redirect.php:231
 msgid "Redirect added successfully!"
-msgstr ""
+msgstr "Redirect succesvol toegevoegd!"
 
 #: includes/features/301-redirect.php:243
 msgid "Redirect deleted successfully!"
-msgstr ""
+msgstr "Redirect succesvol verwijderd!"
 
 #: includes/features/301-redirect.php:280
 msgid "Redirect updated successfully!"
-msgstr ""
+msgstr "Redirect succesvol bijgewerkt!"
 
 #: includes/features/301-redirect.php:289
 msgid "All logs have been cleared!"
-msgstr ""
+msgstr "Alle logboeken zijn gewist!"
 
 #: includes/features/301-redirect.php:298
 msgid "The maximum number of logs must be at least 1."
-msgstr ""
+msgstr "Het maximale aantal logboeken moet ten minste 1 zijn."
 
 #: includes/features/301-redirect.php:302
 msgid "The number of days must be at least 1."
-msgstr ""
+msgstr "Het aantal dagen moet ten minste 1 zijn."
 
 #: includes/features/301-redirect.php:308
 msgid "Settings updated successfully!"
-msgstr ""
+msgstr "Instellingen succesvol bijgewerkt!"
 
 #: includes/features/301-redirect.php:326
 #: includes/features/301-redirect.php:331
 msgid "301 Redirect Rules"
-msgstr ""
+msgstr "301-redirectregels"
 
 #: includes/features/301-redirect.php:327
 #: includes/features/301-redirect.php:494
 msgid "Recent Redirect Logs"
-msgstr ""
+msgstr "Recente redirectlogboeken"
 
 #: includes/features/301-redirect.php:333
 #: includes/features/301-redirect.php:391
 msgid "Add Redirect"
-msgstr ""
+msgstr "Redirect toevoegen"
 
 #: includes/features/301-redirect.php:335
 msgid "Export"
-msgstr ""
+msgstr "Exporteren"
 
 #: includes/features/301-redirect.php:342
 msgid "Import Redirects"
-msgstr ""
+msgstr "Redirects importeren"
 
 #: includes/features/301-redirect.php:343
 msgid "Paste your JSON data here. The format should be an array of objects, like: [{\"from\":\"/old-path\",\"to\":\"/new-path\"}, ...]"
-msgstr ""
+msgstr "Plak hier uw JSON-gegevens. Het formaat moet een array van objecten zijn, zoals: [{\"from\":\"/oud-pad\",\"to\":\"/nieuw-pad\"}, ...]"
 
 #: includes/features/301-redirect.php:356
 msgid "Export Redirects"
-msgstr ""
+msgstr "Redirects exporteren"
 
 #: includes/features/301-redirect.php:357
 msgid "Copy the JSON data below to back up or transfer your redirects."
-msgstr ""
+msgstr "Kopieer de onderstaande JSON-gegevens om uw redirects te back-uppen of over te dragen."
 
 #: includes/features/301-redirect.php:373
 #: includes/features/301-redirect.php:413
 #: includes/features/301-redirect.php:466
 msgid "Redirect From"
-msgstr ""
+msgstr "Redirect van"
 
 #: includes/features/301-redirect.php:374
 msgid "Enter the path (e.g., /old-page or /category/old-post). Use /* at the end to match everything after."
-msgstr ""
+msgstr "Voer het pad in (bijv. /oude-pagina of /categorie/oud-bericht). Gebruik /* aan het einde om alles te matchen wat erna komt."
 
 #: includes/features/301-redirect.php:382
 #: includes/features/301-redirect.php:414
 #: includes/features/301-redirect.php:472
 msgid "Redirect To"
-msgstr ""
+msgstr "Redirect naar"
 
 #: includes/features/301-redirect.php:383
 msgid "Enter the full URL or path (e.g., https://example.com/new-page or /new-page). Use /* at the end if you used /* in the \"Redirect From.\""
-msgstr ""
+msgstr "Voer de volledige URL of het pad in (bijv. https://example.com/nieuwe-pagina of /nieuwe-pagina). Gebruik /* aan het einde als u /* heeft gebruikt in \"Redirect van\"."
 
 #: includes/features/301-redirect.php:415
 msgid "Added Date"
-msgstr ""
+msgstr "Toegevoegd op"
 
 #: includes/features/301-redirect.php:416
 msgid "Clicks"
-msgstr ""
+msgstr "Klikken"
 
 #: includes/features/301-redirect.php:445
 msgid "Are you sure you want to delete this redirect?"
-msgstr ""
+msgstr "Weet u zeker dat u deze redirect wilt verwijderen?"
 
 #: includes/features/301-redirect.php:445
 #: includes/features/mail-logging.php:215
@@ -6441,26 +6441,26 @@ msgstr ""
 #: includes/features/role-manager.php:546
 #: includes/features/role-manager.php:548
 msgid "Delete"
-msgstr ""
+msgstr "Verwijderen"
 
 #: includes/features/301-redirect.php:454
 #: includes/features/role-manager.php:467
 #: includes/features/role-manager.php:533
 #: includes/features/role-manager.php:535
 msgid "Edit"
-msgstr ""
+msgstr "Bewerken"
 
 #: includes/features/301-redirect.php:489
 msgid "No redirects found."
-msgstr ""
+msgstr "Geen redirects gevonden."
 
 #: includes/features/301-redirect.php:500
 msgid "Max number of logs to keep"
-msgstr ""
+msgstr "Maximaal aantal te bewaren logboeken"
 
 #: includes/features/301-redirect.php:506
 msgid "Max days to keep logs"
-msgstr ""
+msgstr "Maximaal aantal dagen om logboeken te bewaren"
 
 #: includes/features/301-redirect.php:519
 #: includes/features/404-logging.php:243
@@ -6468,11 +6468,11 @@ msgstr ""
 #: includes/features/mail-logging.php:203
 #: includes/features/search-loggins.php:193
 msgid "Clear All Logs"
-msgstr ""
+msgstr "Alle logboeken wissen"
 
 #: includes/features/301-redirect.php:520
 msgid "Are you sure you want to clear all logs? This action cannot be undone."
-msgstr ""
+msgstr "Weet u zeker dat u alle logboeken wilt wissen? Deze actie kan niet ongedaan worden gemaakt."
 
 #: includes/features/301-redirect.php:528
 msgid "Requested URL"

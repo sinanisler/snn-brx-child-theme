@@ -7389,11 +7389,11 @@ msgstr "Bu web sitesi analiz ve işlevsellik için çerezler kullanır."
 
 #: includes/features/cookie-banner.php:244
 msgid "Imprint"
-msgstr ""
+msgstr "Yasal Bilgi"
 
 #: includes/features/cookie-banner.php:244
 msgid "Privacy Policy"
-msgstr ""
+msgstr "Gizlilik Politikası"
 
 #: includes/features/cookie-banner.php:1243
 #: includes/features/cookie-banner.php:246
@@ -7414,7 +7414,7 @@ msgstr "Tercihler"
 #: includes/features/cookie-banner.php:272
 #: includes/features/cookie-banner.php:716
 msgid "Please accept cookies to see the contents of this iframe."
-msgstr ""
+msgstr "Bu iframe'in içeriğini görmek için lütfen çerezleri kabul edin."
 
 #: includes/features/cookie-banner.php:277
 msgid "Cookie Banner"
@@ -7430,7 +7430,7 @@ msgstr "Komut Dosyaları ve Hizmetler"
 
 #: includes/features/cookie-banner.php:299
 msgid "Page Scanner"
-msgstr ""
+msgstr "Sayfa Tarayıcı"
 
 #: includes/features/cookie-banner.php:300
 msgid "Styles and Layout"
@@ -7514,27 +7514,27 @@ msgstr "Tercihler Düğmesi Metni"
 
 #: includes/features/cookie-banner.php:404
 msgid "Change Cookie Preferences"
-msgstr ""
+msgstr "Çerez Tercihlerini Değiştir"
 
 #: includes/features/cookie-banner.php:408
 msgid "Allow users to change their cookie preferences anytime (GDPR requirement)"
-msgstr ""
+msgstr "Kullanıcıların çerez tercihlerini istedikleri zaman değiştirmesine izin ver (GDPR gereksinimi)"
 
 #: includes/features/cookie-banner.php:411
 msgid "Add the CSS class"
-msgstr ""
+msgstr "Şu CSS sınıfını ekleyin"
 
 #: includes/features/cookie-banner.php:411
 msgid "to any button or link on your website. When clicked, it will reopen the cookie banner allowing users to modify their preferences."
-msgstr ""
+msgstr "web sitenizdeki herhangi bir düğme veya bağlantıya. Tıklandığında çerez bannerını yeniden açarak kullanıcıların tercihlerini değiştirmesine izin verir."
 
 #: includes/features/cookie-banner.php:413
 msgid "Examples:"
-msgstr ""
+msgstr "Örnekler:"
 
 #: includes/features/cookie-banner.php:414
 msgid "Change Cookie Settings"
-msgstr ""
+msgstr "Çerez Ayarlarını Değiştir"
 
 #: includes/features/cookie-banner.php:423
 msgid "Use this tab to add or modify services to ensure they load according to user consent preferences."
@@ -7631,136 +7631,136 @@ msgstr "Hizmet Ekle"
 
 #: includes/features/cookie-banner.php:532 includes/features/seo.php:294
 msgid "Reminder:"
-msgstr ""
+msgstr "Hatırlatma:"
 
 #: includes/features/cookie-banner.php:533
 msgid "Services have been reordered or removed. Please save your changes to prevent index mismatches."
-msgstr ""
+msgstr "Hizmetler yeniden sıralandı veya kaldırıldı. Dizin uyuşmazlıklarını önlemek için lütfen değişikliklerinizi kaydedin."
 
 #: includes/features/cookie-banner.php:622
 msgid "Page Script Scanner"
-msgstr ""
+msgstr "Sayfa Betik Tarayıcı"
 
 #: includes/features/cookie-banner.php:624
 msgid "This tool helps you scan any page on your website to detect scripts and iframes. You can then select which scripts to block until users accept cookies."
-msgstr ""
+msgstr "Bu araç, web sitenizdeki herhangi bir sayfayı tarayarak betikleri ve iframe'leri tespit etmenize yardımcı olur. Ardından kullanıcılar çerezleri kabul edene kadar hangi betiklerin engelleneceğini seçebilirsiniz."
 
 #: includes/features/cookie-banner.php:626
 msgid "How it works:"
-msgstr ""
+msgstr "Nasıl çalışır:"
 
 #: includes/features/cookie-banner.php:627
 msgid "Select a page from the list below (start typing to search)"
-msgstr ""
+msgstr "Aşağıdaki listeden bir sayfa seçin (aramak için yazmaya başlayın)"
 
 #: includes/features/cookie-banner.php:628
 msgid "Click \"Scan Page\" to analyze all scripts on that page"
-msgstr ""
+msgstr "O sayfadaki tüm betikleri analiz etmek için \"Sayfayı Tara\"ya tıklayın"
 
 #: includes/features/cookie-banner.php:629
 msgid "Review the detected scripts and select which ones to block"
-msgstr ""
+msgstr "Tespit edilen betikleri inceleyin ve hangilerinin engelleneceğini seçin"
 
 #: includes/features/cookie-banner.php:630
 msgid "Blocked scripts will not load until users accept cookies"
-msgstr ""
+msgstr "Engellenen betikler, kullanıcılar çerezleri kabul edene kadar yüklenmez"
 
 #: includes/features/cookie-banner.php:635
 msgid "Select Page to Scan"
-msgstr ""
+msgstr "Taranacak Sayfayı Seç"
 
 #: includes/features/cookie-banner.php:637
 msgid "Start typing page title..."
-msgstr ""
+msgstr "Sayfa başlığını yazmaya başlayın..."
 
 #: includes/features/cookie-banner.php:650
 msgid "Homepage"
-msgstr ""
+msgstr "Ana Sayfa"
 
 #: includes/features/cookie-banner.php:657
 msgid "Scan Page"
-msgstr ""
+msgstr "Sayfayı Tara"
 
 #: includes/features/cookie-banner.php:660
 msgid "Scanning page..."
-msgstr ""
+msgstr "Sayfa taranıyor..."
 
 #: includes/features/cookie-banner.php:665
 msgid "Detected Scripts"
-msgstr ""
+msgstr "Tespit Edilen Betikler"
 
 #: includes/features/cookie-banner.php:671
 msgid "Currently Blocked Scripts"
-msgstr ""
+msgstr "Şu Anda Engellenen Betikler"
 
 #: includes/features/cookie-banner.php:689
 #: includes/features/cookie-banner.php:888
 msgid "e.g., Google Analytics"
-msgstr ""
+msgstr "örn. Google Analytics"
 
 #: includes/features/cookie-banner.php:694
 #: includes/features/cookie-banner.php:903
 msgid "e.g., Analytics for tracking site usage"
-msgstr ""
+msgstr "örn. Site kullanımını izlemek için Analytics"
 
 #: includes/features/cookie-banner.php:698
 #: includes/features/cookie-banner.php:911
 msgid "Script URL:"
-msgstr ""
+msgstr "Betik URL'si:"
 
 #: includes/features/cookie-banner.php:707
 #: includes/features/cookie-banner.php:946
 msgid "No scripts are currently blocked."
-msgstr ""
+msgstr "Şu anda engellenen betik yok."
 
 #: includes/features/cookie-banner.php:714
 msgid "Iframe Blocking Text"
-msgstr ""
+msgstr "Iframe Engelleme Metni"
 
 #: includes/features/cookie-banner.php:717
 msgid "This text will be displayed inside blocked iframes until the user accepts cookies."
-msgstr ""
+msgstr "Bu metin, kullanıcı çerezleri kabul edene kadar engellenen iframe'lerin içinde görüntülenir."
 
 #: includes/features/cookie-banner.php:729
 msgid "Please select or enter a page URL"
-msgstr ""
+msgstr "Lütfen bir sayfa URL'si seçin veya girin"
 
 #: includes/features/cookie-banner.php:750
 msgid "Error scanning page:"
-msgstr ""
+msgstr "Sayfa taranırken hata:"
 
 #: includes/features/cookie-banner.php:755
 msgid "Failed to scan page. Please try again."
-msgstr ""
+msgstr "Sayfa taranamadı. Lütfen tekrar deneyin."
 
 #: includes/features/cookie-banner.php:764
 msgid "No external scripts or iframes detected on this page."
-msgstr ""
+msgstr "Bu sayfada harici betik veya iframe tespit edilmedi."
 
 #: includes/features/cookie-banner.php:768
 msgid "Scripts Found:"
-msgstr ""
+msgstr "Bulunan Betikler:"
 
 #: includes/features/cookie-banner.php:784
 #: includes/features/cookie-banner.php:810
 msgid "Already Blocked"
-msgstr ""
+msgstr "Zaten Engellenmiş"
 
 #: includes/features/cookie-banner.php:794
 msgid "Iframes Found:"
-msgstr ""
+msgstr "Bulunan Iframe'ler:"
 
 #: includes/features/cookie-banner.php:818
 msgid "Block Selected Resources"
-msgstr ""
+msgstr "Seçili Kaynakları Engelle"
 
 #: includes/features/cookie-banner.php:840
 msgid "Please select at least one script to block"
-msgstr ""
+msgstr "Lütfen engellemek için en az bir betik seçin"
 
 #: includes/features/cookie-banner.php:929
 msgid "Scripts added to blocked list. Please add Service Name and Description, then save settings!"
-msgstr ""
+msgstr "Betikler engellenenler listesine eklendi. Lütfen Hizmet Adı ve Açıklamayı ekleyip ayarları kaydedin!"
 
 #: includes/features/cookie-banner.php:956
 msgid "Cookie Banner Background Color"
@@ -7893,15 +7893,15 @@ msgstr "Alt Zengin Metin"
 
 #: includes/features/cookie-banner.php:1070
 msgid "GDPR Cookie Preference Change:"
-msgstr ""
+msgstr "GDPR Çerez Tercihi Değişikliği:"
 
 #: includes/features/cookie-banner.php:1071
 msgid "Add this class to any button or link to allow users to reopen the cookie banner and change their preferences."
-msgstr ""
+msgstr "Kullanıcıların çerez bannerını yeniden açıp tercihlerini değiştirmesine izin vermek için bu sınıfı herhangi bir düğmeye veya bağlantıya ekleyin."
 
 #: includes/features/cookie-banner.php:1177
 msgid "Blocked Script"
-msgstr ""
+msgstr "Engellenmiş Betik"
 
 #: includes/features/cookie-banner.php:1206
 msgid "*"
@@ -7929,7 +7929,7 @@ msgstr "PHP (fonksiyonlar.php)"
 
 #: includes/features/custom-code-snippets.php:65
 msgid "Advanced Code (functions.php)"
-msgstr ""
+msgstr "Gelişmiş Kod (functions.php)"
 
 #: includes/features/custom-code-snippets.php:364
 msgctxt "post type general name"
@@ -8011,50 +8011,50 @@ msgstr "Tüm hata günlüklerini silmek istediğinizden kesinlikle emin misiniz?
 
 #: includes/features/custom-code-snippets.php:1163
 msgid "A previous request ended in a fatal PHP error while this snippet was executing. The error could not be pinned to an exact line, which usually means it happened inside a hook this snippet registered, inside a file it included, or that the request ran out of memory or time. Fix the snippet and save to re-enable it."
-msgstr ""
+msgstr "Bu snippet çalışırken önceki bir istek, önemli bir PHP hatasıyla sona erdi. Hata kesin bir satıra atfedilemedi; bu genellikle bu snippet'in kaydettiği bir hook içinde, dahil ettiği bir dosya içinde gerçekleştiği veya isteğin bellek ya da zaman aşımına uğradığı anlamına gelir. Snippet'i düzeltip yeniden etkinleştirmek için kaydedin."
 
 #: includes/features/custom-code-snippets.php:1164
 msgid "A previous request ended in a fatal error while this snippet was executing."
-msgstr ""
+msgstr "Bu snippet çalışırken önceki bir istek önemli bir hatayla sona erdi."
 
 #: includes/features/custom-code-snippets.php:1166
 msgid "A previous request stopped while this snippet was executing and never completed - the process was killed outright (execution timeout, memory limit or a crash). Fix the snippet and save to re-enable it."
-msgstr ""
+msgstr "Bu snippet çalışırken önceki bir istek durdu ve hiç tamamlanmadı - işlem doğrudan sonlandırıldı (yürütme zaman aşımı, bellek sınırı veya çökme). Snippet'i düzeltip yeniden etkinleştirmek için kaydedin."
 
 #: includes/features/custom-code-snippets.php:1167
 msgid "A previous request stopped while this snippet was executing and never finished."
-msgstr ""
+msgstr "Bu snippet çalışırken önceki bir istek durdu ve hiç bitmedi."
 
 #: includes/features/custom-code-snippets.php:1174
 #, php-format
 msgid "(started %1$d time(s) without completing, %2$d second(s) since first run)"
-msgstr ""
+msgstr "(tamamlanmadan %1$d kez başlatıldı, ilk çalıştırmadan bu yana %2$d saniye)"
 
 #: includes/features/custom-code-snippets.php:1216
 #, php-format
 msgid "\"%s\" parses cleanly and has been re-enabled."
-msgstr ""
+msgstr "\"%s\" temiz bir şekilde ayrıştırıldı ve yeniden etkinleştirildi."
 
 #: includes/features/custom-code-snippets.php:1240
 #, php-format
 msgid "\"%1$s\" was saved but will NOT run: %2$s (line %3$d). Fix the error and save again to re-enable it."
-msgstr ""
+msgstr "\"%1$s\" kaydedildi ancak ÇALIŞTIRILMAYACAK: %2$s (satır %3$d). Hatayı düzeltip yeniden etkinleştirmek için tekrar kaydedin."
 
 #: includes/features/custom-code-snippets.php:1266
 msgid "PHP code or HTML executed within the <code>&lt;head&gt;</code> tags on the frontend. Use for dynamic meta tags, conditional CSS/JS links, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code."
-msgstr ""
+msgstr "Ön uçtaki <code>&lt;head&gt;</code> etiketleri içinde çalıştırılan PHP kodu veya HTML. Dinamik meta etiketleri, koşullu CSS/JS bağlantıları vb. için kullanın. PHP kodu için <code>&lt;?php ?&gt;</code> etiketlerini kullanabilirsiniz."
 
 #: includes/features/custom-code-snippets.php:1272
 msgid "PHP code or HTML executed before the <code>&lt;/body&gt;</code> tag on the frontend. Use for late-loading dynamic content, analytics, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code."
-msgstr ""
+msgstr "Ön uçta <code>&lt;/body&gt;</code> etiketinden önce çalıştırılan PHP kodu veya HTML. Geç yüklenen dinamik içerik, analitik vb. için kullanın. PHP kodu için <code>&lt;?php ?&gt;</code> etiketlerini kullanabilirsiniz."
 
 #: includes/features/custom-code-snippets.php:1278
 msgid "PHP code or HTML executed within the <code>&lt;head&gt;</code> of WordPress admin pages. Use for conditional admin CSS/JS, admin modifications, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code."
-msgstr ""
+msgstr "WordPress yönetici sayfalarının <code>&lt;head&gt;</code> içinde çalıştırılan PHP kodu veya HTML. Koşullu yönetici CSS/JS, yönetici değişiklikleri vb. için kullanın. PHP kodu için <code>&lt;?php ?&gt;</code> etiketlerini kullanabilirsiniz."
 
 #: includes/features/custom-code-snippets.php:1284
 msgid "PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site."
-msgstr ""
+msgstr "Bu kod özelliği yüklendiğinde hemen çalıştırılan PHP (hook yok) – kodu <code>functions.php</code> içine koymaya benzer. Hook'lar, filtreler ve fonksiyonlar için kullanın. Amaçlanmadıkça doğrudan çıktı vermekten kaçının. Hatalar sitenizi bozabilir."
 
 #: includes/features/custom-code-snippets.php:1290
 msgid "Advance Code (functions.php)"
@@ -8062,7 +8062,7 @@ msgstr "Ön Kod (fonksiyonlar.php)"
 
 #: includes/features/custom-code-snippets.php:1293
 msgid "<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe."
-msgstr ""
+msgstr "<strong>AŞIRI TEHLİKE:</strong> Bu kod doğrudan çalıştırılır. Hiçbir koruma yoktur. Bunu yalnızca uzmansanız ve tüm sitenizi bozma risklerini anlıyorsanız kullanın. Bu snippet için revizyonlar KULLANILAMAZ.<br> Bu kod, functions.php içindeki gibi doğrudan çalışır ve herhangi bir sanitizasyon regex koruması yoktur."
 
 #: includes/features/custom-code-snippets.php:1305
 msgid "All error logs have been cleared."
@@ -8071,7 +8071,7 @@ msgstr "Tüm hata günlükleri temizlendi."
 #: includes/features/custom-code-snippets.php:1318
 #, php-format
 msgid "\"%s\" has been re-enabled. If it is still broken it will be blocked again automatically."
-msgstr ""
+msgstr "\"%s\" yeniden etkinleştirildi. Hâlâ bozuksa otomatik olarak tekrar engellenecektir."
 
 #: includes/features/custom-code-snippets.php:1338
 #, php-format
@@ -8138,7 +8138,7 @@ msgstr "DİKKAT LÜTFEN! Bu ayarlar normal kullanıcılar için değildir! HTML,
 
 #: includes/features/custom-code-snippets.php:1540
 msgid "If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php file to disable the code snippets feature temporarly. "
-msgstr ""
+msgstr "Gerekirse, kod snippet'leri özelliğini geçici olarak devre dışı bırakmak için functions.php dosyasında define( ‘SNN_CODE_DISABLE’, true ); kullanabilirsiniz. "
 
 #: includes/features/custom-code-snippets.php:1553
 #: includes/features/custom-code-snippets.php:1556
@@ -8181,7 +8181,7 @@ msgstr "Tip"
 
 #: includes/features/custom-code-snippets.php:1612
 msgid "Tab/Snippet"
-msgstr ""
+msgstr "Sekme/Snippet"
 
 #: includes/features/custom-code-snippets.php:1613
 msgid "Line"
@@ -8189,23 +8189,23 @@ msgstr "Sıra"
 
 #: includes/features/custom-code-snippets.php:1614
 msgid "Function/Context"
-msgstr ""
+msgstr "Fonksiyon/Bağlam"
 
 #: includes/features/custom-code-snippets.php:1615
 msgid "Error Message"
-msgstr ""
+msgstr "Hata Mesajı"
 
 #: includes/features/custom-code-snippets.php:1616
 msgid "Code Context"
-msgstr ""
+msgstr "Kod Bağlamı"
 
 #: includes/features/custom-code-snippets.php:1630
 msgid "Top-level"
-msgstr ""
+msgstr "Üst düzey"
 
 #: includes/features/custom-code-snippets.php:1634
 msgid "View Code"
-msgstr ""
+msgstr "Kodu Görüntüle"
 
 #: includes/features/custom-code-snippets.php:1636
 #: includes/features/role-manager.php:464
@@ -8225,23 +8225,23 @@ msgstr "Henüz hata kaydedilmedi."
 #: includes/features/custom-code-snippets.php:1665
 #: includes/features/custom-code-snippets.php:1730
 msgid "This snippet is blocked and is not running."
-msgstr ""
+msgstr "Bu snippet engellenmiş ve çalışmıyor."
 
 #: includes/features/custom-code-snippets.php:1669
 #: includes/features/custom-code-snippets.php:1734
 #, php-format
 msgid "(line %d)"
-msgstr ""
+msgstr "(satır %d)"
 
 #: includes/features/custom-code-snippets.php:1674
 #: includes/features/custom-code-snippets.php:1740
 msgid "Re-enable this snippet"
-msgstr ""
+msgstr "Bu snippet'i yeniden etkinleştir"
 
 #: includes/features/custom-code-snippets.php:1684
 #: includes/features/custom-code-snippets.php:1750
 msgid "Run this snippet"
-msgstr ""
+msgstr "Bu snippet'i çalıştır"
 
 #: includes/features/custom-code-snippets.php:1692
 msgid "Enter your raw, unsanitized PHP code here..."
@@ -8259,7 +8259,7 @@ msgstr "Uyarı:"
 
 #: includes/features/custom-code-snippets.php:1737
 msgid "Fix the code and save to re-enable it automatically, or force it back on now:"
-msgstr ""
+msgstr "Otomatik olarak yeniden etkinleştirmek için kodu düzeltip kaydedin veya şimdi zorla açın:"
 
 #: includes/features/custom-code-snippets.php:1757
 msgid "Enter your PHP code or HTML here..."
@@ -8346,25 +8346,25 @@ msgstr "Bu revizyon içeriğine erişim izni reddedildi."
 #: includes/features/custom-code-snippets.php:2039
 #, php-format
 msgid "%1$d consecutive requests ended in a fatal error while snippets were running, and none could be attributed to a specific snippet. Global snippet execution has been switched off so the site can load. Last error: %2$s"
-msgstr ""
+msgstr "Snippet'ler çalışırken %1$d ardışık istek önemli bir hatayla sona erdi ve hiçbiri belirli bir snippet'e atfedilemedi. Site yüklenebilsin diye genel snippet yürütmesi kapatıldı. Son hata: %2$s"
 
 #: includes/features/custom-code-snippets.php:2053
 #, php-format
 msgid "%d consecutive requests ended in a fatal error while snippets were running. The error could not be traced to one snippet, so global snippet execution was switched off."
-msgstr ""
+msgstr "Snippet'ler çalışırken %d ardışık istek önemli bir hatayla sona erdi. Hata tek bir snippet'e izlenemedi, bu nedenle genel snippet yürütmesi kapatıldı."
 
 #: includes/features/custom-code-snippets.php:2193
 msgid "CRITICAL: A code snippet was blocked after a fatal error."
-msgstr ""
+msgstr "KRİTİK: Önemli bir hatadan sonra bir kod snippet'i engellendi."
 
 #: includes/features/custom-code-snippets.php:2199
 #, php-format
 msgid "The snippet \"%s\" caused a fatal PHP error and has been blocked so your site keeps loading. Other snippets are unaffected."
-msgstr ""
+msgstr "\"%s\" snippet'i önemli bir PHP hatasına neden oldu ve siteniz yüklenmeye devam etsin diye engellendi. Diğer snippet'ler etkilenmedi."
 
 #: includes/features/custom-code-snippets.php:2203
 msgid "A custom code snippet caused a fatal PHP error, so snippet execution was disabled. This is a safety measure to prevent your site from breaking further."
-msgstr ""
+msgstr "Özel bir kod snippet'i önemli bir PHP hatasına neden olduğundan snippet yürütmesi devre dışı bırakıldı. Bu, sitenizin daha fazla bozulmasını önlemek için bir güvenlik önlemidir."
 
 #: includes/features/custom-code-snippets.php:2207
 msgid "Error Details:"
@@ -8373,17 +8373,17 @@ msgstr "Hata Ayrıntıları:"
 #: includes/features/custom-code-snippets.php:2233
 #, php-format
 msgid "Open <a href=\"%1$s\">that snippet</a> and fix the code - saving a working version re-enables it automatically. Global snippet execution was NOT switched off, so your other snippets are still running. Full details are in the <a href=\"%2$s\">Error Logs tab</a>."
-msgstr ""
+msgstr "<a href=\"%1$s\">o snippet'i</a> açın ve kodu düzeltin - çalışan bir sürümü kaydetmek onu otomatik olarak yeniden etkinleştirir. Genel snippet yürütmesi KAPATILMADI, bu yüzden diğer snippet'leriniz hâlâ çalışıyor. Tam ayrıntılar <a href=\"%2$s\">Hata Günlükleri sekmesindedir</a>."
 
 #: includes/features/custom-code-snippets.php:2240
 #, php-format
 msgid "Please review the <a href=\"%s\">Error Logs tab</a> for more details, identify and fix the problematic snippet. Once fixed, you can re-enable \"Global Snippet Execution\" on the custom code settings page and save."
-msgstr ""
+msgstr "Daha fazla ayrıntı için lütfen <a href=\"%s\">Hata Günlükleri sekmesini</a> inceleyin, sorunlu snippet'i belirleyip düzeltin. Düzeltildikten sonra özel kod ayarları sayfasında \"Genel Snippet Yürütmesi\"ni yeniden etkinleştirip kaydedebilirsiniz."
 
 #: includes/features/custom-code-snippets.php:2250
 #, php-format
 msgid "If the front end is still broken, add <code>?snn_safe_mode=1</code> to any URL to load the site with every snippet switched off, or set <code>define( 'SNN_CODE_SAFE_MODE', true );</code> in <code>wp-config.php</code>. The snippets settings page never executes snippets, so it always loads: <a href=\"%s\">open it now</a>."
-msgstr ""
+msgstr "Ön uç hâlâ bozuksa, her snippet kapatılmış şekilde siteyi yüklemek için herhangi bir URL'ye <code>?snn_safe_mode=1</code> ekleyin veya <code>wp-config.php</code> içinde <code>define( 'SNN_CODE_SAFE_MODE', true );</code> ayarlayın. Snippet ayarları sayfası hiçbir zaman snippet çalıştırmaz, bu yüzden her zaman yüklenir: <a href=\"%s\">şimdi aç</a>."
 
 #: includes/features/custom-code-snippets.php:2255
 msgid "Dismiss This Notice"
@@ -8455,12 +8455,12 @@ msgstr "Genişlik (%)"
 #: includes/features/custom-field-settings.php:146
 #: includes/features/custom-field-settings.php:410
 msgid "Double Text"
-msgstr ""
+msgstr "Çift Metin"
 
 #: includes/features/custom-field-settings.php:148
 #: includes/features/custom-field-settings.php:412
 msgid "Double Textarea"
-msgstr ""
+msgstr "Çift Metin Alanı"
 
 #: includes/features/custom-field-settings.php:149
 #: includes/features/custom-field-settings.php:413
@@ -8499,7 +8499,7 @@ msgstr "Doğru / Yanlış"
 #: includes/features/custom-field-settings.php:161
 #: includes/features/custom-field-settings.php:425
 msgid "Map"
-msgstr ""
+msgstr "Harita"
 
 #: includes/features/custom-field-settings.php:165
 #: includes/features/custom-field-settings.php:429
@@ -8538,7 +8538,7 @@ msgstr "Taksonomiler"
 #: includes/features/custom-field-settings.php:197
 #: includes/features/custom-field-settings.php:292
 msgid "This field type cannot be assigned to Author"
-msgstr ""
+msgstr "Bu alan türü Yazara atanamaz"
 
 #: includes/features/custom-field-settings.php:200
 #: includes/features/custom-field-settings.php:443
@@ -8548,7 +8548,7 @@ msgstr "Seçenekler Sayfası"
 #: includes/features/custom-field-settings.php:204
 #: includes/features/custom-field-settings.php:293
 msgid "This field type cannot be assigned to Options Page"
-msgstr ""
+msgstr "Bu alan türü Seçenekler Sayfasına atanamaz"
 
 #: includes/features/custom-field-settings.php:207
 #: includes/features/custom-field-settings.php:444
@@ -8558,12 +8558,12 @@ msgstr "Tekrarlayıcı"
 #: includes/features/custom-field-settings.php:213
 #: includes/features/custom-field-settings.php:445
 msgid "Quick Edit"
-msgstr ""
+msgstr "Hızlı Düzenle"
 
 #: includes/features/custom-field-settings.php:216
 #: includes/features/custom-field-settings.php:445
 msgid "Enable Quick Edit for this field"
-msgstr ""
+msgstr "Bu alan için Hızlı Düzenlemeyi etkinleştir"
 
 #: includes/features/custom-field-settings.php:220
 msgid "Return URL"
@@ -8573,7 +8573,7 @@ msgstr "URL'yi döndür"
 #: includes/features/custom-field-settings.php:370
 #: includes/features/custom-field-settings.php:447
 msgid "Date Format"
-msgstr ""
+msgstr "Tarih Biçimi"
 
 #: includes/features/custom-field-settings.php:241
 msgid "Add New Field"
@@ -8613,19 +8613,19 @@ msgstr "Daha Fazlasını Ekle +"
 
 #: includes/features/custom-field-settings.php:1385
 msgid "Input 1"
-msgstr ""
+msgstr "Girdi 1"
 
 #: includes/features/custom-field-settings.php:1388
 msgid "Input 2"
-msgstr ""
+msgstr "Girdi 2"
 
 #: includes/features/custom-field-settings.php:1425
 msgid "Textarea 1"
-msgstr ""
+msgstr "Metin Alanı 1"
 
 #: includes/features/custom-field-settings.php:1428
 msgid "Textarea 2"
-msgstr ""
+msgstr "Metin Alanı 2"
 
 #: includes/features/custom-field-settings.php:1580
 #: includes/features/custom-field-settings.php:1599
@@ -8634,15 +8634,15 @@ msgstr "Tanımlı seçenek yok."
 
 #: includes/features/custom-field-settings.php:1666
 msgid "Search for a place (city, country, address...)"
-msgstr ""
+msgstr "Bir yer arayın (şehir, ülke, adres...)"
 
 #: includes/features/custom-field-settings.php:1676
 msgid "Latitude:"
-msgstr ""
+msgstr "Enlem:"
 
 #: includes/features/custom-field-settings.php:1677
 msgid "Longitude:"
-msgstr ""
+msgstr "Boylam:"
 
 #: includes/features/custom-field-settings.php:2317
 msgid "Custom Author Information"
@@ -8658,7 +8658,7 @@ msgstr "Seçili Ekle"
 
 #: includes/features/custom-field-settings.php:2847
 msgid " Settings"
-msgstr ""
+msgstr " Ayarlar"
 
 #: includes/features/custom-field-settings.php:2894
 msgid "No fields configured for this options page or group not found."
@@ -8698,28 +8698,28 @@ msgstr "Site genelinde Gravatar desteğini devre dışı bırakmak için bu kutu
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:58
 msgid "Disable REST API Endpoints for Guests"
-msgstr ""
+msgstr "Misafirler için REST API Uç Noktalarını Devre Dışı Bırak"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:79
 msgid "Select which REST API endpoints should be disabled for non-logged-in users. Logged-in users will still have access."
-msgstr ""
+msgstr "Giriş yapmamış kullanıcılar için hangi REST API uç noktalarının devre dışı bırakılacağını seçin. Giriş yapmış kullanıcılar erişimini sürdürür."
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:85
 msgid "Select/Deselect All"
-msgstr ""
+msgstr "Tümünü Seç/Kaldır"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:95
 msgid "endpoints"
-msgstr ""
+msgstr "uç nokta"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:129
 #, php-format
 msgid "Total endpoints found: %d"
-msgstr ""
+msgstr "Bulunan toplam uç nokta: %d"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:263
 msgid "This endpoint is not available for non-logged-in users."
-msgstr ""
+msgstr "Bu uç nokta, giriş yapmamış kullanıcılar için kullanılamaz."
 
 #: includes/features/disable-xmlrpc.php:15
 msgid "Disable XML-RPC"
@@ -8731,57 +8731,57 @@ msgstr "Bu ayarın etkinleştirilmesi wordpress'teki XML-RPC işlevini devre dı
 
 #: includes/features/draft-revision.php:58
 msgid "Sync with Original"
-msgstr ""
+msgstr "Orijinal ile Senkronize Et"
 
 #: includes/features/draft-revision.php:70
 msgid "Create Revision"
-msgstr ""
+msgstr "Revizyon Oluştur"
 
 #: includes/features/draft-revision.php:214
 #: includes/features/draft-revision.php:86
 msgid "Security check failed"
-msgstr ""
+msgstr "Güvenlik kontrolü başarısız"
 
 #: includes/features/draft-revision.php:219
 #: includes/features/draft-revision.php:91
 msgid "You do not have permission to do this"
-msgstr ""
+msgstr "Bunu yapma izniniz yok"
 
 #: includes/features/draft-revision.php:98
 msgid "Post not found"
-msgstr ""
+msgstr "Yazı bulunamadı"
 
 #: includes/features/draft-revision.php:226
 msgid "Draft post not found"
-msgstr ""
+msgstr "Taslak yazı bulunamadı"
 
 #: includes/features/draft-revision.php:233
 msgid "Original post ID not found"
-msgstr ""
+msgstr "Orijinal yazı kimliği bulunamadı"
 
 #: includes/features/draft-revision.php:240
 msgid "Original post not found"
-msgstr ""
+msgstr "Orijinal yazı bulunamadı"
 
 #: includes/features/draft-revision.php:245
 msgid "You do not have permission to edit the original post"
-msgstr ""
+msgstr "Orijinal yazıyı düzenleme izniniz yok"
 
 #: includes/features/draft-revision.php:384
 msgid "Draft revision created successfully!"
-msgstr ""
+msgstr "Taslak revizyonu başarıyla oluşturuldu!"
 
 #: includes/features/draft-revision.php:384
 msgid "You can now edit this draft. When ready, click \"Sync with Original\" to update the original post."
-msgstr ""
+msgstr "Bu taslağı artık düzenleyebilirsiniz. Hazır olduğunuzda, orijinal yazıyı güncellemek için \"Orijinal ile Senkronize Et\"e tıklayın."
 
 #: includes/features/draft-revision.php:391
 msgid "All changes from the draft have been applied to this post. The draft has been moved to trash."
-msgstr ""
+msgstr "Taslaktaki tüm değişiklikler bu yazıya uygulandı. Taslak çöp kutusuna taşındı."
 
 #: includes/features/draft-revision.php:391
 msgid "Draft synced successfully!"
-msgstr ""
+msgstr "Taslak başarıyla senkronize edildi!"
 
 #: includes/features/editor-settings-bricks.php:41
 #: includes/features/editor-settings-bricks.php:7
@@ -8815,15 +8815,15 @@ msgstr "SNN-BRX Panelini etkinleştirin. Görüntü İyileştirici, Kelepçe Olu
 #: includes/features/editor-settings-bricks.php:145
 #: includes/features/editor-settings-bricks.php:80
 msgid "Enable Custom CSS Overlay in Bricks Builder"
-msgstr ""
+msgstr "Bricks Builder'da Özel CSS Katmanını Etkinleştir"
 
 #: includes/features/editor-settings-bricks.php:88
 msgid "URL Coming Soon Bypass"
-msgstr ""
+msgstr "URL Yakında Geliyor Baypası"
 
 #: includes/features/editor-settings-bricks.php:121
 msgid "Configure Bricks Builder editor-specific settings below.<br>"
-msgstr ""
+msgstr "Aşağıda Bricks Builder editörüne özel ayarları yapılandırın.<br>"
 
 #: includes/features/editor-settings-bricks.php:134
 msgid "Enable SNN-BRX Editor Panel"
@@ -8831,7 +8831,7 @@ msgstr "SNN-BRX Düzenleyici Panelini Etkinleştir"
 
 #: includes/features/editor-settings-bricks.php:147
 msgid "Adds a floating CodeMirror CSS editor at the bottom of the Bricks builder. Click the <code>&lt;/&gt;</code> button in the panel header to toggle it. Syncs with the selected element's CSS or the page CSS when no element is selected."
-msgstr ""
+msgstr "Bricks builder'ın altına açılır bir CodeMirror CSS editörü ekler. Açıp kapatmak için panel başlığındaki <code>&lt;/&gt;</code> düğmesine tıklayın. Seçili öğenin CSS'i veya öğe seçili değilse sayfa CSS'i ile senkronize olur."
 
 #: includes/features/editor-settings-bricks.php:168
 msgid "Make Elements Compact But Keep Icons"
@@ -8839,27 +8839,27 @@ msgstr "Öğeleri Kompakt Hale Getirin Ancak Simgeleri Saklayın"
 
 #: includes/features/editor-settings-bricks.php:277
 msgid "Enable URL Coming Soon Bypass"
-msgstr ""
+msgstr "URL Yakında Geliyor Baypasını Etkinleştir"
 
 #: includes/features/editor-settings-bricks.php:280
 msgid "Bypass Key (URL slug)"
-msgstr ""
+msgstr "Baypas Anahtarı (URL kısa adı)"
 
 #: includes/features/editor-settings-bricks.php:291
 msgid "Only letters, numbers, <code>-</code> and <code>_</code> are allowed."
-msgstr ""
+msgstr "Yalnızca harfler, sayılar, <code>-</code> ve <code>_</code> kullanılabilir."
 
 #: includes/features/editor-settings-bricks.php:293
 msgid "Preview link:"
-msgstr ""
+msgstr "Önizleme bağlantısı:"
 
 #: includes/features/editor-settings-bricks.php:297
 msgid "(valid 24 h)"
-msgstr ""
+msgstr "(24 sa. geçerli)"
 
 #: includes/features/editor-settings-bricks.php:299
 msgid "Visit <code>/?key=YOUR_SLUG</code> to set the bypass cookie (valid 24 h)."
-msgstr ""
+msgstr "Baypas çerezini ayarlamak için <code>/?key=KISA_ADINIZ</code> adresini ziyaret edin (24 sa. geçerli)."
 
 #: includes/features/editor-settings-panel-bricks.php:45
 msgid "SNN-BRX"
@@ -8893,7 +8893,7 @@ msgstr "Kaydettikten Sonra Düzenleyiciyi Yenile"
 
 #: includes/features/editor-settings-panel-clamp.php:10
 msgid "Generate CSS clamp() values for responsive typography and spacing. Copy the generated value or save it directly to Bricks Global Variables for easy reuse. (Do not forget to match your HTML font-size with clamp. Go to: Theme Styles > Typography > HTML font-size)"
-msgstr ""
+msgstr "Duyarlı tipografi ve boşluklar için CSS clamp() değerleri üretin. Üretilen değeri kopyalayın veya kolay yeniden kullanım için doğrudan Bricks Genel Değişkenlerine kaydedin. (HTML yazı boyutunuzu clamp ile eşleştirmeyi unutmayın. Şuraya gidin: Tema Stilleri > Tipografi > HTML yazı boyutu)"
 
 #: includes/features/editor-settings-panel-color-sync.php:104
 msgid "primary-color"
@@ -9019,32 +9019,32 @@ msgstr "Dosya Boyutu"
 #: includes/features/interactions.php:7
 #: includes/features/settings-page.php:46
 msgid "Interactions"
-msgstr ""
+msgstr "Etkileşimler"
 
 #: includes/features/interactions.php:26
 msgid "Interactions & Animations"
-msgstr ""
+msgstr "Etkileşimler ve Animasyonlar"
 
 #: includes/features/interactions.php:47
 msgid "Animation Settings"
-msgstr ""
+msgstr "Animasyon Ayarları"
 
 #: includes/features/interactions.php:54
 msgid "Enable GSAP and GSAP Elements"
-msgstr ""
+msgstr "GSAP ve GSAP Öğelerini Etkinleştir"
 
 #: includes/features/interactions.php:246
 #: includes/features/interactions.php:62
 msgid "Enable Lenis Smooth Scroll"
-msgstr ""
+msgstr "Lenis Akıcı Kaydırmayı Etkinleştir"
 
 #: includes/features/interactions.php:70
 msgid "Enable Page Transitions"
-msgstr ""
+msgstr "Sayfa Geçişlerini Etkinleştir"
 
 #: includes/features/interactions.php:120
 msgid "Configure animation and interaction settings for your site below."
-msgstr ""
+msgstr "Aşağıda siteniz için animasyon ve etkileşim ayarlarını yapılandırın."
 
 #: includes/features/interactions.php:221
 msgid "Enabling this setting will enqueue the GSAP library and its associated scripts on your website."
@@ -9072,325 +9072,325 @@ msgstr "gsap-veri-animasyon.php: Veri özniteliklerine dayalı öğeleri canland
 
 #: includes/features/interactions.php:247
 msgid "Lenis is a lightweight, robust, and performant smooth scroll library designed for creating smooth scrolling experiences."
-msgstr ""
+msgstr "Lenis, akıcı kaydırma deneyimleri oluşturmak için tasarlanmış hafif, sağlam ve performanslı bir akıcı kaydırma kütüphanesidir."
 
 #: includes/features/interactions.php:249
 msgid "Basic Settings"
-msgstr ""
+msgstr "Temel Ayarlar"
 
 #: includes/features/interactions.php:250
 msgid "Auto RAF (Recommended)"
-msgstr ""
+msgstr "Otomatik RAF (Önerilen)"
 
 #: includes/features/interactions.php:250
 msgid "Automatically run requestAnimationFrame loop. Keep this enabled for best performance."
-msgstr ""
+msgstr "requestAnimationFrame döngüsünü otomatik olarak çalıştır. En iyi performans için etkin tutun."
 
 #: includes/features/interactions.php:251
 msgid "Animation duration in seconds. Default: 0.7"
-msgstr ""
+msgstr "Saniye cinsinden animasyon süresi. Varsayılan: 0.7"
 
 #: includes/features/interactions.php:251
 msgid "Duration (seconds)"
-msgstr ""
+msgstr "Süre (saniye)"
 
 #: includes/features/interactions.php:252
 msgid "Lerp (smoothness)"
-msgstr ""
+msgstr "Lerp (yumuşaklık)"
 
 #: includes/features/interactions.php:252
 msgid "Linear interpolation intensity (0.01 to 1). Lower = smoother. Default: 0.1"
-msgstr ""
+msgstr "Doğrusal enterpolasyon yoğunluğu (0.01 ile 1 arası). Düşük = daha yumuşak. Varsayılan: 0.1"
 
 #: includes/features/interactions.php:253
 msgid "Mouse wheel scroll speed. Default: 1"
-msgstr ""
+msgstr "Fare tekerleği kaydırma hızı. Varsayılan: 1"
 
 #: includes/features/interactions.php:253
 msgid "Wheel Multiplier"
-msgstr ""
+msgstr "Tekerlek Çarpanı"
 
 #: includes/features/interactions.php:254
 msgid "Smooth Wheel Events"
-msgstr ""
+msgstr "Akıcı Tekerlek Olayları"
 
 #: includes/features/interactions.php:254
 msgid "Smooth the scroll initiated by wheel events. Default: enabled"
-msgstr ""
+msgstr "Tekerlek olaylarıyla başlatılan kaydırmayı yumuşat. Varsayılan: etkin"
 
 #: includes/features/interactions.php:256
 #: includes/features/interactions.php:326
 msgid "Advanced Settings"
-msgstr ""
+msgstr "Gelişmiş Ayarlar"
 
 #: includes/features/interactions.php:258
 msgid "Orientation"
-msgstr ""
+msgstr "Yönelim"
 
 #: includes/features/interactions.php:258
 msgid "Scrolling orientation. Default: vertical"
-msgstr ""
+msgstr "Kaydırma yönelimi. Varsayılan: dikey"
 
 #: includes/features/interactions.php:259
 msgid "Gesture Orientation"
-msgstr ""
+msgstr "Hareket Yönelimi"
 
 #: includes/features/interactions.php:259
 msgid "Touch gesture orientation. Default: vertical"
-msgstr ""
+msgstr "Dokunma hareketi yönelimi. Varsayılan: dikey"
 
 #: includes/features/interactions.php:260
 msgid "Mimic touch device scroll (can be unstable on iOS<16). Default: disabled"
-msgstr ""
+msgstr "Dokunmatik cihaz kaydırmasını taklit et (iOS<16'da kararsız olabilir). Varsayılan: devre dışı"
 
 #: includes/features/interactions.php:260
 msgid "Sync Touch"
-msgstr ""
+msgstr "Senkron Dokunma"
 
 #: includes/features/interactions.php:261
 msgid "Lerp applied during syncTouch inertia. Default: 0.075"
-msgstr ""
+msgstr "syncTouch ataleti sırasında uygulanan Lerp. Varsayılan: 0.075"
 
 #: includes/features/interactions.php:261
 msgid "Sync Touch Lerp"
-msgstr ""
+msgstr "Senkron Dokunma Lerp"
 
 #: includes/features/interactions.php:262
 msgid "Touch Multiplier"
-msgstr ""
+msgstr "Dokunma Çarpanı"
 
 #: includes/features/interactions.php:262
 msgid "Touch scroll speed multiplier. Default: 1"
-msgstr ""
+msgstr "Dokunmatik kaydırma hızı çarpanı. Varsayılan: 1"
 
 #: includes/features/interactions.php:263
 msgid "Strength of syncTouch inertia. Default: 1.7"
-msgstr ""
+msgstr "syncTouch ataletinin gücü. Varsayılan: 1.7"
 
 #: includes/features/interactions.php:263
 msgid "Touch Inertia Exponent"
-msgstr ""
+msgstr "Dokunma Atalet Üssü"
 
 #: includes/features/interactions.php:264
 msgid "Enable infinite scrolling. Requires syncTouch on touch devices. Default: disabled"
-msgstr ""
+msgstr "Sonsuz kaydırmayı etkinleştir. Dokunmatik cihazlarda syncTouch gerektirir. Varsayılan: devre dışı"
 
 #: includes/features/interactions.php:264
 msgid "Infinite Scroll"
-msgstr ""
+msgstr "Sonsuz Kaydırma"
 
 #: includes/features/interactions.php:265
 msgid "Overscroll"
-msgstr ""
+msgstr "Aşırı Kaydırma"
 
 #: includes/features/interactions.php:265
 msgid "Similar to CSS overscroll-behavior. Default: enabled"
-msgstr ""
+msgstr "CSS overscroll-behavior'a benzer. Varsayılan: etkin"
 
 #: includes/features/interactions.php:266
 msgid "Easing Function"
-msgstr ""
+msgstr "Yumuşatma Fonksiyonu"
 
 #: includes/features/interactions.php:266
 msgid "Easing function for scroll animation. Default: custom exponential"
-msgstr ""
+msgstr "Kaydırma animasyonu için yumuşatma fonksiyonu. Varsayılan: özel üstel"
 
 #: includes/features/interactions.php:281
 msgid "Enable Page Transitions with View Transition API"
-msgstr ""
+msgstr "View Transition API ile Sayfa Geçişlerini Etkinleştir"
 
 #: includes/features/interactions.php:282
 msgid "The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience."
-msgstr ""
+msgstr "View Transition API, farklı web sitesi sayfaları arasında kolayca animasyonlu geçişler oluşturmak için bir mekanizma sağlar. Sayfalar arasında gezinirken kesintisiz görsel geçişler oluşturmanıza olanak tanıyarak kullanıcı deneyimini iyileştirir."
 
 #: includes/features/interactions.php:283
 msgid "Learn more:"
-msgstr ""
+msgstr "Daha fazla bilgi:"
 
 #: includes/features/interactions.php:285
 msgid "Transition Settings"
-msgstr ""
+msgstr "Geçiş Ayarları"
 
 #: includes/features/interactions.php:287
 msgid "Transition Type"
-msgstr ""
+msgstr "Geçiş Türü"
 
 #: includes/features/interactions.php:289
 msgid "Wipe Down (Top to Bottom)"
-msgstr ""
+msgstr "Aşağı Silme (Yukarıdan Aşağıya)"
 
 #: includes/features/interactions.php:290
 msgid "Wipe Down Soft Edge (Fade Leading Edge)"
-msgstr ""
+msgstr "Yumuşak Kenarlı Aşağı Silme (Ön Kenarı Soldur)"
 
 #: includes/features/interactions.php:291
 msgid "Wipe Up (Bottom to Top)"
-msgstr ""
+msgstr "Yukarı Silme (Aşağıdan Yukarıya)"
 
 #: includes/features/interactions.php:292
 msgid "Wipe Left (Right to Left)"
-msgstr ""
+msgstr "Sola Silme (Sağdan Sola)"
 
 #: includes/features/interactions.php:293
 msgid "Wipe Right (Left to Right)"
-msgstr ""
+msgstr "Sağa Silme (Soldan Sağa)"
 
 #: includes/features/interactions.php:294
 msgid "3D Perspective Flip"
-msgstr ""
+msgstr "3D Perspektif Çevirme"
 
 #: includes/features/interactions.php:295
 msgid "Mosaic Grid Reveal"
-msgstr ""
+msgstr "Mozaik Izgara Ortaya Çıkarma"
 
 #: includes/features/interactions.php:296
 msgid "Halftone Dots"
-msgstr ""
+msgstr "Yarı Ton Noktalar"
 
 #: includes/features/interactions.php:297
 msgid "Vertical Shutters"
-msgstr ""
+msgstr "Dikey Panjurlar"
 
 #: includes/features/interactions.php:298
 msgid "Horizontal Shutters"
-msgstr ""
+msgstr "Yatay Panjurlar"
 
 #: includes/features/interactions.php:299
 msgid "Diamond Grid"
-msgstr ""
+msgstr "Baklava Izgara"
 
 #: includes/features/interactions.php:300
 msgid "Iris Circle"
-msgstr ""
+msgstr "İris Daire"
 
 #: includes/features/interactions.php:301
 msgid "Diagonal Slashes"
-msgstr ""
+msgstr "Diyagonal Kesikler"
 
 #: includes/features/interactions.php:302
 msgid "Fade in and Fade out"
-msgstr ""
+msgstr "Belir ve Sol"
 
 #: includes/features/interactions.php:303
 msgid "Ink Spread (Rorschach)"
-msgstr ""
+msgstr "Mürekkep Yayılması (Rorschach)"
 
 #: includes/features/interactions.php:304
 msgid "Camera Aperture (Spiral)"
-msgstr ""
+msgstr "Kamera Diyaframı (Spiral)"
 
 #: includes/features/interactions.php:305
 msgid "Broken Glass (Polygons)"
-msgstr ""
+msgstr "Kırık Cam (Poligonlar)"
 
 #: includes/features/interactions.php:306
 msgid "Pixel Dither (Dissolve)"
-msgstr ""
+msgstr "Piksel Dithering (Çözülme)"
 
 #: includes/features/interactions.php:307
 msgid "Radial Wipe (Clock Sweep)"
-msgstr ""
+msgstr "Radyal Silme (Saat Yönü)"
 
 #: includes/features/interactions.php:308
 msgid "Hexagon Grid"
-msgstr ""
+msgstr "Altıgen Izgara"
 
 #: includes/features/interactions.php:309
 msgid "Zoom Out Scale"
-msgstr ""
+msgstr "Uzaklaşarak Ölçekle"
 
 #: includes/features/interactions.php:310
 msgid "Zoom In Scale"
-msgstr ""
+msgstr "Yakınlaşarak Ölçekle"
 
 #: includes/features/interactions.php:311
 msgid "Slide Push (Carousel)"
-msgstr ""
+msgstr "Kaydırarak İt (Karusel)"
 
 #: includes/features/interactions.php:312
 msgid "Slide Over Stack (iOS Style)"
-msgstr ""
+msgstr "Üzerine Kaydırarak Yığ (iOS Stili)"
 
 #: includes/features/interactions.php:313
 msgid "Random Mosaic Peel (Staggered Tiles)"
-msgstr ""
+msgstr "Rastgele Mozaik Soyma (Kademeli Karolar)"
 
 #: includes/features/interactions.php:316
 msgid "Select the type of transition effect to use when navigating between pages. Default: Wipe Down"
-msgstr ""
+msgstr "Sayfalar arasında gezinirken kullanılacak geçiş efekti türünü seçin. Varsayılan: Aşağı Silme"
 
 #: includes/features/interactions.php:320
 msgid "Transition Duration (seconds)"
-msgstr ""
+msgstr "Geçiş Süresi (saniye)"
 
 #: includes/features/interactions.php:322
 msgid "Duration of the transition effect in seconds. Default: 0.5s"
-msgstr ""
+msgstr "Saniye cinsinden geçiş efektinin süresi. Varsayılan: 0.5s"
 
 #: includes/features/interactions.php:328
 msgid "Page Structure Selectors"
-msgstr ""
+msgstr "Sayfa Yapısı Seçicileri"
 
 #: includes/features/interactions.php:329
 msgid "Define CSS selectors to identify different parts of your page. This helps the transition system properly update content and preserve scripts/assets."
-msgstr ""
+msgstr "Sayfanızın farklı bölümlerini tanımlamak için CSS seçicileri belirleyin. Bu, geçiş sisteminin içeriği düzgün şekilde güncellemesine ve betikleri/kaynakları korumasına yardımcı olur."
 
 #: includes/features/interactions.php:332
 msgid "Update Mode"
-msgstr ""
+msgstr "Güncelleme Modu"
 
 #: includes/features/interactions.php:334
 msgid "Smart Update (Recommended)"
-msgstr ""
+msgstr "Akıllı Güncelleme (Önerilen)"
 
 #: includes/features/interactions.php:335
 msgid "Full Page Replace"
-msgstr ""
+msgstr "Tüm Sayfayı Değiştir"
 
 #: includes/features/interactions.php:337
 msgid "Smart Update: Only updates main content area while preserving header/footer and scripts. Full Page Replace: Replaces entire page content (may cause asset loading issues). Default: Smart Update"
-msgstr ""
+msgstr "Akıllı Güncelleme: Başlık/altbilgi ve betikleri korurken yalnızca ana içerik alanını günceller. Tüm Sayfayı Değiştir: Sayfa içeriğinin tamamını değiştirir (kaynak yükleme sorunlarına neden olabilir). Varsayılan: Akıllı Güncelleme"
 
 #: includes/features/interactions.php:341
 msgid "Header Selector"
-msgstr ""
+msgstr "Başlık Seçicisi"
 
 #: includes/features/interactions.php:343
 msgid "CSS selector for the global header element. Default: header"
-msgstr ""
+msgstr "Genel başlık öğesi için CSS seçicisi. Varsayılan: header"
 
 #: includes/features/interactions.php:347
 msgid "Main Content Selector"
-msgstr ""
+msgstr "Ana İçerik Seçicisi"
 
 #: includes/features/interactions.php:349
 msgid "CSS selector for the main content area. Supports multiple selectors separated by commas. Default: main, article, #brx-content"
-msgstr ""
+msgstr "Ana içerik alanı için CSS seçicisi. Virgülle ayrılmış birden fazla seçiciyi destekler. Varsayılan: main, article, #brx-content"
 
 #: includes/features/interactions.php:353
 msgid "Footer Selector"
-msgstr ""
+msgstr "Altbilgi Seçicisi"
 
 #: includes/features/interactions.php:355
 msgid "CSS selector for the global footer element. Default: footer"
-msgstr ""
+msgstr "Genel altbilgi öğesi için CSS seçicisi. Varsayılan: footer"
 
 #: includes/features/limit-login-attempts.php:107
 #, php-format
 msgid "<strong>ERROR</strong>: Your IP address has been temporarily blocked due to too many failed login attempts. Please try again in %d hours."
-msgstr ""
+msgstr "<strong>HATA</strong>: IP adresiniz, çok fazla başarısız giriş denemesi nedeniyle geçici olarak engellendi. Lütfen %d saat sonra tekrar deneyin."
 
 #: includes/features/limit-login-attempts.php:110
 msgid "Login Blocked"
-msgstr ""
+msgstr "Giriş Engellendi"
 
 #: includes/features/limit-login-attempts.php:129
 msgid "Your IP address has been temporarily blocked due to too many failed login attempts."
-msgstr ""
+msgstr "IP adresiniz, çok fazla başarısız giriş denemesi nedeniyle geçici olarak engellendi."
 
 #: includes/features/limit-login-attempts.php:230
 msgid "All blocked IPs have been cleared successfully."
-msgstr ""
+msgstr "Tüm engellenen IP'ler başarıyla temizlendi."
 
 #: includes/features/login-logo-change-url-change.php:6
 msgid "Login Logo Image URL"
@@ -9420,7 +9420,7 @@ msgstr "Bu resmi kullan"
 
 #: includes/features/login-logo-change-url-change.php:73
 msgid "https://yourwebsite.com"
-msgstr ""
+msgstr "https://sizinsiteniz.com"
 
 #: includes/features/login-logo-change-url-change.php:74
 msgid "Enter the URL where the logo should link on the login page."
@@ -9428,29 +9428,29 @@ msgstr "Logonun oturum açma sayfasında bağlanması gereken URL'yi girin."
 
 #: includes/features/login-math-captcha.php:42
 msgid "Verify you are human:"
-msgstr ""
+msgstr "İnsan olduğunuzu doğrulayın:"
 
 #: includes/features/login-math-captcha.php:43
 msgid "Click to refresh"
-msgstr ""
+msgstr "Yenilemek için tıklayın"
 
 #: includes/features/login-math-captcha.php:45
 msgid "Verified!"
-msgstr ""
+msgstr "Doğrulandı!"
 
 #: includes/features/login-math-captcha.php:206
 #: includes/features/login-math-captcha.php:224
 #: includes/features/login-math-captcha.php:240
 #: includes/features/login-math-captcha.php:266
 msgid "ERROR"
-msgstr ""
+msgstr "HATA"
 
 #: includes/features/login-math-captcha.php:206
 #: includes/features/login-math-captcha.php:224
 #: includes/features/login-math-captcha.php:240
 #: includes/features/login-math-captcha.php:266
 msgid "Verification failed. Please solve the math equation."
-msgstr ""
+msgstr "Doğrulama başarısız oldu. Lütfen matematik denklemini çözün."
 
 #: includes/features/login-settings.php:155
 #: includes/features/login-settings.php:8
@@ -9505,7 +9505,7 @@ msgstr "Bu metinde HTML etiketlerini kullanabilirsiniz."
 
 #: includes/features/login-settings.php:138
 msgid "https://example.com/redirect-path"
-msgstr ""
+msgstr "https://example.com/yonlendirme-yolu"
 
 #: includes/features/login-settings.php:139
 msgid "Enter the full URL where users should be redirected after logging in. Leave blank to disable custom redirect."
@@ -9518,124 +9518,124 @@ msgstr "Ayarlar Kaydedildi"
 
 #: includes/features/login-url-security.php:243
 msgid "Custom Login URL"
-msgstr ""
+msgstr "Özel Giriş URL'si"
 
 #: includes/features/login-url-security.php:264
 msgid "Enable to serve the WordPress login page at a custom URL and block direct /wp-login.php access."
-msgstr ""
+msgstr "WordPress giriş sayfasını özel bir URL'de sunmak ve doğrudan /wp-login.php erişimini engellemek için etkinleştirin."
 
 #: includes/features/login-url-security.php:268
 msgid "Login Slug:"
-msgstr ""
+msgstr "Giriş Kısa Adı:"
 
 #: includes/features/login-url-security.php:281
 msgid "Allowed: lowercase letters (a-z), numbers (0-9), dashes (-). No spaces or special characters. Default: snn"
-msgstr ""
+msgstr "İzin verilenler: küçük harfler (a-z), sayılar (0-9), tireler (-). Boşluk veya özel karakter yok. Varsayılan: snn"
 
 #: includes/features/login-url-security.php:285
 msgid "Your current login URL:"
-msgstr ""
+msgstr "Mevcut giriş URL'niz:"
 
 #: includes/features/login-url-security.php:288
 msgid "Emergency recovery:"
-msgstr ""
+msgstr "Acil kurtarma:"
 
 #: includes/features/login-url-security.php:289
 msgid "If you get locked out, add this line to your wp-config.php to restore normal login access:"
-msgstr ""
+msgstr "Kilitlenirseniz, normal giriş erişimini geri yüklemek için wp-config.php dosyanıza şu satırı ekleyin:"
 
 #: includes/features/mail-customizer.php:41
 #: includes/features/mail-customizer.php:42
 msgid "Mail Customizer"
-msgstr ""
+msgstr "Mail Customizer"
 
 #: includes/features/mail-customizer.php:170
 msgid "Enable Custom Email Templates"
-msgstr ""
+msgstr "Özel E-posta Şablonlarını Etkinleştir"
 
 #: includes/features/mail-customizer.php:173
 msgid "Check this to apply custom email template to all WordPress emails."
-msgstr ""
+msgstr "Özel e-posta şablonunu tüm WordPress e-postalarına uygulamak için bunu işaretleyin."
 
 #: includes/features/mail-customizer.php:179
 msgid "Email Body"
-msgstr ""
+msgstr "E-posta Gövdesi"
 
 #: includes/features/mail-customizer.php:180
 msgid "Customize the complete email template. Use dynamic tags to insert content automatically."
-msgstr ""
+msgstr "Tam e-posta şablonunu özelleştirin. İçeriği otomatik eklemek için dinamik etiketleri kullanın."
 
 #: includes/features/mail-customizer.php:185
 msgid "Sender Name"
-msgstr ""
+msgstr "Gönderen Adı"
 
 #: includes/features/mail-customizer.php:188
 msgid "The name that appears as the email sender."
-msgstr ""
+msgstr "E-posta gönderen olarak görünen ad."
 
 #: includes/features/mail-customizer.php:192
 msgid "Sender Email"
-msgstr ""
+msgstr "Gönderen E-postası"
 
 #: includes/features/mail-customizer.php:195
 msgid "The email address that appears as the sender."
-msgstr ""
+msgstr "Gönderen olarak görünen e-posta adresi."
 
 #: includes/features/mail-customizer.php:217
 msgid "Available Dynamic Tags:"
-msgstr ""
+msgstr "Kullanılabilir Dinamik Etiketler:"
 
 #: includes/features/mail-customizer.php:218
 msgid "Original email message content"
-msgstr ""
+msgstr "Orijinal e-posta mesaj içeriği"
 
 #: includes/features/mail-customizer.php:220
 msgid "Your site name"
-msgstr ""
+msgstr "Site adınız"
 
 #: includes/features/mail-customizer.php:222
 msgid "Your site URL"
-msgstr ""
+msgstr "Site URL'niz"
 
 #: includes/features/mail-customizer.php:224
 msgid "Current year"
-msgstr ""
+msgstr "Mevcut yıl"
 
 #: includes/features/mail-customizer.php:231
 msgid "Colors"
-msgstr ""
+msgstr "Renkler"
 
 #: includes/features/mail-customizer.php:234
 msgid "Body Background"
-msgstr ""
+msgstr "Gövde Arka Planı"
 
 #: includes/features/mail-customizer.php:243
 msgid "Content Background"
-msgstr ""
+msgstr "İçerik Arka Planı"
 
 #: includes/features/mail-customizer.php:279
 msgid "Test & Preview Emails"
-msgstr ""
+msgstr "E-postaları Test Et ve Önizle"
 
 #: includes/features/mail-customizer.php:280
 msgid "Send test emails or preview how different WordPress email types will look with your template."
-msgstr ""
+msgstr "Test e-postaları gönderin veya farklı WordPress e-posta türlerinin şablonunuzla nasıl görüneceğini önizleyin."
 
 #: includes/features/mail-customizer.php:285
 msgid "Custom Test Email"
-msgstr ""
+msgstr "Özel Test E-postası"
 
 #: includes/features/mail-customizer.php:287
 msgid "recipient@example.com"
-msgstr ""
+msgstr "alici@example.com"
 
 #: includes/features/mail-customizer.php:288
 msgid "Enter your test message..."
-msgstr ""
+msgstr "Test mesajınızı girin..."
 
 #: includes/features/mail-customizer.php:291
 msgid "Send Custom Test"
-msgstr ""
+msgstr "Özel Testi Gönder"
 
 #: includes/features/mail-customizer.php:294
 #: includes/features/mail-customizer.php:309
@@ -9645,106 +9645,106 @@ msgstr ""
 #: includes/features/mail-customizer.php:350
 #: includes/features/mail-customizer.php:360
 msgid "Preview"
-msgstr ""
+msgstr "Önizleme"
 
 #: includes/features/mail-customizer.php:302
 msgid "Password Reset Email"
-msgstr ""
+msgstr "Parola Sıfırlama E-postası"
 
 #: includes/features/mail-customizer.php:304
 msgid "WordPress password reset email notification."
-msgstr ""
+msgstr "WordPress parola sıfırlama e-posta bildirimi."
 
 #: includes/features/mail-customizer.php:306
 msgid "Send to Current User"
-msgstr ""
+msgstr "Mevcut Kullanıcıya Gönder"
 
 #: includes/features/mail-customizer.php:315
 msgid "New User Notification"
-msgstr ""
+msgstr "Yeni Kullanıcı Bildirimi"
 
 #: includes/features/mail-customizer.php:317
 msgid "Email sent when a new user account is created."
-msgstr ""
+msgstr "Yeni bir kullanıcı hesabı oluşturulduğunda gönderilen e-posta."
 
 #: includes/features/mail-customizer.php:321
 msgid "(Preview only - creates actual user account)"
-msgstr ""
+msgstr "(Yalnızca önizleme - gerçek bir kullanıcı hesabı oluşturur)"
 
 #: includes/features/mail-customizer.php:326
 msgid "Comment Notification"
-msgstr ""
+msgstr "Yorum Bildirimi"
 
 #: includes/features/mail-customizer.php:328
 msgid "Email sent to post author when someone comments."
-msgstr ""
+msgstr "Biri yorum yaptığında yazı yazarına gönderilen e-posta."
 
 #: includes/features/mail-customizer.php:336
 msgid "Auto Update Success"
-msgstr ""
+msgstr "Otomatik Güncelleme Başarılı"
 
 #: includes/features/mail-customizer.php:338
 msgid "Email sent when WordPress auto-updates successfully."
-msgstr ""
+msgstr "WordPress otomatik güncellemesi başarılı olduğunda gönderilen e-posta."
 
 #: includes/features/mail-customizer.php:346
 msgid "Auto Update Failed"
-msgstr ""
+msgstr "Otomatik Güncelleme Başarısız"
 
 #: includes/features/mail-customizer.php:348
 msgid "Email sent when WordPress auto-update fails."
-msgstr ""
+msgstr "WordPress otomatik güncellemesi başarısız olduğunda gönderilen e-posta."
 
 #: includes/features/mail-customizer.php:356
 msgid "Email Change Request"
-msgstr ""
+msgstr "E-posta Değişiklik Talebi"
 
 #: includes/features/mail-customizer.php:358
 msgid "Email sent when user requests to change their email address."
-msgstr ""
+msgstr "Kullanıcı e-posta adresini değiştirmek istediğinde gönderilen e-posta."
 
 #: includes/features/mail-customizer.php:372
 msgid "Email Preview"
-msgstr ""
+msgstr "E-posta Önizleme"
 
 #: includes/features/mail-customizer.php:394
 #: includes/features/smtp-settings.php:1148
 msgid "Sending..."
-msgstr ""
+msgstr "Gönderiliyor..."
 
 #: includes/features/mail-customizer.php:415
 #: includes/features/mail-customizer.php:452
 msgid "Ajax error occurred"
-msgstr ""
+msgstr "Ajax hatası oluştu"
 
 #: includes/features/mail-customizer.php:448
 msgid "Preview failed"
-msgstr ""
+msgstr "Önizleme başarısız"
 
 #: includes/features/mail-customizer.php:606
 msgid "Invalid email address"
-msgstr ""
+msgstr "Geçersiz e-posta adresi"
 
 #: includes/features/mail-customizer.php:614
 #: includes/features/mail-customizer.php:718
 #, php-format
 msgid "[Test] Email from %s"
-msgstr ""
+msgstr "[Test] %s'ten e-posta"
 
 #: includes/features/mail-customizer.php:617
 #, php-format
 msgid "Test email sent successfully to %s"
-msgstr ""
+msgstr "Test e-postası %s adresine başarıyla gönderildi"
 
 #: includes/features/mail-customizer.php:618
 msgid "Failed to send test email. Check your email server configuration."
-msgstr ""
+msgstr "Test e-postası gönderilemedi. E-posta sunucusu yapılandırmanızı kontrol edin."
 
 #: includes/features/mail-customizer.php:626
 #: includes/features/mail-customizer.php:725
 #, php-format
 msgid "[%s] Password Reset"
-msgstr ""
+msgstr "[%s] Parola Sıfırlama"
 
 #: includes/features/mail-customizer.php:628
 #: includes/features/mail-customizer.php:726
@@ -9761,44 +9761,54 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"Biri şu hesap için parola sıfırlama talebinde bulundu:\n"
+"\n"
+"Site Adı: %s\n"
+"Kullanıcı Adı: %s\n"
+"\n"
+"Bu bir hataysa, bu e-postayı görmezden gelin, hiçbir şey olmayacaktır.\n"
+"\n"
+"Parolanızı sıfırlamak için şu adresi ziyaret edin:\n"
+"\n"
+"%s"
 
 #: includes/features/mail-customizer.php:641
 #, php-format
 msgid "Password reset email sent to %s"
-msgstr ""
+msgstr "Parola sıfırlama e-postası %s adresine gönderildi"
 
 #: includes/features/mail-customizer.php:642
 msgid "Failed to send password reset email."
-msgstr ""
+msgstr "Parola sıfırlama e-postası gönderilemedi."
 
 #: includes/features/mail-customizer.php:644
 msgid "Failed to generate password reset key."
-msgstr ""
+msgstr "Parola sıfırlama anahtarı oluşturulamadı."
 
 #: includes/features/mail-customizer.php:649
 msgid "Invalid test type"
-msgstr ""
+msgstr "Geçersiz test türü"
 
 #: includes/features/mail-customizer.php:674
 msgid "Invalid preview type"
-msgstr ""
+msgstr "Geçersiz önizleme türü"
 
 #: includes/features/mail-customizer.php:692
 msgid "Custom email templates are currently DISABLED. Enable them in settings to see the styled version."
-msgstr ""
+msgstr "Özel e-posta şablonları şu anda DEVRE DIŞI. Stilli sürümü görmek için ayarlardan etkinleştirin."
 
 #: includes/features/mail-customizer.php:700
 msgid "Subject:"
-msgstr ""
+msgstr "Konu:"
 
 #: includes/features/mail-customizer.php:719
 msgid "This is a test email to verify your custom email template."
-msgstr ""
+msgstr "Bu, özel e-posta şablonunuzu doğrulamak için gönderilen bir test e-postasıdır."
 
 #: includes/features/mail-customizer.php:740
 #, php-format
 msgid "[%s] Your username and password info"
-msgstr ""
+msgstr "[%s] Kullanıcı adı ve parola bilgileriniz"
 
 #: includes/features/mail-customizer.php:741
 #, php-format
@@ -9810,11 +9820,17 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"Kullanıcı adı: newuser123\n"
+"Parolanızı ayarlamak için şu adresi ziyaret edin:\n"
+"\n"
+"%s/wp-login.php?action=rp&key=SAMPLE_KEY&login=newuser123\n"
+"\n"
+"%s"
 
 #: includes/features/mail-customizer.php:751
 #, php-format
 msgid "[%s] Please moderate: \"Sample Post Title\""
-msgstr ""
+msgstr "[%s] Lütfen moderasyon yapın: \"Sample Post Title\""
 
 #: includes/features/mail-customizer.php:752
 #, php-format
@@ -9832,11 +9848,23 @@ msgid ""
 "Currently 1 comment is waiting for approval. Please visit the moderation panel:\n"
 "%s/wp-admin/edit-comments.php?comment_status=moderated"
 msgstr ""
+"\"Sample Post Title\" yazısına yapılan yeni bir yorum onayınızı bekliyor\n"
+"\n"
+"Yazar: John Doe (e-posta: john@example.com)\n"
+"Yorum:\n"
+"Bu, birinin blog yazınıza bıraktığı örnek bir yorumdur. İçeriğinizle ilgili bazı geri bildirimler içerir.\n"
+"\n"
+"Onayla: %s/wp-admin/comment.php?action=approve&c=123\n"
+"Çöpe At: %s/wp-admin/comment.php?action=trash&c=123\n"
+"Spam Olarak İşaretle: %s/wp-admin/comment.php?action=spam&c=123\n"
+"\n"
+"Şu anda 1 yorum onay bekliyor. Lütfen moderasyon panelini ziyaret edin:\n"
+"%s/wp-admin/edit-comments.php?comment_status=moderated"
 
 #: includes/features/mail-customizer.php:768
 #, php-format
 msgid "[%s] Some plugins and themes have automatically updated"
-msgstr ""
+msgstr "[%s] Bazı eklentiler ve temalar otomatik olarak güncellendi"
 
 #: includes/features/mail-customizer.php:769
 #, php-format
@@ -9871,11 +9899,40 @@ msgid ""
 "Visit your site: %s\n"
 "Visit your dashboard: %s/wp-admin/"
 msgstr ""
+"Merhaba!\n"
+"\n"
+"Harika haber! Siteniz otomatik olarak güncellendi.\n"
+"\n"
+"######################################################\n"
+"# WordPress güncelleme ayrıntıları\n"
+"######################################################\n"
+"\n"
+"6.4.1'den WordPress 6.4.2'ye güncellendi\n"
+"\n"
+"######################################################\n"
+"# Eklenti güncelleme ayrıntıları\n"
+"######################################################\n"
+"\n"
+"Aşağıdaki eklentiler başarıyla güncellendi:\n"
+"\n"
+"- Contact Form 7 (5.8.4'ten 5.8.5'e)\n"
+"- Yoast SEO (21.5'ten 21.6'ya)\n"
+"\n"
+"######################################################\n"
+"# Tema güncelleme ayrıntıları\n"
+"######################################################\n"
+"\n"
+"Aşağıdaki temalar başarıyla güncellendi:\n"
+"\n"
+"- Twenty Twenty-Four (1.0'dan 1.1'e)\n"
+"\n"
+"Sitenizi ziyaret edin: %s\n"
+"Panelinizi ziyaret edin: %s/wp-admin/"
 
 #: includes/features/mail-customizer.php:802
 #, php-format
 msgid "[%s] URGENT: Automatic update failed"
-msgstr ""
+msgstr "[%s] ACİL: Otomatik güncelleme başarısız oldu"
 
 #: includes/features/mail-customizer.php:803
 #, php-format
@@ -9902,11 +9959,32 @@ msgid ""
 "If you need help, please contact your hosting provider or visit:\n"
 "https://wordpress.org/support/"
 msgstr ""
+"Merhaba!\n"
+"\n"
+"Sitenizi otomatik olarak güncellemeye çalıştık, ancak ne yazık ki bir sorun oluştu.\n"
+"\n"
+"######################################################\n"
+"# Güncelleme denemesi ayrıntıları\n"
+"######################################################\n"
+"\n"
+"BAŞARISIZ: WordPress 6.4.2\n"
+"\n"
+"Hata mesajı: İndirme başarısız oldu. Geçerli bir URL sağlanmadı.\n"
+"\n"
+"######################################################\n"
+"# Sonraki adımlar\n"
+"######################################################\n"
+"\n"
+"Lütfen sitenizi manuel olarak güncelleyin:\n"
+"%s/wp-admin/update-core.php\n"
+"\n"
+"Yardıma ihtiyacınız varsa, lütfen barındırma sağlayıcınızla iletişime geçin veya şunu ziyaret edin:\n"
+"https://wordpress.org/support/"
 
 #: includes/features/mail-customizer.php:828
 #, php-format
 msgid "[%s] Email Change Request"
-msgstr ""
+msgstr "[%s] E-posta Değişiklik Talebi"
 
 #: includes/features/mail-customizer.php:829
 #, php-format
@@ -9926,6 +10004,20 @@ msgid ""
 "All at %s\n"
 "%s"
 msgstr ""
+"Merhaba,\n"
+"\n"
+"Hesabınızdaki e-posta adresinin değiştirilmesini yakın zamanda talep ettiniz.\n"
+"\n"
+"Bu doğruysa, değişikliği onaylamak için lütfen şu bağlantıya tıklayın:\n"
+"%s/wp-login.php?action=confirmemail&key=SAMPLE_KEY\n"
+"\n"
+"Bu işlemi yapmak istemiyorsanız bu e-postayı güvenle görmezden gelebilir ve silebilirsiniz.\n"
+"\n"
+"Bu e-posta %s adresine gönderildi\n"
+"\n"
+"Saygılarımızla,\n"
+"%s ekibi\n"
+"%s"
 
 #: includes/features/mail-logging.php:13
 #: includes/features/mail-logging.php:14
@@ -9948,7 +10040,7 @@ msgstr "Posta Günlüğünü Etkinleştir"
 
 #: includes/features/mail-logging.php:192
 msgid "Maximum number of logs to keep: "
-msgstr ""
+msgstr "Saklanacak maksimum günlük sayısı: "
 
 #: includes/features/mail-logging.php:212
 msgid "Subject"
@@ -9982,19 +10074,19 @@ msgstr "Mesaj yüklenirken hata oluştu"
 #: includes/features/media-image-opt.php:17
 #: includes/features/media-image-opt.php:18
 msgid "Optimize Media"
-msgstr ""
+msgstr "Medyayı Optimize Et"
 
 #: includes/features/media-image-opt.php:34
 msgid "Upload Optimized Media"
-msgstr ""
+msgstr "Optimize Edilmiş Medya Yükle"
 
 #: includes/features/media-image-opt.php:37
 msgid "Optimize Existing Media"
-msgstr ""
+msgstr "Mevcut Medyayı Optimize Et"
 
 #: includes/features/media-image-opt.php:40
 msgid "History & Settings"
-msgstr ""
+msgstr "Geçmiş & Ayarlar"
 
 #: includes/features/media-image-opt.php:55
 msgid "Optimize, convert, and resize images before adding them to your media library."
@@ -10003,227 +10095,227 @@ msgstr "Medya kitaplığınıza eklemeden önce görüntüleri optimize edin, d�
 #: includes/features/media-image-opt.php:1082
 #: includes/features/media-image-opt.php:56
 msgid "Fast Client-Side Processing:"
-msgstr ""
+msgstr "Hızlı İstemci Taraflı İşleme:"
 
 #: includes/features/media-image-opt.php:56
 msgid "Images are optimized directly in your browser using your CPU. Keep this tab open during processing for best performance. Even thousands of images will be processed quickly!"
-msgstr ""
+msgstr "Görseller doğrudan tarayıcınızda CPU'nuz kullanılarak optimize edilir. En iyi performans için işlem sırasında bu sekmeyi açık tutun. Binlerce görsel bile hızla işlenir!"
 
 #: includes/features/media-image-opt.php:1079
 msgid "Convert existing JPG and PNG images in your media library to WebP format. Original images are preserved and can be restored anytime."
-msgstr ""
+msgstr "Ortam kitaplığınızdaki mevcut JPG ve PNG görselleri WebP biçimine dönüştürün. Orijinal görseller korunur ve istediğiniz zaman geri yüklenebilir."
 
 #: includes/features/media-image-opt.php:1082
 msgid "Images are downloaded and optimized directly in your browser using WebAssembly (libwebp). Keep browser tab open until optimization completes."
-msgstr ""
+msgstr "Görseller doğrudan tarayıcınızda WebAssembly (libwebp) kullanılarak indirilir ve optimize edilir. Optimizasyon tamamlanana kadar tarayıcı sekmesini açık tutun."
 
 #: includes/features/media-image-opt.php:1086
 msgid "Optimization Settings"
-msgstr ""
+msgstr "Optimizasyon Ayarları"
 
 #: includes/features/media-image-opt.php:1092
 msgid "Quality (0-100):"
-msgstr ""
+msgstr "Kalite (0-100):"
 
 #: includes/features/media-image-opt.php:1095
 msgid "75-85 for photos, 85-95 for graphics."
-msgstr ""
+msgstr "Fotoğraflar için 75-85, grafikler için 85-95."
 
 #: includes/features/media-image-opt.php:1101
 msgid "Max Width (px):"
-msgstr ""
+msgstr "Maksimum Genişlik (px):"
 
 #: includes/features/media-image-opt.php:1104
 msgid "0 = no resize. 2000 recommended."
-msgstr ""
+msgstr "0 = yeniden boyutlandırma yok. 2000 önerilir."
 
 #: includes/features/media-image-opt.php:1110
 msgid "Method (0-6):"
-msgstr ""
+msgstr "Yöntem (0-6):"
 
 #: includes/features/media-image-opt.php:1113
 msgid "0 - Fastest"
-msgstr ""
+msgstr "0 - En Hızlı"
 
 #: includes/features/media-image-opt.php:1114
 msgid "2 - Fast"
-msgstr ""
+msgstr "2 - Hızlı"
 
 #: includes/features/media-image-opt.php:1115
 msgid "4 - Balanced"
-msgstr ""
+msgstr "4 - Dengeli"
 
 #: includes/features/media-image-opt.php:1116
 msgid "6 - Best compression"
-msgstr ""
+msgstr "6 - En İyi sıkıştırma"
 
 #: includes/features/media-image-opt.php:1118
 msgid "Higher = smaller files, slower."
-msgstr ""
+msgstr "Yüksek = daha küçük dosyalar, daha yavaş."
 
 #: includes/features/media-image-opt.php:1124
 msgid "Compression Type:"
-msgstr ""
+msgstr "Sıkıştırma Türü:"
 
 #: includes/features/media-image-opt.php:1127
 msgid "Auto (smart)"
-msgstr ""
+msgstr "Otomatik (akıllı)"
 
 #: includes/features/media-image-opt.php:1128
 msgid "Lossy (photos)"
-msgstr ""
+msgstr "Kayıplı (fotoğraflar)"
 
 #: includes/features/media-image-opt.php:1129
 msgid "Lossless (perfect)"
-msgstr ""
+msgstr "Kayıpsız (mükemmel)"
 
 #: includes/features/media-image-opt.php:1130
 msgid "Near-Lossless"
-msgstr ""
+msgstr "Neredeyse Kayıpsız"
 
 #: includes/features/media-image-opt.php:1132
 msgid "Auto: lossy for JPG, lossless for PNG."
-msgstr ""
+msgstr "Otomatik: JPG için kayıplı, PNG için kayıpsız."
 
 #: includes/features/media-image-opt.php:1138
 msgid "Near-Lossless (0-100):"
-msgstr ""
+msgstr "Neredeyse Kayıpsız (0-100):"
 
 #: includes/features/media-image-opt.php:1141
 msgid "60 typical. 0=max, 100=none."
-msgstr ""
+msgstr "Tipik olarak 60. 0=maks, 100=yok."
 
 #: includes/features/media-image-opt.php:1147
 msgid "Alpha Quality (0-100):"
-msgstr ""
+msgstr "Alfa Kalitesi (0-100):"
 
 #: includes/features/media-image-opt.php:1150
 msgid "For PNG transparency. 100=lossless."
-msgstr ""
+msgstr "PNG saydamlığı için. 100=kayıpsız."
 
 #: includes/features/media-image-opt.php:1158
 msgid "Skip if WebP would be larger than original"
-msgstr ""
+msgstr "WebP orijinalden büyük olacaksa atla"
 
 #: includes/features/media-image-opt.php:1164
 msgid "Include already optimized images (for re-optimization)"
-msgstr ""
+msgstr "Zaten optimize edilmiş görselleri dahil et (yeniden optimizasyon için)"
 
 #: includes/features/media-image-opt.php:1170
 #: includes/features/media-image-opt.php:1452
 msgid "Scan for Unoptimized Images"
-msgstr ""
+msgstr "Optimize Edilmemiş Görselleri Tara"
 
 #: includes/features/media-image-opt.php:1173
 msgid "Optimize All Unoptimized"
-msgstr ""
+msgstr "Optimize Edilmemişlerin Tümünü Optimize Et"
 
 #: includes/features/media-image-opt.php:1176
 msgid "Optimize Only Selected Images"
-msgstr ""
+msgstr "Yalnızca Seçili Görselleri Optimize Et"
 
 #: includes/features/media-image-opt.php:1193
 #: includes/features/media-image-opt.php:1997
 msgid "Select All on This Page"
-msgstr ""
+msgstr "Bu Sayfadaki Tümünü Seç"
 
 #: includes/features/media-image-opt.php:1213
 msgid "Thumb"
-msgstr ""
+msgstr "Küçük Resim"
 
 #: includes/features/media-image-opt.php:1214
 #: includes/features/media-image-opt.php:2018
 msgid "File Name"
-msgstr ""
+msgstr "Dosya Adı"
 
 #: includes/features/media-image-opt.php:1215
 msgid "Dimensions"
-msgstr ""
+msgstr "Boyutlar"
 
 #: includes/features/media-image-opt.php:1217
 msgid "Size"
-msgstr ""
+msgstr "Boyut"
 
 #: includes/features/media-image-opt.php:1218
 msgid "New Size"
-msgstr ""
+msgstr "Yeni Boyut"
 
 #: includes/features/media-image-opt.php:1219
 msgid "Saved"
-msgstr ""
+msgstr "Kazanılan"
 
 #: includes/features/media-image-opt.php:1220
 msgid "Status"
-msgstr ""
+msgstr "Durum"
 
 #: includes/features/media-image-opt.php:1334
 #: includes/features/media-image-opt.php:2104
 msgid "selected"
-msgstr ""
+msgstr "seçili"
 
 #: includes/features/media-image-opt.php:1345
 msgid "total"
-msgstr ""
+msgstr "toplam"
 
 #: includes/features/media-image-opt.php:1447
 msgid "Scanning..."
-msgstr ""
+msgstr "Taranıyor..."
 
 #: includes/features/media-image-opt.php:1464
 msgid "Found"
-msgstr ""
+msgstr "Bulundu"
 
 #: includes/features/media-image-opt.php:1464
 msgid "images"
-msgstr ""
+msgstr "görsel"
 
 #: includes/features/media-image-opt.php:1468
 msgid "No unoptimized JPG or PNG images found."
-msgstr ""
+msgstr "Optimize edilmemiş JPG veya PNG görseli bulunamadı."
 
 #: includes/features/media-image-opt.php:1471
 msgid "Error scanning images."
-msgstr ""
+msgstr "Görseller taranırken hata oluştu."
 
 #: includes/features/media-image-opt.php:1486
 #: includes/features/media-image-opt.php:1874
 msgid "Done"
-msgstr ""
+msgstr "Bitti"
 
 #: includes/features/media-image-opt.php:1492
 #: includes/features/media-image-opt.php:1849
 msgid "Skipped"
-msgstr ""
+msgstr "Atlandı"
 
 #: includes/features/media-image-opt.php:1505
 #: includes/features/media-image-opt.php:2559
 msgid "Optimized"
-msgstr ""
+msgstr "Optimize Edildi"
 
 #: includes/features/media-image-opt.php:1758
 msgid "Please select at least one image."
-msgstr ""
+msgstr "Lütfen en az bir görsel seçin."
 
 #: includes/features/media-image-opt.php:1764
 msgid "Optimize"
-msgstr ""
+msgstr "Optimize Et"
 
 #: includes/features/media-image-opt.php:1764
 msgid "image(s) using your browser?"
-msgstr ""
+msgstr "görsel tarayıcınız kullanılarak?"
 
 #: includes/features/media-image-opt.php:1799
 msgid "Processing"
-msgstr ""
+msgstr "İşleniyor"
 
 #: includes/features/media-image-opt.php:1801
 msgid "Batch:"
-msgstr ""
+msgstr "Toplu İş:"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
 msgid "done"
-msgstr ""
+msgstr "tamamlandı"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
@@ -10231,88 +10323,88 @@ msgstr ""
 #: includes/features/media-image-opt.php:2461
 #: includes/features/media-image-opt.php:2510
 msgid "failed"
-msgstr ""
+msgstr "başarısız"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
 msgid "saved"
-msgstr ""
+msgstr "kazanıldı"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
 #: includes/features/media-image-opt.php:1923
 msgid "skipped"
-msgstr ""
+msgstr "atlandı"
 
 #: includes/features/media-image-opt.php:1808
 msgid "Est. time remaining:"
-msgstr ""
+msgstr "Tahmini kalan süre:"
 
 #: includes/features/media-image-opt.php:1816
 msgid "Processing..."
-msgstr ""
+msgstr "İşleniyor..."
 
 #: includes/features/media-image-opt.php:1916
 #: includes/features/media-image-opt.php:2450
 #: includes/features/media-image-opt.php:2503
 msgid "Complete!"
-msgstr ""
+msgstr "Tamamlandı!"
 
 #: includes/features/media-image-opt.php:1923
 msgid "Complete:"
-msgstr ""
+msgstr "Tamamlandı:"
 
 #: includes/features/media-image-opt.php:1923
 msgid "Saved:"
-msgstr ""
+msgstr "Kazanılan:"
 
 #: includes/features/media-image-opt.php:1923
 msgid "optimized"
-msgstr ""
+msgstr "optimize edildi"
 
 #: includes/features/media-image-opt.php:1931
 msgid "No images to optimize. Please scan first."
-msgstr ""
+msgstr "Optimize edilecek görsel yok. Lütfen önce tarayın."
 
 #: includes/features/media-image-opt.php:1937
 msgid "Optimize ALL"
-msgstr ""
+msgstr "TÜMÜNÜ optimize et"
 
 #: includes/features/media-image-opt.php:1937
 msgid "unoptimized image(s) using your browser? This may take a while."
-msgstr ""
+msgstr "optimize edilmemiş görsel tarayıcınız kullanılarak? Bu biraz zaman alabilir."
 
 #: includes/features/media-image-opt.php:1963
 msgid "Optimization History & Rollback"
-msgstr ""
+msgstr "Optimizasyon Geçmişi ve Geri Alma"
 
 #: includes/features/media-image-opt.php:1964
 msgid "View all optimized images and restore originals if needed."
-msgstr ""
+msgstr "Tüm optimize edilmiş görselleri görüntüleyin ve gerekirse orijinalleri geri yükleyin."
 
 #: includes/features/media-image-opt.php:1967
 msgid "Bulk Restore"
-msgstr ""
+msgstr "Toplu Geri Yükleme"
 
 #: includes/features/media-image-opt.php:1968
 msgid "Restore selected or all images back to their original state."
-msgstr ""
+msgstr "Seçili veya tüm görselleri orijinal durumlarına geri döndürün."
 
 #: includes/features/media-image-opt.php:1972
 msgid "Restore Selected"
-msgstr ""
+msgstr "Seçilenleri Geri Yükle"
 
 #: includes/features/media-image-opt.php:1975
 msgid "Restore All Originals"
-msgstr ""
+msgstr "Tüm Orijinalleri Geri Yükle"
 
 #: includes/features/media-image-opt.php:1980
 msgid "Delete Originals to Save Space"
-msgstr ""
+msgstr "Alan Kazanmak İçin Orijinalleri Sil"
 
 #: includes/features/media-image-opt.php:2000
 msgid "Refresh List"
-msgstr ""
+msgstr "Listeyi Yenile"
 
 #: includes/features/media-image-opt.php:2017
 #: includes/features/other-settings.php:458
@@ -10323,298 +10415,298 @@ msgstr "Küçük resim"
 
 #: includes/features/media-image-opt.php:2019
 msgid "Original URL"
-msgstr ""
+msgstr "Orijinal URL"
 
 #: includes/features/media-image-opt.php:2020
 msgid "Current URL"
-msgstr ""
+msgstr "Mevcut URL"
 
 #: includes/features/media-image-opt.php:2029
 #: includes/features/media-image-opt.php:2373
 msgid "No optimized images found."
-msgstr ""
+msgstr "Optimize edilmiş görsel bulunamadı."
 
 #: includes/features/media-image-opt.php:2210
 msgid "Error loading history."
-msgstr ""
+msgstr "Geçmiş yüklenirken hata oluştu."
 
 #: includes/features/media-image-opt.php:2224
 msgid "Deleted (Space Saved)"
-msgstr ""
+msgstr "Silindi (Alan Kazanıldı)"
 
 #: includes/features/media-image-opt.php:2231
 msgid "Original was deleted"
-msgstr ""
+msgstr "Orijinal silindi"
 
 #: includes/features/media-image-opt.php:2232
 msgid "Cannot Restore"
-msgstr ""
+msgstr "Geri Yüklenemez"
 
 #: includes/features/media-image-opt.php:2236
 #: includes/features/media-image-opt.php:2328
 #: includes/features/media-image-opt.php:2333
 msgid "Restore"
-msgstr ""
+msgstr "Geri Yükle"
 
 #: includes/features/media-image-opt.php:2301
 msgid "Are you sure you want to restore this image to its original?"
-msgstr ""
+msgstr "Bu görseli orijinaline geri döndürmek istediğinizden emin misiniz?"
 
 #: includes/features/media-image-opt.php:2305
 #: includes/features/media-image-opt.php:2685
 msgid "Restoring..."
-msgstr ""
+msgstr "Geri yükleniyor..."
 
 #: includes/features/media-image-opt.php:2326
 #: includes/features/media-image-opt.php:3496
 msgid "Image restored successfully."
-msgstr ""
+msgstr "Görsel başarıyla geri yüklendi."
 
 #: includes/features/media-image-opt.php:2329
 #: includes/features/media-image-opt.php:2334
 msgid "Error restoring image."
-msgstr ""
+msgstr "Görsel geri yüklenirken hata oluştu."
 
 #: includes/features/media-image-opt.php:2344
 msgid "Please select at least one image to restore."
-msgstr ""
+msgstr "Lütfen geri yüklemek için en az bir görsel seçin."
 
 #: includes/features/media-image-opt.php:2348
 msgid "Are you sure you want to restore"
-msgstr ""
+msgstr "Şunu geri yüklemek istediğinizden emin misiniz:"
 
 #: includes/features/media-image-opt.php:2348
 msgid "image(s) to their originals?"
-msgstr ""
+msgstr "görsel orijinallerine?"
 
 #: includes/features/media-image-opt.php:2358
 msgid "No images to restore."
-msgstr ""
+msgstr "Geri yüklenecek görsel yok."
 
 #: includes/features/media-image-opt.php:2362
 msgid "Are you sure you want to restore ALL"
-msgstr ""
+msgstr "TÜM şunları geri yüklemek istediğinizden emin misiniz:"
 
 #: includes/features/media-image-opt.php:2362
 msgid "image(s) to their originals? This cannot be undone."
-msgstr ""
+msgstr "görsel orijinallerine? Bu geri alınamaz."
 
 #: includes/features/media-image-opt.php:2381
 msgid "All originals have already been deleted."
-msgstr ""
+msgstr "Tüm orijinaller zaten silindi."
 
 #: includes/features/media-image-opt.php:2395
 #: includes/features/media-image-opt.php:2401
 msgid "Action cancelled. Original files were not deleted."
-msgstr ""
+msgstr "İşlem iptal edildi. Orijinal dosyalar silinmedi."
 
 #: includes/features/media-image-opt.php:2400
 msgid "FINAL CONFIRMATION: Are you absolutely certain you want to delete all original files? This cannot be undone!"
-msgstr ""
+msgstr "SON ONAY: Tüm orijinal dosyaları silmek istediğinizden kesinlikle emin misiniz? Bu geri alınamaz!"
 
 #: includes/features/media-image-opt.php:2421
 msgid "Deleting original"
-msgstr ""
+msgstr "Orijinal siliniyor"
 
 #: includes/features/media-image-opt.php:2459
 msgid "Deletion complete:"
-msgstr ""
+msgstr "Silme tamamlandı:"
 
 #: includes/features/media-image-opt.php:2459
 msgid "deleted"
-msgstr ""
+msgstr "silindi"
 
 #: includes/features/media-image-opt.php:2460
 msgid "already deleted"
-msgstr ""
+msgstr "zaten silinmiş"
 
 #: includes/features/media-image-opt.php:2462
 msgid "Optimization metadata preserved. Images cannot be restored to original format."
-msgstr ""
+msgstr "Optimizasyon meta verileri korundu. Görseller orijinal biçime geri döndürülemez."
 
 #: includes/features/media-image-opt.php:2478
 msgid "Restoring"
-msgstr ""
+msgstr "Geri yükleniyor"
 
 #: includes/features/media-image-opt.php:2510
 msgid "Restore complete:"
-msgstr ""
+msgstr "Geri yükleme tamamlandı:"
 
 #: includes/features/media-image-opt.php:2510
 msgid "succeeded"
-msgstr ""
+msgstr "başarılı"
 
 #: includes/features/media-image-opt.php:2540
 msgid "Not an image file."
-msgstr ""
+msgstr "Görsel dosyası değil."
 
 #: includes/features/media-image-opt.php:2564
 msgid "File Size Comparison:"
-msgstr ""
+msgstr "Dosya Boyutu Karşılaştırması:"
 
 #: includes/features/media-image-opt.php:2565
 msgid "Original:"
-msgstr ""
+msgstr "Orijinal:"
 
 #: includes/features/media-image-opt.php:2566
 msgid "Optimized:"
-msgstr ""
+msgstr "Optimize Edilmiş:"
 
 #: includes/features/media-image-opt.php:2574
 msgid "Original Status:"
-msgstr ""
+msgstr "Orijinal Durumu:"
 
 #: includes/features/media-image-opt.php:2575
 msgid "Original Deleted (Space Saved)"
-msgstr ""
+msgstr "Orijinal Silindi (Alan Kazanıldı)"
 
 #: includes/features/media-image-opt.php:2576
 msgid "Cannot be restored"
-msgstr ""
+msgstr "Geri yüklenemez"
 
 #: includes/features/media-image-opt.php:2579
 #, php-format
 msgid "Freed: %s"
-msgstr ""
+msgstr "Kazanılan: %s"
 
 #: includes/features/media-image-opt.php:2583
 msgid "Original URL:"
-msgstr ""
+msgstr "Orijinal URL:"
 
 #: includes/features/media-image-opt.php:2588
 #: includes/features/media-image-opt.php:2702
 #: includes/features/media-image-opt.php:2707
 msgid "Restore Original"
-msgstr ""
+msgstr "Orijinali Geri Yükle"
 
 #: includes/features/media-image-opt.php:2592
 msgid "Re-optimize"
-msgstr ""
+msgstr "Yeniden Optimize Et"
 
 #: includes/features/media-image-opt.php:2594
 msgid "This image is not optimized."
-msgstr ""
+msgstr "Bu görsel optimize edilmedi."
 
 #: includes/features/media-image-opt.php:2597
 msgid "Current Size:"
-msgstr ""
+msgstr "Mevcut Boyut:"
 
 #: includes/features/media-image-opt.php:2600
 msgid "Go to Bulk Optimizer"
-msgstr ""
+msgstr "Toplu Optimize Ediciye Git"
 
 #: includes/features/media-image-opt.php:2608
 msgid "🔍 Debug: Raw Metadata"
-msgstr ""
+msgstr "🔍 Hata Ayıklama: Ham Meta Veriler"
 
 #: includes/features/media-image-opt.php:2681
 msgid "Restore this image to its original? The WebP version will be deleted."
-msgstr ""
+msgstr "Bu görseli orijinaline geri döndürsün mü? WebP sürümü silinecek."
 
 #: includes/features/media-image-opt.php:2697
 msgid "Image restored! Refreshing page..."
-msgstr ""
+msgstr "Görsel geri yüklendi! Sayfa yenileniyor..."
 
 #: includes/features/media-image-opt.php:2703
 msgid "Restore failed."
-msgstr ""
+msgstr "Geri yükleme başarısız oldu."
 
 #: includes/features/media-image-opt.php:2708
 msgid "Error during restore."
-msgstr ""
+msgstr "Geri yükleme sırasında hata oluştu."
 
 #: includes/features/media-image-opt.php:2715
 msgid "Please use the Bulk Optimizer page for re-optimization."
-msgstr ""
+msgstr "Yeniden optimizasyon için lütfen Toplu Optimize Edici sayfasını kullanın."
 
 #: includes/features/media-image-opt.php:2722
 msgid "DEBUG: Delete original files now? This will permanently delete the original image and all its thumbnails."
-msgstr ""
+msgstr "HATA AYIKLAMA: Orijinal dosyalar şimdi silinsin mi? Bu, orijinal görseli ve tüm küçük resimlerini kalıcı olarak siler."
 
 #: includes/features/media-image-opt.php:2739
 msgid "Refreshing page..."
-msgstr ""
+msgstr "Sayfa yenileniyor..."
 
 #: includes/features/media-image-opt.php:2739
 msgid "Success!"
-msgstr ""
+msgstr "Başarılı!"
 
 #: includes/features/media-image-opt.php:2744
 #: includes/features/media-image-opt.php:2750
 msgid "Delete Original Files Now (Debug)"
-msgstr ""
+msgstr "Orijinal Dosyaları Şimdi Sil (Hata Ayıklama)"
 
 #: includes/features/media-image-opt.php:2745
 msgid "Unknown error"
-msgstr ""
+msgstr "Bilinmeyen hata"
 
 #: includes/features/media-image-opt.php:2751
 msgid "AJAX Error:"
-msgstr ""
+msgstr "AJAX Hatası:"
 
 #: includes/features/media-image-opt.php:2775
 #: includes/features/media-image-opt.php:2915
 msgid "No image uploaded or upload error."
-msgstr ""
+msgstr "Görsel yüklenmedi veya yükleme hatası."
 
 #: includes/features/media-image-opt.php:2927
 msgid "Original file not found."
-msgstr ""
+msgstr "Orijinal dosya bulunamadı."
 
 #: includes/features/media-image-opt.php:2970
 msgid "Failed to rename original WebP file."
-msgstr ""
+msgstr "Orijinal WebP dosyası yeniden adlandırılamadı."
 
 #: includes/features/media-image-opt.php:2984
 msgid "Failed to save WebP file."
-msgstr ""
+msgstr "WebP dosyası kaydedilemedi."
 
 #: includes/features/media-image-opt.php:3016
 msgid "Image optimized successfully."
-msgstr ""
+msgstr "Görsel başarıyla optimize edildi."
 
 #: includes/features/media-image-opt.php:3108
 #: includes/features/media-image-opt.php:3367
 msgid "Original file path not found in metadata."
-msgstr ""
+msgstr "Meta verilerde orijinal dosya yolu bulunamadı."
 
 #: includes/features/media-image-opt.php:3115
 msgid "Original files were already deleted previously."
-msgstr ""
+msgstr "Orijinal dosyalar daha önce zaten silindi."
 
 #: includes/features/media-image-opt.php:3294
 msgid "Original file was already deleted or missing. Marked as deleted."
-msgstr ""
+msgstr "Orijinal dosya zaten silinmiş veya eksik. Silinmiş olarak işaretlendi."
 
 #: includes/features/media-image-opt.php:3321
 #, php-format
 msgid "Successfully deleted %d file(s) and freed %s of disk space."
-msgstr ""
+msgstr "%d dosya başarıyla silindi ve %s disk alanı boşaltıldı."
 
 #: includes/features/media-image-opt.php:3327
 #, php-format
 msgid "%d file(s) could not be deleted."
-msgstr ""
+msgstr "%d dosya silinemedi."
 
 #: includes/features/media-image-opt.php:3341
 msgid "Failed to delete original files. Check file permissions."
-msgstr ""
+msgstr "Orijinal dosyalar silinemedi. Dosya izinlerini kontrol edin."
 
 #: includes/features/media-image-opt.php:3360
 msgid "Cannot restore: Original file was permanently deleted to save space."
-msgstr ""
+msgstr "Geri yüklenemez: Alan kazanmak için orijinal dosya kalıcı olarak silindi."
 
 #: includes/features/media-image-opt.php:3405
 msgid "It may have been deleted or moved."
-msgstr ""
+msgstr "Silinmiş veya taşınmış olabilir."
 
 #: includes/features/media-image-opt.php:3405
 msgid "Original file does not exist: "
-msgstr ""
+msgstr "Orijinal dosya mevcut değil: "
 
 #: includes/features/media-image-opt.php:3436
 msgid "Failed to update attachment: "
-msgstr ""
+msgstr "Ek güncellenemedi: "
 
 #: includes/features/media-settings.php:10
 #: includes/features/media-settings.php:11
@@ -10737,7 +10829,7 @@ msgstr "Geçersiz ortam kimliği veya terim kimliği"
 #: includes/features/other-settings.php:8
 #: includes/features/settings-page.php:29
 msgid "Dashboard Settings"
-msgstr ""
+msgstr "Panel Ayarları"
 
 #: includes/features/other-settings.php:20
 #: includes/features/other-settings.php:41
@@ -10754,11 +10846,11 @@ msgstr "Tuğla Menüsünü Sonuna Taşı"
 
 #: includes/features/other-settings.php:64
 msgid "Require Login to Comment"
-msgstr ""
+msgstr "Yorum Yapmak İçin Giriş Gerektir"
 
 #: includes/features/other-settings.php:72
 msgid "Disable Comments Completely"
-msgstr ""
+msgstr "Yorumları Tamamen Devre Dışı Bırak"
 
 #: includes/features/other-settings.php:80
 msgid "Enable Thumbnail Column in Post Tables"
@@ -10766,19 +10858,19 @@ msgstr "Gönderi Tablolarında Küçük Resim Sütununu Etkinleştir"
 
 #: includes/features/other-settings.php:95
 msgid "Enable Draft Revision System"
-msgstr ""
+msgstr "Taslak Revizyon Sistemini Etkinleştir"
 
 #: includes/features/other-settings.php:103
 msgid "Enable Admin Bar Toggle on Frontend"
-msgstr ""
+msgstr "Ön Yüzde Yönetici Çubuğu Değiştiriciyi Etkinleştir"
 
 #: includes/features/other-settings.php:111
 msgid "Disable Admin Bar for Selected User Roles"
-msgstr ""
+msgstr "Seçili Kullanıcı Rolleri İçin Yönetici Çubuğunu Devre Dışı Bırak"
 
 #: includes/features/other-settings.php:119
 msgid "Disable WP-Admin Dashboard for Selected User Roles"
-msgstr ""
+msgstr "Seçili Kullanıcı Rolleri İçin WP-Admin Panelini Devre Dışı Bırak"
 
 #: includes/features/other-settings.php:127
 msgid "Disable Default Dashboard Widgets"
@@ -10790,11 +10882,11 @@ msgstr "Pano Özel Metabox içeriği"
 
 #: includes/features/other-settings.php:143
 msgid "Enable Admin Mega Menu in Admin Bar"
-msgstr ""
+msgstr "Yönetici Çubuğunda Yönetici Mega Menüsünü Etkinleştir"
 
 #: includes/features/other-settings.php:151
 msgid "Admin Mega Menu Position Priority"
-msgstr ""
+msgstr "Yönetici Mega Menüsü Konum Önceliği"
 
 #: includes/features/other-settings.php:201
 msgid "Configure additional settings for your site below."
@@ -10806,19 +10898,19 @@ msgstr "9999"
 
 #: includes/features/other-settings.php:226
 msgid "Require users to be registered and logged in to comment"
-msgstr ""
+msgstr "Yorum yapmak için kullanıcıların kayıtlı ve giriş yapmış olmasını gerektir"
 
 #: includes/features/other-settings.php:229
 msgid "Enabling this setting will allow only logged-in users to comment. Guest/public commenting will be disabled."
-msgstr ""
+msgstr "Bu ayar etkinleştirildiğinde yalnızca giriş yapmış kullanıcılar yorum yapabilir. Misafir/genel yorum yapma devre dışı bırakılır."
 
 #: includes/features/other-settings.php:239
 msgid "Disable all comments site-wide"
-msgstr ""
+msgstr "Site genelinde tüm yorumları devre dışı bırak"
 
 #: includes/features/other-settings.php:242
 msgid "Enabling this setting will completely disable all comments on the site. No one will be able to comment, even logged-in users."
-msgstr ""
+msgstr "Bu ayar etkinleştirildiğinde sitedeki tüm yorumlar tamamen devre dışı bırakılır. Giriş yapmış kullanıcılar dahil hiç kimse yorum yapamaz."
 
 #: includes/features/other-settings.php:252
 msgid "Enabling this setting will add a \"Thumbnail\" column to your post tables in the admin dashboard."
@@ -10830,43 +10922,43 @@ msgstr "Bu, her yazının öne çıkan resmini doğrudan liste görünümünde g
 
 #: includes/features/other-settings.php:264
 msgid "Enable draft revision system for all post types"
-msgstr ""
+msgstr "Tüm yazı türleri için taslak revizyon sistemini etkinleştir"
 
 #: includes/features/other-settings.php:267
 msgid "Enabling this will add \"Create Revision\" and \"Sync with Original\" quick links to your posts."
-msgstr ""
+msgstr "Bunu etkinleştirmek, yazılarınıza \"Revizyon Oluştur\" ve \"Orijinal ile Senkronize Et\" hızlı bağlantıları ekler."
 
 #: includes/features/other-settings.php:268
 msgid "This allows you to create draft revisions of posts, edit them, and sync them back to the original when ready."
-msgstr ""
+msgstr "Bu, yazıların taslak revizyonlarını oluşturmanıza, düzenlemenize ve hazır olduğunda orijinaliyle yeniden senkronize etmenize olanak tanır."
 
 #: includes/features/other-settings.php:278
 msgid "Enable admin bar toggle functionality on frontend"
-msgstr ""
+msgstr "Ön yüzde yönetici çubuğu değiştirme işlevini etkinleştir"
 
 #: includes/features/other-settings.php:281
 msgid "Enabling this adds a toggle button to the admin bar and keyboard shortcut (Ctrl+I) to show/hide the admin bar on the frontend."
-msgstr ""
+msgstr "Bunu etkinleştirmek, ön yüzde yönetici çubuğunu göstermek/gizlemek için yönetici çubuğuna bir değiştirme düğmesi ve klavye kısayolu (Ctrl+I) ekler."
 
 #: includes/features/other-settings.php:282
 msgid "The visibility state is saved in your browser and persists across page loads. Useful for taking screenshots or viewing the site without the admin bar."
-msgstr ""
+msgstr "Görünürlük durumu tarayıcınızda kaydedilir ve sayfa yüklemeleri boyunca korunur. Ekran görüntüsü almak veya siteyi yönetici çubuğu olmadan görüntülemek için kullanışlıdır."
 
 #: includes/features/other-settings.php:283
 msgid "<strong>Important:</strong> Once hidden, you can only show it again using the Ctrl+I keyboard shortcut, so make sure to remember it!"
-msgstr ""
+msgstr "<strong>Önemli:</strong> Bir kez gizlendikten sonra, yalnızca Ctrl+I klavye kısayolunu kullanarak tekrar gösterebilirsiniz, bu yüzden hatırladığınızdan emin olun!"
 
 #: includes/features/other-settings.php:306
 msgid "Select the user roles for which the admin bar should be disabled on the frontend."
-msgstr ""
+msgstr "Ön yüzde yönetici çubuğunun devre dışı bırakılacağı kullanıcı rollerini seçin."
 
 #: includes/features/other-settings.php:332
 msgid "Select the user roles that should be completely blocked from accessing wp-admin. Blocked users will be redirected to the homepage automatically."
-msgstr ""
+msgstr "wp-admin'e erişimi tamamen engellenecek kullanıcı rollerini seçin. Engellenen kullanıcılar otomatik olarak ana sayfaya yönlendirilir."
 
 #: includes/features/other-settings.php:333
 msgid "<strong>Note:</strong> Administrators are always excluded and cannot be blocked."
-msgstr ""
+msgstr "<strong>Not:</strong> Yöneticiler her zaman hariç tutulur ve engellenemez."
 
 #: includes/features/other-settings.php:343
 msgid "Enabling this setting will remove several default dashboard widgets from the WordPress admin dashboard."
@@ -10894,15 +10986,15 @@ msgstr "Hoşgeldiniz"
 
 #: includes/features/other-settings.php:729
 msgid "Add a mega menu icon as the first item in the admin bar (admins only)"
-msgstr ""
+msgstr "Yönetici çubuğuna ilk öğe olarak bir mega menü simgesi ekle (yalnızca yöneticiler)"
 
 #: includes/features/other-settings.php:732
 msgid "When enabled, a menu icon appears as the very first item in the admin bar on both frontend and backend. Hovering it reveals all WordPress admin menus and submenus dynamically."
-msgstr ""
+msgstr "Etkinleştirildiğinde, hem ön yüzde hem de arka planda yönetici çubuğunun tam olarak ilk öğesi olarak bir menü simgesi görünür. Üzerine gelindiğinde tüm WordPress yönetici menülerini ve alt menülerini dinamik olarak gösterir."
 
 #: includes/features/other-settings.php:746
 msgid "Controls the position of the mega menu in the admin bar. Lower numbers appear earlier (e.g. 1 = first), higher numbers appear later (e.g. 99 = near end). Default: 35."
-msgstr ""
+msgstr "Mega menünün yönetici çubuğundaki konumunu kontrol eder. Düşük sayılar daha önce görünür (örn. 1 = ilk), yüksek sayılar daha sonra görünür (örn. 99 = sona yakın). Varsayılan: 35."
 
 #: includes/features/post-types-settings.php:11
 msgid "Register Post Types"
@@ -10916,7 +11008,7 @@ msgstr "Editör"
 #: includes/features/post-types-settings.php:181
 #: includes/features/post-types-settings.php:27
 msgid "Notes"
-msgstr ""
+msgstr "Notlar"
 
 #: includes/features/post-types-settings.php:185
 #: includes/features/post-types-settings.php:31
@@ -10946,17 +11038,17 @@ msgstr "Gezinme Menülerinde Göster"
 #: includes/features/post-types-settings.php:195
 #: includes/features/post-types-settings.php:41
 msgid "Show Order"
-msgstr ""
+msgstr "Sırayı Göster"
 
 #: includes/features/post-types-settings.php:196
 #: includes/features/post-types-settings.php:42
 msgid "Has Archive"
-msgstr ""
+msgstr "Arşivi Var"
 
 #: includes/features/post-types-settings.php:197
 #: includes/features/post-types-settings.php:43
 msgid "Show in REST"
-msgstr ""
+msgstr "REST'te Göster"
 
 #: includes/features/post-types-settings.php:198
 #: includes/features/post-types-settings.php:44
@@ -11017,7 +11109,7 @@ msgstr "Dashicon'un"
 #: includes/features/post-types-settings.php:136
 #: includes/features/post-types-settings.php:289
 msgid "Click to pick icon"
-msgstr ""
+msgstr "Simge seçmek için tıklayın"
 
 #: includes/features/post-types-settings.php:168
 msgid "Add New Post Type"
@@ -11033,7 +11125,7 @@ msgstr "Bu gönderi türünü kaldırmak istediğinizden emin misiniz?"
 
 #: includes/features/post-types-settings.php:346
 msgid "Search icons…"
-msgstr ""
+msgstr "Simgeleri ara…"
 
 #: includes/features/remove-rss.php:21
 msgid "Disable Remove RSS"
@@ -11434,20 +11526,20 @@ msgstr "Güvenlik Ayarları"
 
 #: includes/features/security-page.php:51
 msgid "Blocked IPs Management"
-msgstr ""
+msgstr "Engellenen IP'lerin Yönetimi"
 
 #: includes/features/security-page.php:52
 #, php-format
 msgid "Currently blocked IPs: %d"
-msgstr ""
+msgstr "Şu anda engellenen IP'ler: %d"
 
 #: includes/features/security-page.php:53
 msgid "Are you sure you want to clear all blocked IPs?"
-msgstr ""
+msgstr "Tüm engellenen IP'leri temizlemek istediğinizden emin misiniz?"
 
 #: includes/features/security-page.php:55
 msgid "Clear All Blocked IPs"
-msgstr ""
+msgstr "Tüm Engellenen IP'leri Temizle"
 
 #: includes/features/security-page.php:95
 msgid "Main Settings"
@@ -11455,35 +11547,35 @@ msgstr "Ana Ayarlar"
 
 #: includes/features/security-page.php:102
 msgid "Captcha Protection"
-msgstr ""
+msgstr "Captcha Koruması"
 
 #: includes/features/security-page.php:110
 msgid "Turnstile Site Key"
-msgstr ""
+msgstr "Turnstile Site Anahtarı"
 
 #: includes/features/security-page.php:118
 msgid "Turnstile Secret Key"
-msgstr ""
+msgstr "Turnstile Gizli Anahtarı"
 
 #: includes/features/security-page.php:126
 msgid "Turnstile Theme"
-msgstr ""
+msgstr "Turnstile Teması"
 
 #: includes/features/security-page.php:134
 msgid "Turnstile Widget Size"
-msgstr ""
+msgstr "Turnstile Widget Boyutu"
 
 #: includes/features/security-page.php:143
 msgid "Enable Limit Login Attempts"
-msgstr ""
+msgstr "Giriş Deneme Sınırlamasını Etkinleştir"
 
 #: includes/features/security-page.php:151
 msgid "Maximum Login Attempts"
-msgstr ""
+msgstr "Maksimum Giriş Denemesi"
 
 #: includes/features/security-page.php:159
 msgid "Reset Failed Attempts After (hours)"
-msgstr ""
+msgstr "Başarısız Denemeleri Sıfırla (saat)"
 
 #: includes/features/security-page.php:168
 msgid "Configure your security settings below:"
@@ -11491,410 +11583,410 @@ msgstr "Güvenlik ayarlarınızı aşağıda yapılandırın:"
 
 #: includes/features/security-page.php:190
 msgid "None (Disabled)"
-msgstr ""
+msgstr "Yok (Devre Dışı)"
 
 #: includes/features/security-page.php:191
 msgid "Simple Math Captcha"
-msgstr ""
+msgstr "Basit Matematik Captcha"
 
 #: includes/features/security-page.php:192
 msgid "Cloudflare Turnstile"
-msgstr ""
+msgstr "Cloudflare Turnstile"
 
 #: includes/features/security-page.php:194
 msgid "Choose the type of captcha protection for login, registration, lost password, and comment forms. Default: None."
-msgstr ""
+msgstr "Giriş, kayıt, parola unutma ve yorum formları için captcha koruma türünü seçin. Varsayılan: Yok."
 
 #: includes/features/security-page.php:204
 msgid "Your Turnstile site key from the Cloudflare dashboard. Used for the front-end widget."
-msgstr ""
+msgstr "Cloudflare panelinizden Turnstile site anahtarınız. Ön uç widget'ı için kullanılır."
 
 #: includes/features/security-page.php:215
 msgid "Your Turnstile secret key. Keep this private — it is used for server-side validation."
-msgstr ""
+msgstr "Turnstile gizli anahtarınız. Bunu gizli tutun — sunucu tarafı doğrulama için kullanılır."
 
 #: includes/features/security-page.php:228
 msgid "Auto"
-msgstr ""
+msgstr "Otomatik"
 
 #: includes/features/security-page.php:232
 msgid "Light"
-msgstr ""
+msgstr "Açık"
 
 #: includes/features/security-page.php:236
 msgid "Dark"
-msgstr ""
+msgstr "Koyu"
 
 #: includes/features/security-page.php:239
 msgid "Visual color theme for the Turnstile widget. Auto follows the user's system preference."
-msgstr ""
+msgstr "Turnstile widget'ı için görsel renk teması. Otomatik, kullanıcının sistem tercihini takip eder."
 
 #: includes/features/security-page.php:252
 msgid "Normal (300px)"
-msgstr ""
+msgstr "Normal (300px)"
 
 #: includes/features/security-page.php:256
 msgid "Compact (130px)"
-msgstr ""
+msgstr "Kompakt (130px)"
 
 #: includes/features/security-page.php:259
 msgid "Widget size. Use Compact if the widget overflows narrow form containers."
-msgstr ""
+msgstr "Widget boyutu. Widget dar form kapsayıcılarından taşıyorsa Kompakt'ı kullanın."
 
 #: includes/features/security-page.php:268
 msgid "Enable this setting to limit login attempts and automatically block IPs with too many failed logins."
-msgstr ""
+msgstr "Giriş denemelerini sınırlamak ve çok fazla başarısız girişi olan IP'leri otomatik olarak engellemek için bu ayarı etkinleştirin."
 
 #: includes/features/security-page.php:278
 msgid "Specify the number of failed login attempts before an IP address is blocked. Default: 5"
-msgstr ""
+msgstr "Bir IP adresi engellenmeden önceki başarısız giriş denemesi sayısını belirtin. Varsayılan: 5"
 
 #: includes/features/security-page.php:289
 msgid "Time in hours after which failed login attempts count is reset to 0 and blocked IPs are unblocked. Default: 24 hours (1 day)"
-msgstr ""
+msgstr "Başarısız giriş deneme sayısının 0'a sıfırlanacağı ve engellenen IP'lerin engelinin kaldırılacağı saat cinsinden süre. Varsayılan: 24 saat (1 gün)"
 
 #: includes/features/seo.php:1703 includes/features/seo.php:1910
 #: includes/features/seo.php:276 includes/features/seo.php:84
 #: includes/features/seo.php:85 includes/features/settings-page.php:35
 msgid "SEO Settings"
-msgstr ""
+msgstr "SEO Ayarları"
 
 #: includes/features/seo.php:197
 msgid "SEO settings have been reset to defaults. All custom configurations have been cleared."
-msgstr ""
+msgstr "SEO ayarları varsayılanlara sıfırlandı. Tüm özel yapılandırmalar temizlendi."
 
 #: includes/features/seo.php:1447 includes/features/seo.php:227
 msgid "Author archive for {author_name}"
-msgstr ""
+msgstr "{author_name} için yazar arşivi"
 
 #: includes/features/seo.php:295
 msgid "After changing sitemap settings, please go to Settings > Permalinks and click \"Save Changes\" to refresh your sitemap rules."
-msgstr ""
+msgstr "Site haritası ayarlarını değiştirdikten sonra, lütfen Ayarlar > Kalıcı Bağlantılar'a gidip site haritası kurallarınızı yenilemek için \"Değişiklikleri Kaydet\"e tıklayın."
 
 #: includes/features/seo.php:307
 msgid "Enable all SEO features"
-msgstr ""
+msgstr "Tüm SEO özelliklerini etkinleştir"
 
 #: includes/features/seo.php:310
 msgid "When enabled, this will activate meta titles, descriptions, sitemap, and Open Graph features."
-msgstr ""
+msgstr "Etkinleştirildiğinde, meta başlıklar, açıklamalar, site haritası ve Open Graph özelliklerini etkinleştirir."
 
 #: includes/features/seo.php:318
 msgid "Enable AI SEO Features"
-msgstr ""
+msgstr "AI SEO Özelliklerini Etkinleştir"
 
 #: includes/features/seo.php:321
 msgid "Enable AI-powered SEO generation. Adds AI generation buttons to post edit screens and bulk actions. Requires AI settings to be properly configured in AI Settings page."
-msgstr ""
+msgstr "AI destekli SEO üretimini etkinleştirin. Yazı düzenleme ekranlarına ve toplu eylemlere AI üretim düğmeleri ekler. AI Ayarları sayfasında AI ayarlarının doğru şekilde yapılandırılmasını gerektirir."
 
 #: includes/features/seo.php:329
 msgid "Content Types"
-msgstr ""
+msgstr "İçerik Türleri"
 
 #: includes/features/seo.php:330
 msgid "Select which content types should have SEO features enabled."
-msgstr ""
+msgstr "SEO özelliklerinin hangi içerik türleri için etkinleştirileceğini seçin."
 
 #: includes/features/seo.php:363
 msgid "Authors"
-msgstr ""
+msgstr "Yazarlar"
 
 #: includes/features/seo.php:366
 msgid "Author Archives"
-msgstr ""
+msgstr "Yazar Arşivleri"
 
 #: includes/features/seo.php:374
 msgid "Post Type Templates"
-msgstr ""
+msgstr "Yazı Türü Şablonları"
 
 #: includes/features/seo.php:385 includes/features/seo.php:432
 #: includes/features/seo.php:466 includes/features/seo.php:498
 msgid "Meta Title Template:"
-msgstr ""
+msgstr "Meta Başlık Şablonu:"
 
 #: includes/features/seo.php:386 includes/features/seo.php:395
 #: includes/features/seo.php:433 includes/features/seo.php:442
 #: includes/features/seo.php:467 includes/features/seo.php:476
 #: includes/features/seo.php:499 includes/features/seo.php:508
 msgid "Available tags:"
-msgstr ""
+msgstr "Kullanılabilir etiketler:"
 
 #: includes/features/seo.php:394 includes/features/seo.php:441
 #: includes/features/seo.php:475 includes/features/seo.php:507
 msgid "Meta Description Template:"
-msgstr ""
+msgstr "Meta Açıklama Şablonu:"
 
 #: includes/features/seo.php:403
 msgid "Noindex (prevent search engines from indexing this post type)"
-msgstr ""
+msgstr "Noindex (arama motorlarının bu yazı türünü indekslemesini engelle)"
 
 #: includes/features/seo.php:412
 msgid "Archive Templates"
-msgstr ""
+msgstr "Arşiv Şablonları"
 
 #: includes/features/seo.php:413
 msgid "Configure SEO templates for post type archive pages. Note: Some post types may not have archives enabled."
-msgstr ""
+msgstr "Yazı türü arşiv sayfaları için SEO şablonlarını yapılandırın. Not: Bazı yazı türlerinde arşivler etkin olmayabilir."
 
 #: includes/features/seo.php:423
 msgid "Archive"
-msgstr ""
+msgstr "Arşiv"
 
 #: includes/features/seo.php:425
 msgid "may not have archive"
-msgstr ""
+msgstr "arşivi olmayabilir"
 
 #: includes/features/seo.php:1374 includes/features/seo.php:1542
 #: includes/features/seo.php:445
 msgid "Browse all"
-msgstr ""
+msgstr "Tümüne göz at"
 
 #: includes/features/seo.php:455
 msgid "Taxonomy Archive Templates"
-msgstr ""
+msgstr "Taksonomi Arşiv Şablonları"
 
 #: includes/features/seo.php:484
 msgid "Noindex (prevent search engines from indexing this taxonomy)"
-msgstr ""
+msgstr "Noindex (arama motorlarının bu taksonomiyi indekslemesini engelle)"
 
 #: includes/features/seo.php:494
 msgid "Author Archive Templates"
-msgstr ""
+msgstr "Yazar Arşiv Şablonları"
 
 #: includes/features/seo.php:520
 msgid "XML Sitemap"
-msgstr ""
+msgstr "XML Site Haritası"
 
 #: includes/features/seo.php:524
 msgid "Enable XML Sitemap"
-msgstr ""
+msgstr "XML Site Haritasını Etkinleştir"
 
 #: includes/features/seo.php:527
 msgid "Sitemap URL:"
-msgstr ""
+msgstr "Site Haritası URL'si:"
 
 #: includes/features/seo.php:528
 msgid "Paginated with max 100 links per page. Each post type and taxonomy gets its own sitemap. After enabling sitemap.xml please re-save your permalink settings."
-msgstr ""
+msgstr "Sayfa başına maksimum 100 bağlantı olacak şekilde sayfalanır. Her yazı türü ve taksonomi kendi site haritasını alır. sitemap.xml'i etkinleştirdikten sonra lütfen kalıcı bağlantı ayarlarınızı yeniden kaydedin."
 
 #: includes/features/seo.php:564
 msgid "Open Graph"
-msgstr ""
+msgstr "Open Graph"
 
 #: includes/features/seo.php:567
 msgid "Enable Open Graph meta tags"
-msgstr ""
+msgstr "Open Graph meta etiketlerini etkinleştir"
 
 #: includes/features/seo.php:570
 msgid "Adds Open Graph meta tags for better social media sharing (Facebook, Twitter, LinkedIn, etc.)"
-msgstr ""
+msgstr "Sosyal medyada daha iyi paylaşım için Open Graph meta etiketleri ekler (Facebook, Twitter, LinkedIn vb.)"
 
 #: includes/features/seo.php:577
 msgid "Default Social Media Image"
-msgstr ""
+msgstr "Varsayılan Sosyal Medya Görseli"
 
 #: includes/features/seo.php:579
 msgid "This image will be used as a fallback when posts/pages don't have a featured image. Recommended size: 1200x630px (Facebook/LinkedIn) or larger."
-msgstr ""
+msgstr "Yazıların/sayfaların öne çıkan görseli yoksa bu görsel yedek olarak kullanılır. Önerilen boyut: 1200x630px (Facebook/LinkedIn) veya daha büyük."
 
 #: includes/features/seo.php:599
 #, php-format
 msgid "Dimensions: %dx%d pixels"
-msgstr ""
+msgstr "Boyutlar: %dx%d piksel"
 
 #: includes/features/seo.php:608 includes/features/seo.php:866
 msgid "Change Image"
-msgstr ""
+msgstr "Görseli Değiştir"
 
 #: includes/features/seo.php:608 includes/features/seo.php:878
 msgid "Select/Upload Image"
-msgstr ""
+msgstr "Görsel Seç/Yükle"
 
 #: includes/features/seo.php:613
 msgid "Social Media Preview Examples"
-msgstr ""
+msgstr "Sosyal Medya Önizleme Örnekleri"
 
 #: includes/features/seo.php:633
 msgid "Example Post Title - Site Name"
-msgstr ""
+msgstr "Örnek Yazı Başlığı - Site Adı"
 
 #: includes/features/seo.php:634
 msgid "This is an example of how your post will appear when shared on social media platforms..."
-msgstr ""
+msgstr "Bu, yazınızın sosyal medya platformlarında paylaşıldığında nasıl görüneceğine dair bir örnektir..."
 
 #: includes/features/seo.php:645
 msgid "Category Name - Site Name"
-msgstr ""
+msgstr "Kategori Adı - Site Adı"
 
 #: includes/features/seo.php:646
 msgid "Browse all posts in this category and discover related content..."
-msgstr ""
+msgstr "Bu kategorideki tüm yazılara göz atın ve ilgili içerikleri keşfedin..."
 
 #: includes/features/seo.php:657
 msgid "Author Name - Site Name"
-msgstr ""
+msgstr "Yazar Adı - Site Adı"
 
 #: includes/features/seo.php:658
 msgid "View all posts by this author and learn more about their work..."
-msgstr ""
+msgstr "Bu yazarın tüm yazılarını görün ve çalışmaları hakkında daha fazla bilgi edinin..."
 
 #: includes/features/seo.php:671
 msgid "oEmbed Author Privacy"
-msgstr ""
+msgstr "oEmbed Yazar Gizliliği"
 
 #: includes/features/seo.php:674
 msgid "Show site name instead of author name in oEmbed responses"
-msgstr ""
+msgstr "oEmbed yanıtlarında yazar adı yerine site adını göster"
 
 #: includes/features/seo.php:677
 msgid "When enabled, the WordPress oEmbed API will use your site name instead of individual author usernames. This prevents platforms like Discord, Slack, and Telegram from displaying author usernames in link previews. When disabled (default), WordPress behaves natively — author names are included in oEmbed responses."
-msgstr ""
+msgstr "Etkinleştirildiğinde, WordPress oEmbed API'si bireysel yazar kullanıcı adları yerine site adınızı kullanır. Bu, Discord, Slack ve Telegram gibi platformların bağlantı önizlemelerinde yazar kullanıcı adlarını göstermesini önler. Devre dışı bırakıldığında (varsayılan), WordPress doğal olarak davranır — yazar adları oEmbed yanıtlarına dahil edilir."
 
 #: includes/features/seo.php:683
 msgid "Robots.txt"
-msgstr ""
+msgstr "Robots.txt"
 
 #: includes/features/seo.php:686
 msgid "Enable Custom Robots.txt"
-msgstr ""
+msgstr "Özel Robots.txt'yi Etkinleştir"
 
 #: includes/features/seo.php:689
 msgid "Override the default WordPress robots.txt with custom content. Leave the textarea empty to use the recommended default shown as placeholder."
-msgstr ""
+msgstr "Varsayılan WordPress robots.txt'sini özel içerikle geçersiz kılın. Önerilen varsayılanı yer tutucu olarak göstermek için metin alanını boş bırakın."
 
 #: includes/features/seo.php:690
 msgid "Learn about robots.txt"
-msgstr ""
+msgstr "robots.txt hakkında bilgi edinin"
 
 #: includes/features/seo.php:698
 msgid "Current robots.txt URL:"
-msgstr ""
+msgstr "Mevcut robots.txt URL'si:"
 
 #: includes/features/seo.php:705
 msgid "llms.txt"
-msgstr ""
+msgstr "llms.txt"
 
 #: includes/features/seo.php:708
 msgid "Enable llms.txt"
-msgstr ""
+msgstr "llms.txt'yi Etkinleştir"
 
 #: includes/features/seo.php:711
 msgid "llms.txt is a proposed standard for websites to provide information to LLMs (Large Language Models) in a structured markdown format. The textarea is pre-filled with an auto-generated listing of all your published pages and posts. You can edit it freely."
-msgstr ""
+msgstr "llms.txt, web sitelerinin yapılandırılmış bir markdown biçiminde LLM'lere (Büyük Dil Modelleri) bilgi sağlaması için önerilen bir standarttır. Metin alanı, yayınlanan tüm sayfa ve yazılarınızın otomatik oluşturulmuş bir listesiyle önceden doldurulmuştur. Onu serbestçe düzenleyebilirsiniz."
 
 #: includes/features/seo.php:712
 msgid "Learn about llms.txt"
-msgstr ""
+msgstr "llms.txt hakkında bilgi edinin"
 
 #: includes/features/seo.php:725
 msgid "llms.txt URL:"
-msgstr ""
+msgstr "llms.txt URL'si:"
 
 #: includes/features/seo.php:728
 msgid "Clear the textarea and save to restore auto-generation from your live content."
-msgstr ""
+msgstr "Canlı içeriğinizden otomatik oluşturmayı geri yüklemek için metin alanını temizleyip kaydedin."
 
 #: includes/features/seo.php:731
 msgid "Regenerate Default"
-msgstr ""
+msgstr "Varsayılanı Yeniden Oluştur"
 
 #: includes/features/seo.php:737
 msgid "Save SEO Settings"
-msgstr ""
+msgstr "SEO Ayarlarını Kaydet"
 
 #: includes/features/seo.php:744
 msgid "Reset All SEO Settings"
-msgstr ""
+msgstr "Tüm SEO Ayarlarını Sıfırla"
 
 #: includes/features/seo.php:749
 msgid "This will permanently delete all SEO settings from the database. All your custom titles, descriptions, templates, and configurations will be lost. This action cannot be undone."
-msgstr ""
+msgstr "Bu, veritabanındaki tüm SEO ayarlarını kalıcı olarak siler. Tüm özel başlıklarınız, açıklamalarınız, şablonlarınız ve yapılandırmalarınız kaybolur. Bu işlem geri alınamaz."
 
 #: includes/features/seo.php:751
 msgid "Are you absolutely sure you want to reset ALL SEO settings? This cannot be undone!"
-msgstr ""
+msgstr "TÜM SEO ayarlarını sıfırlamak istediğinizden kesinlikle emin misiniz? Bu geri alınamaz!"
 
 #: includes/features/seo.php:757
 msgid "Reset All SEO Settings to Default"
-msgstr ""
+msgstr "Tüm SEO Ayarlarını Varsayılana Sıfırla"
 
 #: includes/features/seo.php:837
 msgid "Select Default Social Media Image"
-msgstr ""
+msgstr "Varsayılan Sosyal Medya Görselini Seç"
 
 #: includes/features/seo.php:839
 msgid "Use This Image"
-msgstr ""
+msgstr "Bu Görseli Kullan"
 
 #: includes/features/seo.php:861
 msgid "Dimensions:"
-msgstr ""
+msgstr "Boyutlar:"
 
 #: includes/features/seo.php:861
 msgid "pixels"
-msgstr ""
+msgstr "piksel"
 
 #: includes/features/seo.php:1532
 msgid "Blog"
-msgstr ""
+msgstr "Blog"
 
 #: includes/features/seo.php:1742 includes/features/seo.php:1918
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta Başlık"
 
 #: includes/features/seo.php:1752 includes/features/seo.php:1929
 msgid "Recommended max length: 60 characters"
-msgstr ""
+msgstr "Önerilen maksimum uzunluk: 60 karakter"
 
 #: includes/features/seo.php:1753 includes/features/seo.php:1770
 #: includes/features/seo.php:1930 includes/features/seo.php:1953
 msgid "characters"
-msgstr ""
+msgstr "karakter"
 
 #: includes/features/seo.php:1759 includes/features/seo.php:1940
 msgid "Meta Description"
-msgstr ""
+msgstr "Meta Açıklama"
 
 #: includes/features/seo.php:1769 includes/features/seo.php:1952
 msgid "Recommended max length: 155 characters"
-msgstr ""
+msgstr "Önerilen maksimum uzunluk: 155 karakter"
 
 #: includes/features/seo.php:1786 includes/features/seo.php:2264
 msgid "No Index"
-msgstr ""
+msgstr "Index Yok"
 
 #: includes/features/seo.php:1790
 msgid "Check this to prevent search engines from indexing this page (adds noindex meta tag)."
-msgstr ""
+msgstr "Arama motorlarının bu sayfayı indekslemesini engellemek için bunu işaretleyin (noindex meta etiketi ekler)."
 
 #: includes/features/seo.php:1932
 msgid "Leave empty to use the template default from SEO Settings."
-msgstr ""
+msgstr "SEO Ayarlarındaki şablon varsayılanını kullanmak için boş bırakın."
 
 #: includes/features/seo.php:1955
 msgid "Leave empty to use the template default or term description from SEO Settings."
-msgstr ""
+msgstr "SEO Ayarlarındaki şablon varsayılanını veya terim açıklamasını kullanmak için boş bırakın."
 
 #: includes/features/seo.php:1963
 msgid "Search Engine Visibility"
-msgstr ""
+msgstr "Arama Motoru Görünürlüğü"
 
 #: includes/features/seo.php:1973
 msgid "No Index (prevent search engines from indexing this term archive)"
-msgstr ""
+msgstr "Index Yok (arama motorlarının bu terim arşivini indekslemesini engelle)"
 
 #: includes/features/seo.php:2150
 msgid "Meta Title & Desc"
-msgstr ""
+msgstr "Meta Başlık ve Açıklama"
 
 #: includes/features/seo.php:2177 includes/features/seo.php:2195
 #, php-format
 msgid "%d chars"
-msgstr ""
+msgstr "%d karakter"
 
 #: includes/features/seo.php:2256
 msgid "SEO Desc"
-msgstr ""
+msgstr "SEO Açk."
 
 #: includes/features/settings-page.php:186
 #: includes/features/settings-page.php:19
@@ -11923,7 +12015,7 @@ msgstr "Rol Yöneticisi"
 
 #: includes/features/settings-page.php:45
 msgid "AI Agent and Chat"
-msgstr ""
+msgstr "AI Ajan ve Sohbet"
 
 #: includes/features/settings-page.php:69
 msgid "This theme is designed to give you the tools and solutions for"
@@ -11954,11 +12046,11 @@ msgstr "Sitenizi oluşturmanın keyfini çıkarın."
 
 #: includes/features/settings-page.php:80
 msgid "Bricks Builder Docs ➤"
-msgstr ""
+msgstr "Bricks Builder Belgeleri ➤"
 
 #: includes/features/settings-page.php:83
 msgid "Bricks Builder Videos ➤"
-msgstr ""
+msgstr "Bricks Builder Videoları ➤"
 
 #: includes/features/settings-page.php:166
 msgid "General Setting"
@@ -12002,11 +12094,11 @@ msgstr "SMTP Kullanıcı Adı"
 
 #: includes/features/smtp-settings.php:70
 msgid "SMTP Password / API Key"
-msgstr ""
+msgstr "SMTP Parolası / API Anahtarı"
 
 #: includes/features/smtp-settings.php:78
 msgid "Custom From Email"
-msgstr ""
+msgstr "Özel Gönderen E-postası"
 
 #: includes/features/smtp-settings.php:106
 msgid "Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues."
@@ -12014,11 +12106,11 @@ msgstr "PHP mailler'ı atlamak veya spam sorunlarına düşmeyi ortadan kaldırm
 
 #: includes/features/smtp-settings.php:122
 msgid "Your SMTP username differs from the WordPress Site Setting email. This may cause delivery issues if SPF/DKIM records don't match."
-msgstr ""
+msgstr "SMTP kullanıcı adınız, WordPress Site Ayarı e-postasından farklı. SPF/DKIM kayıtları eşleşmezse bu teslimat sorunlarına neden olabilir."
 
 #: includes/features/smtp-settings.php:141
 msgid "Your mail server address. mail.yourdomain.com"
-msgstr ""
+msgstr "Mail sunucusu adresiniz. mail.siteniz.com"
 
 #: includes/features/smtp-settings.php:151
 msgid "SSL"
@@ -12030,27 +12122,27 @@ msgstr "TLS"
 
 #: includes/features/smtp-settings.php:154
 msgid "Use SSL (port 465) or TLS (port 587). Most modern providers require TLS."
-msgstr ""
+msgstr "SSL (port 465) veya TLS (port 587) kullanın. Çoğu modern sağlayıcı TLS gerektirir."
 
 #: includes/features/smtp-settings.php:181
 msgid "Default: 465 for SSL, 587 for TLS, 25 for None"
-msgstr ""
+msgstr "Varsayılan: SSL için 465, TLS için 587, Yok için 25"
 
 #: includes/features/smtp-settings.php:192
 msgid "Your SMTP username. Usually a full email address (you@yourdomain.com), but some API-based providers use a plain username (e.g. \"emailit\" or \"apiuser\")."
-msgstr ""
+msgstr "SMTP kullanıcı adınız. Genellikle tam bir e-posta adresi (siz@siteniz.com), ancak bazı API tabanlı sağlayıcılar düz bir kullanıcı adı kullanır (örn. \"emailit\" veya \"apiuser\")."
 
 #: includes/features/smtp-settings.php:203
 msgid "Your email account password or API key (some providers use an API key here instead of a regular password)."
-msgstr ""
+msgstr "E-posta hesabınızın parolası veya API anahtarınız (bazı sağlayıcılar burada normal bir parola yerine API anahtarı kullanır)."
 
 #: includes/features/smtp-settings.php:217
 msgid "Use a custom From email address"
-msgstr ""
+msgstr "Özel bir Gönderen e-posta adresi kullan"
 
 #: includes/features/smtp-settings.php:223
 msgid "Required when your SMTP username is not an email address (API-based providers). This address appears in the From header of sent emails."
-msgstr ""
+msgstr "SMTP kullanıcı adınız bir e-posta adresi değilse gereklidir (API tabanlı sağlayıcılar). Bu adres, gönderilen e-postaların Gönderen başlığında görünür."
 
 #: includes/features/smtp-settings.php:503
 #: includes/features/smtp-settings.php:924
@@ -12064,86 +12156,86 @@ msgstr "Bu, SMTP ayarlarınız aracılığıyla gönderilen bir test e-postasıd
 
 #: includes/features/smtp-settings.php:558
 msgid "SMTP host is required. Please configure your SMTP settings."
-msgstr ""
+msgstr "SMTP sunucusu gereklidir. Lütfen SMTP ayarlarınızı yapılandırın."
 
 #: includes/features/smtp-settings.php:565
 msgid "Valid SMTP port is required. Please configure your SMTP settings."
-msgstr ""
+msgstr "Geçerli bir SMTP portu gereklidir. Lütfen SMTP ayarlarınızı yapılandırın."
 
 #: includes/features/smtp-settings.php:587
 #, php-format
 msgid "DNS Resolution Failed: Could not resolve hostname \"%s\". Please verify the SMTP host is correct."
-msgstr ""
+msgstr "DNS Çözümlemesi Başarısız: \"%s\" ana bilgisayar adı çözümlenemedi. Lütfen SMTP sunucusunun doğru olduğunu doğrulayın."
 
 #: includes/features/smtp-settings.php:616
 #, php-format
 msgid "Connection Exception: %s"
-msgstr ""
+msgstr "Bağlantı İstisnası: %s"
 
 #: includes/features/smtp-settings.php:632
 #, php-format
 msgid "Connection Timeout: Could not connect to %s on port %d. The port may be blocked by your hosting firewall or the server is not responding."
-msgstr ""
+msgstr "Bağlantı Zaman Aşımı: %s adresine %d portundan bağlanılamadı. Port, barındırma güvenlik duvarınız tarafından engellenmiş olabilir veya sunucu yanıt vermiyor."
 
 #: includes/features/smtp-settings.php:638
 #, php-format
 msgid "Connection Refused: Server %s refused connection on port %d. Verify the port number is correct and the SMTP service is running."
-msgstr ""
+msgstr "Bağlantı Reddedildi: %s sunucusu %d portunda bağlantıyı reddetti. Port numarasının doğru olduğunu ve SMTP hizmetinin çalıştığını doğrulayın."
 
 #: includes/features/smtp-settings.php:644
 #, php-format
 msgid "Connection Failed: Could not connect to %s on port %d. Error: %s"
-msgstr ""
+msgstr "Bağlantı Başarısız: %s adresine %d portundan bağlanılamadı. Hata: %s"
 
 #: includes/features/smtp-settings.php:653
 msgid "Additional PHP Errors:"
-msgstr ""
+msgstr "Ek PHP Hataları:"
 
 #: includes/features/smtp-settings.php:685
 #, php-format
 msgid "SMTP Protocol Error: Server did not send proper greeting. Response: %s"
-msgstr ""
+msgstr "SMTP Protokol Hatası: Sunucu düzgün bir karşılama göndermedi. Yanıt: %s"
 
 #: includes/features/smtp-settings.php:706
 #, php-format
 msgid "SMTP Protocol Error: Server rejected EHLO command. Response: %s"
-msgstr ""
+msgstr "SMTP Protokol Hatası: Sunucu EHLO komutunu reddetti. Yanıt: %s"
 
 #: includes/features/smtp-settings.php:734
 #, php-format
 msgid "TLS Error: Server does not support STARTTLS or rejected the request. Response: %s"
-msgstr ""
+msgstr "TLS Hatası: Sunucu STARTTLS'yi desteklemiyor veya isteği reddetti. Yanıt: %s"
 
 #: includes/features/smtp-settings.php:747
 msgid "TLS Encryption Failed: Could not establish secure TLS connection. The server's SSL certificate may be invalid or expired."
-msgstr ""
+msgstr "TLS Şifreleme Başarısız: Güvenli TLS bağlantısı kurulamadı. Sunucunun SSL sertifikası geçersiz veya süresi dolmuş olabilir."
 
 #: includes/features/smtp-settings.php:773
 #, php-format
 msgid "Authentication Error: Server does not support LOGIN authentication method. Response: %s"
-msgstr ""
+msgstr "Kimlik Doğrulama Hatası: Sunucu LOGIN kimlik doğrulama yöntemini desteklemiyor. Yanıt: %s"
 
 #: includes/features/smtp-settings.php:790
 #, php-format
 msgid "Authentication Error: Server rejected username. Response: %s"
-msgstr ""
+msgstr "Kimlik Doğrulama Hatası: Sunucu kullanıcı adını reddetti. Yanıt: %s"
 
 #: includes/features/smtp-settings.php:809
 msgid "Authentication Failed: Invalid username or password. Please verify your SMTP credentials are correct."
-msgstr ""
+msgstr "Kimlik Doğrulama Başarısız: Geçersiz kullanıcı adı veya parola. Lütfen SMTP kimlik bilgilerinizin doğru olduğunu doğrulayın."
 
 #: includes/features/smtp-settings.php:815
 #, php-format
 msgid "Authentication Error: Server rejected credentials. Response: %s"
-msgstr ""
+msgstr "Kimlik Doğrulama Hatası: Sunucu kimlik bilgilerini reddetti. Yanıt: %s"
 
 #: includes/features/smtp-settings.php:835
 msgid "Connection test successful! All checks passed."
-msgstr ""
+msgstr "Bağlantı testi başarılı! Tüm kontroller geçti."
 
 #: includes/features/smtp-settings.php:837
 msgid "Note - PHP Warnings encountered:"
-msgstr ""
+msgstr "Not - PHP Uyarıları tespit edildi:"
 
 #: includes/features/smtp-settings.php:859
 msgid "Security check failed. Please refresh the page and try again."
@@ -12156,19 +12248,19 @@ msgstr "%s adresine başarıyla gönderilen test e-postası! Gelen kutusunu kont
 
 #: includes/features/smtp-settings.php:952
 msgid "WordPress Error:"
-msgstr ""
+msgstr "WordPress Hatası:"
 
 #: includes/features/smtp-settings.php:972
 msgid "PHPMailer Error:"
-msgstr ""
+msgstr "PHPMailer Hatası:"
 
 #: includes/features/smtp-settings.php:978
 msgid "Failed to send test email. Details:"
-msgstr ""
+msgstr "Test e-postası gönderilemedi. Ayrıntılar:"
 
 #: includes/features/smtp-settings.php:980
 msgid "Failed to send test email. No specific error details were captured. Check your SMTP settings or server error logs."
-msgstr ""
+msgstr "Test e-postası gönderilemedi. Belirli bir hata ayrıntısı yakalanamadı. SMTP ayarlarınızı veya sunucu hata günlüklerini kontrol edin."
 
 #: includes/features/smtp-settings.php:1008
 #: includes/features/smtp-settings.php:1025
@@ -12178,7 +12270,7 @@ msgstr "Test E-postası Gönder"
 
 #: includes/features/smtp-settings.php:1009
 msgid "Send a test email using the saved SMTP settings. The log below will show every step in real time."
-msgstr ""
+msgstr "Kaydedilen SMTP ayarlarını kullanarak bir test e-postası gönderin. Aşağıdaki günlük her adımı gerçek zamanlı olarak gösterecektir."
 
 #: includes/features/smtp-settings.php:1013
 msgid "Recipient Email"
@@ -12186,11 +12278,11 @@ msgstr "Alıcı E-postası"
 
 #: includes/features/smtp-settings.php:1019
 msgid "you@example.com"
-msgstr ""
+msgstr "siz@example.com"
 
 #: includes/features/smtp-settings.php:1060
 msgid "Settings used:"
-msgstr ""
+msgstr "Kullanılan ayarlar:"
 
 #: includes/features/taxonomy-settings.php:12
 msgid "Register Taxonomies"
@@ -12247,4 +12339,4 @@ msgstr "Rol Atama"
 
 #: includes/features/utils.php:188
 msgid "⚠ WARNING – You can assign multiple roles, but overlapping capabilities can clash. Grant the minimum required and test thoroughly."
-msgstr ""
+msgstr "⚠ UYARI – Birden fazla rol atayabilirsiniz, ancak örtüşen yetenekler çakışabilir. Gereken minimumu verin ve kapsamlı test edin."

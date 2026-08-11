@@ -634,43 +634,43 @@ msgstr ""
 
 #: includes/ai/ai-agent-and-chat.php:193
 msgid "AI Chat History"
-msgstr ""
+msgstr "AI 聊天记录"
 
 #: includes/ai/ai-agent-and-chat.php:1152
 #: includes/ai/ai-agent-and-chat.php:194
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:197
 msgid "Chat History"
-msgstr ""
+msgstr "聊天记录"
 
 #: includes/ai/ai-agent-and-chat.php:424
 #: includes/ai/ai-agent-and-chat.php:425
 msgid "AI Agent Settings"
-msgstr ""
+msgstr "AI 智能体设置"
 
 #: includes/ai/ai-agent-and-chat.php:476
 msgid "Settings saved successfully!"
-msgstr ""
+msgstr "设置已成功保存！"
 
 #: includes/ai/ai-agent-and-chat.php:494
 msgid "AI Agent & Chat Overlay Settings"
-msgstr ""
+msgstr "AI 智能体和聊天悬浮窗设置"
 
 #: includes/ai/ai-agent-and-chat.php:495
 msgid "Configure the AI-powered chat assistant that helps you manage WordPress through natural conversation."
-msgstr ""
+msgstr "配置 AI 驱动的聊天助手，帮助您通过自然对话管理 WordPress。"
 
 #: includes/ai/ai-agent-and-chat.php:505
 msgid "Enable AI Agent & Chat Overlay"
-msgstr ""
+msgstr "启用 AI 智能体和聊天悬浮窗"
 
 #: includes/ai/ai-agent-and-chat.php:514
 msgid "Enable the AI chat assistant accessible from the admin bar."
-msgstr ""
+msgstr "启用可从管理栏访问的 AI 聊天助手。"
 
 #: includes/ai/ai-agent-and-chat.php:517
 #, php-format
 msgid "To set up AI API key and model selection, go to <a href=\"%s\">AI Settings</a>."
-msgstr ""
+msgstr "要设置 AI API 密钥和模型选择，请前往 <a href=\"%s\">AI 设置</a>。"
 
 #: includes/ai/ai-agent-and-chat.php:528 includes/ai/ai-settings.php:378
 #: includes/ai/ai-settings.php:382
@@ -679,7 +679,7 @@ msgstr "系统提示"
 
 #: includes/ai/ai-agent-and-chat.php:540
 msgid "Customize the AI assistant's behavior and personality. This is the base instruction that guides how the AI responds."
-msgstr ""
+msgstr "自定义 AI 助手的行为和个性。这是指导 AI 如何回应的基础指令。"
 
 #: includes/ai/ai-agent-and-chat.php:541
 #: includes/ai/ai-agent-and-chat.php:562
@@ -687,79 +687,79 @@ msgstr ""
 #: includes/ai/ai-agent-and-chat.php:604
 #: includes/ai/ai-agent-and-chat.php:626
 msgid "Default:"
-msgstr ""
+msgstr "默认："
 
 #: includes/ai/ai-agent-and-chat.php:549
 msgid "Max Token Count"
-msgstr ""
+msgstr "最大令牌数"
 
 #: includes/ai/ai-agent-and-chat.php:561
 msgid "Maximum number of tokens for AI responses. Higher values allow longer responses but cost more."
-msgstr ""
+msgstr "AI 回复的最大令牌数。较高的值允许更长的回复，但成本更高。"
 
 #: includes/ai/ai-agent-and-chat.php:562
 msgid "Recommended range:"
-msgstr ""
+msgstr "推荐范围："
 
 #: includes/ai/ai-agent-and-chat.php:570
 msgid "Max Retry Attempts"
-msgstr ""
+msgstr "最大重试次数"
 
 #: includes/ai/ai-agent-and-chat.php:582
 msgid "Number of times the AI will retry a failed ability execution with corrected input."
-msgstr ""
+msgstr "AI 在能力执行失败后使用修正输入重试的次数。"
 
 #: includes/ai/ai-agent-and-chat.php:591
 msgid "Max Conversation History"
-msgstr ""
+msgstr "最大对话历史记录"
 
 #: includes/ai/ai-agent-and-chat.php:603
 msgid "Number of recent messages to include in AI context. Higher values provide more context but use more tokens."
-msgstr ""
+msgstr "纳入 AI 上下文的最近消息数量。较高的值提供更多上下文，但会使用更多令牌。"
 
 #: includes/ai/ai-agent-and-chat.php:612
 msgid "Chat Overlay Width"
-msgstr ""
+msgstr "聊天悬浮窗宽度"
 
 #: includes/ai/ai-agent-and-chat.php:625
 msgid "Width of the chat overlay panel in pixels."
-msgstr ""
+msgstr "聊天悬浮窗面板的宽度（像素）。"
 
 #: includes/ai/ai-agent-and-chat.php:626
 msgid "Range:"
-msgstr ""
+msgstr "范围："
 
 #: includes/ai/ai-agent-and-chat.php:634
 msgid "Pixabay API Key"
-msgstr ""
+msgstr "Pixabay API 密钥"
 
 #: includes/ai/ai-agent-and-chat.php:642
 msgid "Paste your Pixabay API key here"
-msgstr ""
+msgstr "在此粘贴您的 Pixabay API 密钥"
 
 #: includes/ai/ai-agent-and-chat.php:644
 msgid "Used for image search inside the AI agent. Get your free API key from"
-msgstr ""
+msgstr "用于 AI 智能体内的图片搜索。从以下位置获取您的免费 API 密钥："
 
 #: includes/ai/ai-agent-and-chat.php:646
 msgid "(your API key is shown there when logged in)."
-msgstr ""
+msgstr "（登录后会在那里显示您的 API 密钥）。"
 
 #: includes/ai/ai-agent-and-chat.php:654
 msgid "Enable Debug Mode"
-msgstr ""
+msgstr "启用调试模式"
 
 #: includes/ai/ai-agent-and-chat.php:663
 msgid "Enable console.log debugging messages in browser console. Useful for troubleshooting."
-msgstr ""
+msgstr "在浏览器控制台中启用 console.log 调试消息。有助于排查问题。"
 
 #: includes/ai/ai-agent-and-chat.php:673
 msgid "Available WordPress Abilities"
-msgstr ""
+msgstr "可用的 WordPress 能力"
 
 #: includes/ai/ai-agent-and-chat.php:674
 msgid "Select which abilities the AI agent can use. Newly added abilities are automatically enabled by default."
-msgstr ""
+msgstr "选择 AI 智能体可以使用的能力。新添加的能力默认自动启用。"
 
 #: includes/ai/ai-agent-and-chat.php:681 includes/ai/ai-overlay.php:318
 #: includes/features/activity-logs.php:1638
@@ -775,11 +775,11 @@ msgstr "全部取消选择"
 
 #: includes/ai/ai-agent-and-chat.php:725
 msgid "No abilities found."
-msgstr ""
+msgstr "未找到能力。"
 
 #: includes/ai/ai-agent-and-chat.php:726
 msgid "Make sure WordPress 6.9+ is installed and abilities are registered with show_in_rest enabled."
-msgstr ""
+msgstr "请确保已安装 WordPress 6.9+，并且能力已注册且启用了 show_in_rest。"
 
 #: includes/ai/ai-agent-and-chat.php:731
 #: includes/features/301-redirect.php:513
@@ -790,46 +790,46 @@ msgstr "保存设置"
 
 #: includes/ai/ai-agent-and-chat.php:737
 msgid "Chat History Management"
-msgstr ""
+msgstr "聊天记录管理"
 
 #: includes/ai/ai-agent-and-chat.php:738
 msgid "Manage saved chat conversations. Chat history is automatically saved and can be accessed from the chat interface."
-msgstr ""
+msgstr "管理已保存的聊天对话。聊天记录会自动保存，可从聊天界面访问。"
 
 #: includes/ai/ai-agent-and-chat.php:747
 msgid "Total saved conversations:"
-msgstr ""
+msgstr "已保存对话总数："
 
 #: includes/ai/ai-agent-and-chat.php:753
 #: includes/ai/ai-agent-and-chat.php:802
 #: includes/ai/ai-agent-and-chat.php:807
 msgid "Delete All Chat History"
-msgstr ""
+msgstr "删除所有聊天记录"
 
 #: includes/ai/ai-agent-and-chat.php:757
 msgid "This will permanently delete all saved chat conversations for your account. This action cannot be undone."
-msgstr ""
+msgstr "这将永久删除您账户的所有已保存聊天对话。此操作无法撤销。"
 
 #: includes/ai/ai-agent-and-chat.php:762
 msgid "Recent Conversations"
-msgstr ""
+msgstr "最近对话"
 
 #: includes/ai/ai-agent-and-chat.php:782
 msgid "Are you sure you want to delete all chat history? This action cannot be undone."
-msgstr ""
+msgstr "您确定要删除所有聊天记录吗？此操作无法撤销。"
 
 #: includes/ai/ai-agent-and-chat.php:787
 #: includes/features/media-image-opt.php:2726
 msgid "Deleting..."
-msgstr ""
+msgstr "正在删除…"
 
 #: includes/ai/ai-agent-and-chat.php:798
 msgid "Successfully deleted"
-msgstr ""
+msgstr "成功删除"
 
 #: includes/ai/ai-agent-and-chat.php:798
 msgid "chat histories."
-msgstr ""
+msgstr "条聊天记录。"
 
 #: includes/ai/ai-agent-and-chat.php:801
 #: includes/features/media-image-opt.php:2745
@@ -855,26 +855,26 @@ msgstr "正在加载..."
 #: includes/ai/ai-agent-and-chat.php:1165
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:210
 msgid "AI Features Disabled"
-msgstr ""
+msgstr "AI 功能已禁用"
 
 #: includes/ai/ai-agent-and-chat.php:1166
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:211
 msgid "The global AI Features setting is currently disabled. Please enable it to use the AI chat assistant."
-msgstr ""
+msgstr "全局 AI 功能设置当前已禁用。请启用它以使用 AI 聊天助手。"
 
 #: includes/ai/ai-agent-and-chat.php:1168
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:213
 msgid "Go to AI Settings"
-msgstr ""
+msgstr "前往 AI 设置"
 
 #: includes/ai/ai-agent-and-chat.php:1178
 #: includes/ai/bricks/ai-agent-and-chat-bricks.php:223
 msgid "AI features are disabled..."
-msgstr ""
+msgstr "AI 功能已禁用…"
 
 #: includes/ai/ai-block-editor.php:388
 msgid "AI Content Generation"
-msgstr ""
+msgstr "AI 内容生成"
 
 #: includes/ai/ai-block-editor.php:396 includes/ai/ai-overlay.php:296
 msgid "Existing content will appear here. Add your instructions or select a preset..."
@@ -897,37 +897,37 @@ msgstr "应用编辑"
 
 #: includes/ai/ai-block-editor.php:413
 msgid "AI Image Generation"
-msgstr ""
+msgstr "AI 图像生成"
 
 #: includes/ai/ai-block-editor.php:420
 msgid "Include Post Title"
-msgstr ""
+msgstr "包含文章标题"
 
 #: includes/ai/ai-block-editor.php:424
 msgid "Include Post Content"
-msgstr ""
+msgstr "包含文章内容"
 
 #: includes/ai/ai-block-editor.php:428
 msgid "Edit Existing Featured Image"
-msgstr ""
+msgstr "编辑现有特色图片"
 
 #: includes/ai/ai-block-editor.php:438
 msgid "Add your instructions or select a preset..."
-msgstr ""
+msgstr "添加您的指令或选择预设…"
 
 #: includes/ai/ai-block-editor.php:440
 msgid "Generate Image"
-msgstr ""
+msgstr "生成图片"
 
 #: includes/ai/ai-block-editor.php:446
 #: includes/ai/ai-seo-generation.php:212
 #: includes/ai/ai-seo-generation.php:77
 msgid "Regenerate"
-msgstr ""
+msgstr "重新生成"
 
 #: includes/ai/ai-block-editor.php:447
 msgid "Save as Featured Image"
-msgstr ""
+msgstr "保存为特色图片"
 
 #: includes/ai/ai-overlay.php:287
 msgid "AI Content Assistant"
@@ -980,23 +980,23 @@ msgstr "批量操作的 AI 响应格式意外。"
 
 #: includes/ai/ai-seo-generation.php:69
 msgid "Generating..."
-msgstr ""
+msgstr "生成中…"
 
 #: includes/ai/ai-seo-generation.php:70
 msgid "Regenerating..."
-msgstr ""
+msgstr "重新生成中…"
 
 #: includes/ai/ai-seo-generation.php:71
 msgid "Error generating content"
-msgstr ""
+msgstr "生成内容时出错"
 
 #: includes/ai/ai-seo-generation.php:72
 msgid "Saved successfully"
-msgstr ""
+msgstr "保存成功"
 
 #: includes/ai/ai-seo-generation.php:73
 msgid "Preview & Edit"
-msgstr ""
+msgstr "预览与编辑"
 
 #: includes/ai/ai-seo-generation.php:213
 #: includes/ai/ai-seo-generation.php:74
@@ -1015,25 +1015,25 @@ msgstr "取消"
 
 #: includes/ai/ai-seo-generation.php:78
 msgid "Select Action Preset"
-msgstr ""
+msgstr "选择操作预设"
 
 #: includes/ai/ai-seo-generation.php:79
 msgid "Custom Prompt (Optional)"
-msgstr ""
+msgstr "自定义提示词（可选）"
 
 #: includes/ai/ai-seo-generation.php:80
 msgid "AI is reading:"
-msgstr ""
+msgstr "AI 正在读取："
 
 #: includes/ai/ai-seo-generation.php:147
 #: includes/ai/ai-seo-generation.php:81 includes/features/seo.php:2250
 msgid "SEO Title"
-msgstr ""
+msgstr "SEO 标题"
 
 #: includes/ai/ai-seo-generation.php:151
 #: includes/ai/ai-seo-generation.php:82
 msgid "SEO Description"
-msgstr ""
+msgstr "SEO 描述"
 
 #: includes/ai/ai-seo-generation.php:83
 #: includes/features/post-types-settings.php:184
@@ -1043,98 +1043,98 @@ msgstr "摘录"
 
 #: includes/ai/ai-seo-generation.php:84
 msgid "Taxonomy Description"
-msgstr ""
+msgstr "分类法描述"
 
 #: includes/ai/ai-seo-generation.php:85
 msgid "Post Title"
-msgstr ""
+msgstr "文章标题"
 
 #: includes/ai/ai-seo-generation.php:86
 msgid "Term Name"
-msgstr ""
+msgstr "术语名称"
 
 #: includes/ai/ai-seo-generation.php:87
 msgid "Processing item"
-msgstr ""
+msgstr "正在处理项目"
 
 #: includes/ai/ai-seo-generation.php:88
 msgid "of"
-msgstr ""
+msgstr "共"
 
 #: includes/ai/ai-seo-generation.php:116
 msgid "Bulk AI SEO Generation ✨"
-msgstr ""
+msgstr "批量 AI SEO 生成 ✨"
 
 #: includes/ai/ai-seo-generation.php:123
 #: includes/ai/ai-seo-generation.php:1822
 msgid "AI SEO Generation"
-msgstr ""
+msgstr "AI SEO 生成"
 
 #: includes/ai/ai-seo-generation.php:131
 msgid "Action Preset:"
-msgstr ""
+msgstr "操作预设："
 
 #: includes/ai/ai-seo-generation.php:143
 msgid "Generate:"
-msgstr ""
+msgstr "生成："
 
 #: includes/ai/ai-seo-generation.php:160
 #: includes/ai/ai-seo-generation.php:726
 msgid "Generate Post Title instead of Meta Title"
-msgstr ""
+msgstr "生成文章标题而非 Meta 标题"
 
 #: includes/ai/ai-seo-generation.php:168
 #: includes/ai/ai-seo-generation.php:735
 msgid "Generate Excerpt instead of Meta Description"
-msgstr ""
+msgstr "生成摘要而非 Meta 描述"
 
 #: includes/ai/ai-seo-generation.php:174
 msgid "Custom Prompt (Optional):"
-msgstr ""
+msgstr "自定义提示词（可选）："
 
 #: includes/ai/ai-seo-generation.php:175
 msgid "Add additional instructions..."
-msgstr ""
+msgstr "添加额外指令…"
 
 #: includes/ai/ai-seo-generation.php:181
 msgid "SEO Title:"
-msgstr ""
+msgstr "SEO 标题："
 
 #: includes/ai/ai-seo-generation.php:187
 msgid "SEO Description:"
-msgstr ""
+msgstr "SEO 描述："
 
 #: includes/ai/ai-seo-generation.php:196
 msgid "items generated"
-msgstr ""
+msgstr "个项目已生成"
 
 #: includes/ai/ai-seo-generation.php:632
 msgid "Please select posts first."
-msgstr ""
+msgstr "请先选择文章。"
 
 #: includes/ai/ai-seo-generation.php:638
 msgid "Please select terms first."
-msgstr ""
+msgstr "请先选择术语。"
 
 #: includes/ai/ai-seo-generation.php:724
 msgid "Generate Term Name instead of Meta Title"
-msgstr ""
+msgstr "生成术语名称而非 Meta 标题"
 
 #: includes/ai/ai-seo-generation.php:733
 msgid "Generate Term Description instead of Meta Description"
-msgstr ""
+msgstr "生成术语描述而非 Meta 描述"
 
 #: includes/ai/ai-seo-generation.php:1606
 msgid "Generate with AI ✨"
-msgstr ""
+msgstr "用 AI 生成 ✨"
 
 #: includes/ai/ai-seo-generation.php:1826
 msgid "✨ Generate SEO with AI"
-msgstr ""
+msgstr "✨ 用 AI 生成 SEO"
 
 #: includes/ai/ai-seo-generation.php:1828
 msgid "Generate SEO title and description using AI"
-msgstr ""
+msgstr "使用 AI 生成 SEO 标题和描述"
 
 #: includes/ai/ai-settings.php:338 includes/ai/ai-settings.php:341
 #: includes/ai/ai-settings.php:42 includes/ai/ai-settings.php:43
@@ -1144,7 +1144,7 @@ msgstr "人工智能设置"
 
 #: includes/ai/ai-settings.php:342 includes/ai/ai-settings.php:803
 msgid "Prompt Presets"
-msgstr ""
+msgstr "提示词预设"
 
 #: includes/ai/ai-settings.php:353
 msgid "Enable AI Features"
@@ -1160,55 +1160,55 @@ msgstr "输入人工智能交互的系统提示。"
 
 #: includes/ai/ai-settings.php:400
 msgid "⚙️ Advanced Generation Settings"
-msgstr ""
+msgstr "⚙️ 高级生成设置"
 
 #: includes/ai/ai-settings.php:402
 msgid "— fine-tune how the AI responds (click to expand)"
-msgstr ""
+msgstr "— 微调 AI 的响应方式（点击展开）"
 
 #: includes/ai/ai-settings.php:406
 msgid "These settings apply to all AI providers (OpenRouter and Custom). Most users don't need to change these — the defaults work well for general content editing."
-msgstr ""
+msgstr "这些设置适用于所有 AI 提供商（OpenRouter 和自定义）。大多数用户不需要更改这些设置 — 默认值对一般内容编辑效果良好。"
 
 #: includes/ai/ai-settings.php:411
 msgid "Temperature"
-msgstr ""
+msgstr "温度（Temperature）"
 
 #: includes/ai/ai-settings.php:427
 msgid "Controls randomness. 0 = deterministic/factual, 1 = creative, 2 = very random. Default: 0.7"
-msgstr ""
+msgstr "控制随机性。0 = 确定性/事实性，1 = 创造性，2 = 非常随机。默认：0.7"
 
 #: includes/ai/ai-settings.php:433
 msgid "Max Tokens"
-msgstr ""
+msgstr "最大令牌数"
 
 #: includes/ai/ai-settings.php:447
 msgid "Maximum response length in tokens (≈ words). Higher = longer responses but more API cost. Default: 4000"
-msgstr ""
+msgstr "最大回复长度（以令牌计，约等于单词数）。数值越高 = 回复越长，但 API 成本更高。默认：4000"
 
 #: includes/ai/ai-settings.php:453
 msgid "Top P"
-msgstr ""
+msgstr "Top P"
 
 #: includes/ai/ai-settings.php:469
 msgid "Nucleus sampling: only tokens with cumulative probability up to this value are considered. 1 = all tokens (default), 0.1 = only the most likely tokens."
-msgstr ""
+msgstr "核采样：仅考虑累积概率达到该值的令牌。1 = 全部令牌（默认），0.1 = 仅最可能的令牌。"
 
 #: includes/ai/ai-settings.php:475
 msgid "Frequency Penalty"
-msgstr ""
+msgstr "频率惩罚"
 
 #: includes/ai/ai-settings.php:491
 msgid "Reduces word repetition. Positive values penalize tokens based on how often they've appeared. -2 to 2, 0 = off (default)."
-msgstr ""
+msgstr "减少单词重复。正值会根据令牌出现的频率对其进行惩罚。范围 -2 到 2，0 = 关闭（默认）。"
 
 #: includes/ai/ai-settings.php:497
 msgid "Presence Penalty"
-msgstr ""
+msgstr "存在惩罚"
 
 #: includes/ai/ai-settings.php:513
 msgid "Encourages topic diversity. Positive values penalize tokens that have already appeared at all. -2 to 2, 0 = off (default)."
-msgstr ""
+msgstr "鼓励话题多样性。正值会对已出现过的令牌进行惩罚。范围 -2 到 2，0 = 关闭（默认）。"
 
 #: includes/ai/ai-settings.php:524
 msgid "OpenRouter API Settings"
@@ -1248,66 +1248,66 @@ msgstr "选定型号功能："
 
 #: includes/ai/ai-settings.php:575
 msgid "Model Provider"
-msgstr ""
+msgstr "模型提供商"
 
 #: includes/ai/ai-settings.php:1301 includes/ai/ai-settings.php:1309
 #: includes/ai/ai-settings.php:1331 includes/ai/ai-settings.php:1373
 #: includes/ai/ai-settings.php:1379 includes/ai/ai-settings.php:583
 #: includes/ai/ai-settings.php:634
 msgid "Auto (Default)"
-msgstr ""
+msgstr "自动（默认）"
 
 #: includes/ai/ai-settings.php:586
 msgid "Select a specific provider for this model. Auto lets OpenRouter choose automatically."
-msgstr ""
+msgstr "为此模型选择特定的提供商。选择自动时由 OpenRouter 自动选择。"
 
 #: includes/ai/ai-settings.php:589 includes/ai/ai-settings.php:640
 msgid "Provider Details:"
-msgstr ""
+msgstr "提供商详情："
 
 #: includes/ai/ai-settings.php:596
 msgid "OpenRouter Image Model"
-msgstr ""
+msgstr "OpenRouter 图像模型"
 
 #: includes/ai/ai-settings.php:605
 msgid "Search for image model..."
-msgstr ""
+msgstr "搜索图像模型…"
 
 #: includes/ai/ai-settings.php:610
 msgid "Loading image models..."
-msgstr ""
+msgstr "正在加载图像模型…"
 
 #: includes/ai/ai-settings.php:613
 msgid "Select an OpenRouter model with image output capabilities. Start typing to search."
-msgstr ""
+msgstr "选择具有图像输出能力的 OpenRouter 模型。开始输入以搜索。"
 
 #: includes/ai/ai-settings.php:619
 msgid "Selected Image Model Features:"
-msgstr ""
+msgstr "所选图像模型的特性："
 
 #: includes/ai/ai-settings.php:626
 msgid "Image Model Provider"
-msgstr ""
+msgstr "图像模型提供商"
 
 #: includes/ai/ai-settings.php:637
 msgid "Select a specific provider for this image model. Auto lets OpenRouter choose automatically."
-msgstr ""
+msgstr "为此图像模型选择特定的提供商。选择自动时由 OpenRouter 自动选择。"
 
 #: includes/ai/ai-settings.php:647
 msgid "Image Generation Settings"
-msgstr ""
+msgstr "图像生成设置"
 
 #: includes/ai/ai-settings.php:650
 msgid "Aspect Ratio:"
-msgstr ""
+msgstr "宽高比："
 
 #: includes/ai/ai-settings.php:664
 msgid "Image Size:"
-msgstr ""
+msgstr "图像尺寸："
 
 #: includes/ai/ai-settings.php:671
 msgid "Default settings for image generation. Applied when generating images with compatible models. Note: Image size options are currently only supported by Gemini models."
-msgstr ""
+msgstr "图像生成的默认设置。在使用兼容模型生成图像时应用。注意：图像尺寸选项目前仅支持 Gemini 模型。"
 
 #: includes/ai/ai-settings.php:682
 msgid "Custom API Settings"
@@ -1323,31 +1323,31 @@ msgstr "自定义 API 端点"
 
 #: includes/ai/ai-settings.php:712
 msgid "Enter the full endpoint URL including the path. Must be an OpenAI-compatible"
-msgstr ""
+msgstr "输入包含路径的完整端点 URL。必须是兼容 OpenAI 的"
 
 #: includes/ai/ai-settings.php:713
 msgid "endpoint."
-msgstr ""
+msgstr "端点。"
 
 #: includes/ai/ai-settings.php:715
 msgid "Example:"
-msgstr ""
+msgstr "示例："
 
 #: includes/ai/ai-settings.php:717
 msgid "You can expose your local model to the internet using"
-msgstr ""
+msgstr "您可以使用以下方式将本地模型暴露到互联网："
 
 #: includes/ai/ai-settings.php:719
 msgid "Install cloudflared and run example:"
-msgstr ""
+msgstr "安装 cloudflared 并运行示例："
 
 #: includes/ai/ai-settings.php:723
 msgid "It gives you a public HTTPS URL — append endpoint"
-msgstr ""
+msgstr "它会给您一个公共 HTTPS URL — 附加端点"
 
 #: includes/ai/ai-settings.php:723
 msgid "and paste it here."
-msgstr ""
+msgstr "并粘贴到此处。"
 
 #: includes/ai/ai-settings.php:729
 msgid "Custom Model"
@@ -1355,32 +1355,32 @@ msgstr "定制模型"
 
 #: includes/ai/ai-settings.php:746
 msgid "🔌 Test Connection"
-msgstr ""
+msgstr "🔌 测试连接"
 
 #: includes/ai/ai-settings.php:748
 msgid "— verify your API settings are working (click to expand)"
-msgstr ""
+msgstr "— 验证您的 API 设置是否正常（点击展开）"
 
 #: includes/ai/ai-settings.php:752
 msgid "Send a minimal test message using your current settings. Works for both OpenRouter and Custom providers. The log below shows each step in real time with colour-coded results."
-msgstr ""
+msgstr "使用您当前的设置发送一条最简测试消息。适用于 OpenRouter 和自定义提供商。下方日志会实时显示每一步骤，并带有颜色编码的结果。"
 
 #: includes/ai/ai-settings.php:754
 msgid "Tip: Save your settings first if you made changes, then run the test."
-msgstr ""
+msgstr "提示：如果您做了更改，请先保存设置，然后再运行测试。"
 
 #: includes/ai/ai-settings.php:756
 msgid "Run Connection Test"
-msgstr ""
+msgstr "运行连接测试"
 
 #: includes/ai/ai-settings.php:1845 includes/ai/ai-settings.php:1856
 #: includes/ai/ai-settings.php:787
 msgid "Copy"
-msgstr ""
+msgstr "复制"
 
 #: includes/ai/ai-settings.php:792
 msgid "Settings tested:"
-msgstr ""
+msgstr "已测试的设置："
 
 #: includes/ai/ai-settings.php:805
 msgid "Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay."
@@ -1475,51 +1475,51 @@ msgstr "错误加载模型。"
 
 #: includes/ai/ai-settings.php:1293
 msgid "Loading providers..."
-msgstr ""
+msgstr "正在加载提供商…"
 
 #: includes/ai/ai-settings.php:1409
 msgid "Provider:"
-msgstr ""
+msgstr "提供商："
 
 #: includes/ai/ai-settings.php:1415
 msgid "Prompt Cost:"
-msgstr ""
+msgstr "提示词成本："
 
 #: includes/ai/ai-settings.php:1416
 msgid "Completion Cost:"
-msgstr ""
+msgstr "补全成本："
 
 #: includes/ai/ai-settings.php:1422
 msgid "Latency (P50):"
-msgstr ""
+msgstr "延迟（P50）："
 
 #: includes/ai/ai-settings.php:1425
 msgid "Latency (P90):"
-msgstr ""
+msgstr "延迟（P90）："
 
 #: includes/ai/ai-settings.php:1428
 msgid "Latency (P99):"
-msgstr ""
+msgstr "延迟（P99）："
 
 #: includes/ai/ai-settings.php:1435
 msgid "Throughput (P50):"
-msgstr ""
+msgstr "吞吐量（P50）："
 
 #: includes/ai/ai-settings.php:1438
 msgid "Throughput (P90):"
-msgstr ""
+msgstr "吞吐量（P90）："
 
 #: includes/ai/ai-settings.php:1441
 msgid "Throughput (P99):"
-msgstr ""
+msgstr "吞吐量（P99）："
 
 #: includes/ai/ai-settings.php:1447
 msgid "Quantization:"
-msgstr ""
+msgstr "量化："
 
 #: includes/ai/ai-settings.php:1452
 msgid "Supported Parameters:"
-msgstr ""
+msgstr "支持的参数："
 
 #: includes/ai/ai-settings.php:1567
 msgid "Are you sure you want to reset all presets to their defaults? This cannot be undone."
@@ -1793,38 +1793,38 @@ msgstr "排版"
 
 #: includes/elements/audio-player.php:17
 msgid "Audio Player"
-msgstr ""
+msgstr "音频播放器"
 
 #: includes/elements/audio-player.php:23
 msgid "Audio File (Media Library)"
-msgstr ""
+msgstr "音频文件（媒体库）"
 
 #: includes/elements/audio-player.php:29
 msgid "Audio URL (Manual)"
-msgstr ""
+msgstr "音频 URL（手动）"
 
 #: includes/elements/audio-player.php:32
 msgid "Enter a direct URL to your audio file. This will override the Media Library selection."
-msgstr ""
+msgstr "输入音频文件的直接 URL。这将覆盖媒体库中的选择。"
 
 #: includes/elements/audio-player.php:37
 #: includes/elements/dynamic-pdf.php:29
 msgid "Cover Image"
-msgstr ""
+msgstr "封面图片"
 
 #: includes/elements/audio-player.php:43
 #: includes/elements/video-player.php:92
 msgid "Autoplay"
-msgstr ""
+msgstr "自动播放"
 
 #: includes/elements/audio-player.php:50
 #: includes/elements/video-player.php:99
 msgid "Muted"
-msgstr ""
+msgstr "静音"
 
 #: includes/elements/audio-player.php:57
 msgid "Audio Chapters"
-msgstr ""
+msgstr "音频章节"
 
 #: includes/elements/audio-player.php:64 includes/elements/query.php:120
 #: includes/features/post-types-settings.php:179
@@ -1834,131 +1834,131 @@ msgstr "标题"
 
 #: includes/elements/audio-player.php:65
 msgid "Time (e.g., 1:45)"
-msgstr ""
+msgstr "时间（例如 1:45）"
 
 #: includes/elements/audio-player.php:71
 #: includes/elements/video-player.php:153
 msgid "Player Height"
-msgstr ""
+msgstr "播放器高度"
 
 #: includes/elements/audio-player.php:79
 #: includes/elements/video-player.php:167
 msgid "Player Max Width"
-msgstr ""
+msgstr "播放器最大宽度"
 
 #: includes/elements/audio-player.php:88
 msgid "Player Background"
-msgstr ""
+msgstr "播放器背景"
 
 #: includes/elements/audio-player.php:95
 #: includes/elements/video-player.php:196
 msgid "Primary Accent"
-msgstr ""
+msgstr "主强调色"
 
 #: includes/elements/audio-player.php:102
 #: includes/elements/video-player.php:210
 msgid "Text & Icons Color"
-msgstr ""
+msgstr "文本和图标颜色"
 
 #: includes/elements/audio-player.php:110
 #: includes/elements/profile-settings.php:178
 msgid "Button Background"
-msgstr ""
+msgstr "按钮背景"
 
 #: includes/elements/audio-player.php:117
 #: includes/elements/video-player.php:217
 msgid "Slider Track"
-msgstr ""
+msgstr "滑块轨道"
 
 #: includes/elements/audio-player.php:124
 #: includes/elements/video-player.php:224
 msgid "Chapter Dot"
-msgstr ""
+msgstr "章节点"
 
 #: includes/elements/audio-player.php:131
 #: includes/elements/video-player.php:231
 msgid "Button Hover BG"
-msgstr ""
+msgstr "按钮悬停背景"
 
 #: includes/elements/breadcrumbs.php:16
 msgid "SNN Breadcrumbs"
-msgstr ""
+msgstr "SNN 面包屑导航"
 
 #: includes/elements/breadcrumbs.php:23
 msgid "Breadcrumb Items"
-msgstr ""
+msgstr "面包屑项目"
 
 #: includes/elements/breadcrumbs.php:26
 msgid "Breadcrumb Item"
-msgstr ""
+msgstr "面包屑项"
 
 #: includes/elements/breadcrumbs.php:47
 msgid "Item Type"
-msgstr ""
+msgstr "项目类型"
 
 #: includes/elements/breadcrumbs.php:50
 msgid "Home"
-msgstr ""
+msgstr "首页"
 
 #: includes/elements/breadcrumbs.php:51
 msgid "Current Post Title"
-msgstr ""
+msgstr "当前文章标题"
 
 #: includes/elements/breadcrumbs.php:52
 msgid "All Post Ancestors (Recursive)"
-msgstr ""
+msgstr "所有上级文章（递归）"
 
 #: includes/elements/breadcrumbs.php:53
 msgid "Post Type Archive"
-msgstr ""
+msgstr "文章类型归档"
 
 #: includes/elements/breadcrumbs.php:54
 msgid "Current Post Type Archive"
-msgstr ""
+msgstr "当前文章类型归档"
 
 #: includes/elements/breadcrumbs.php:55
 msgid "Current Term (Auto Detect)"
-msgstr ""
+msgstr "当前术语（自动检测）"
 
 #: includes/elements/breadcrumbs.php:56
 msgid "All Term Ancestors (Recursive)"
-msgstr ""
+msgstr "所有上级术语（递归）"
 
 #: includes/elements/breadcrumbs.php:57
 msgid "Current Category"
-msgstr ""
+msgstr "当前分类"
 
 #: includes/elements/breadcrumbs.php:58
 msgid "All Category Ancestors (Recursive)"
-msgstr ""
+msgstr "所有上级分类（递归）"
 
 #: includes/elements/breadcrumbs.php:59
 msgid "Current Tag"
-msgstr ""
+msgstr "当前标签"
 
 #: includes/elements/breadcrumbs.php:60
 msgid "Custom Taxonomy Term"
-msgstr ""
+msgstr "自定义分类法术语"
 
 #: includes/elements/breadcrumbs.php:61
 msgid "Post Author"
-msgstr ""
+msgstr "文章作者"
 
 #: includes/elements/breadcrumbs.php:62
 msgid "Author Archive Link"
-msgstr ""
+msgstr "作者归档链接"
 
 #: includes/elements/breadcrumbs.php:63
 msgid "Date Archive - Year"
-msgstr ""
+msgstr "日期归档 - 年"
 
 #: includes/elements/breadcrumbs.php:64
 msgid "Date Archive - Month"
-msgstr ""
+msgstr "日期归档 - 月"
 
 #: includes/elements/breadcrumbs.php:65
 msgid "Date Archive - Day"
-msgstr ""
+msgstr "日期归档 - 日"
 
 #: includes/elements/breadcrumbs.php:66
 #: includes/features/search-loggins.php:221
@@ -1968,52 +1968,52 @@ msgstr "搜索查询"
 
 #: includes/elements/breadcrumbs.php:67
 msgid "Search Results Label"
-msgstr ""
+msgstr "搜索结果标签"
 
 #: includes/elements/breadcrumbs.php:68
 msgid "404 Page"
-msgstr ""
+msgstr "404 页面"
 
 #: includes/elements/breadcrumbs.php:69
 msgid "Blog Page"
-msgstr ""
+msgstr "博客页面"
 
 #: includes/elements/breadcrumbs.php:70
 msgid "Shop Page (WooCommerce)"
-msgstr ""
+msgstr "商店页面（WooCommerce）"
 
 #: includes/elements/breadcrumbs.php:71
 msgid "Product Categories (WooCommerce)"
-msgstr ""
+msgstr "产品分类（WooCommerce）"
 
 #: includes/elements/breadcrumbs.php:72
 msgid "Pagination (Page X)"
-msgstr ""
+msgstr "分页（第 X 页）"
 
 #: includes/elements/breadcrumbs.php:73
 msgid "bbPress Forum"
-msgstr ""
+msgstr "bbPress 论坛"
 
 #: includes/elements/breadcrumbs.php:74
 msgid "bbPress Topic"
-msgstr ""
+msgstr "bbPress 话题"
 
 #: includes/elements/breadcrumbs.php:103
 #: includes/elements/breadcrumbs.php:75
 msgid "Custom Text"
-msgstr ""
+msgstr "自定义文本"
 
 #: includes/elements/breadcrumbs.php:76
 msgid "Custom Link"
-msgstr ""
+msgstr "自定义链接"
 
 #: includes/elements/breadcrumbs.php:81
 msgid "Custom Home Text"
-msgstr ""
+msgstr "自定义首页文本"
 
 #: includes/elements/breadcrumbs.php:83
 msgid "Leave empty for site name"
-msgstr ""
+msgstr "留空以使用网站名称"
 
 #: includes/elements/breadcrumbs.php:87
 #: includes/features/taxonomy-settings.php:202
@@ -2023,7 +2023,7 @@ msgstr "分类蛞蝓"
 
 #: includes/elements/breadcrumbs.php:89
 msgid "e.g., product_cat, genre"
-msgstr ""
+msgstr "例如 product_cat, genre"
 
 #: includes/elements/breadcrumbs.php:93
 #: includes/elements/custom-maps.php:59
@@ -2034,81 +2034,81 @@ msgstr "图标"
 
 #: includes/elements/breadcrumbs.php:98
 msgid "Show Icon"
-msgstr ""
+msgstr "显示图标"
 
 #: includes/elements/breadcrumbs.php:105
 msgid "Enter custom text"
-msgstr ""
+msgstr "输入自定义文本"
 
 #: includes/elements/breadcrumbs.php:109
 msgid "Custom URL"
-msgstr ""
+msgstr "自定义 URL"
 
 #: includes/elements/breadcrumbs.php:111
 msgid "Enter custom URL"
-msgstr ""
+msgstr "输入自定义 URL"
 
 #: includes/elements/breadcrumbs.php:120
 msgid "Separator"
-msgstr ""
+msgstr "分隔符"
 
 #: includes/elements/breadcrumbs.php:133
 msgid "Separator Icon"
-msgstr ""
+msgstr "分隔符图标"
 
 #: includes/elements/breadcrumbs.php:158
 #: includes/features/mail-customizer.php:261
 msgid "Link Color"
-msgstr ""
+msgstr "链接颜色"
 
 #: includes/elements/breadcrumbs.php:171
 msgid "Link Hover Color"
-msgstr ""
+msgstr "链接悬停颜色"
 
 #: includes/elements/breadcrumbs.php:184
 msgid "Current Item Color"
-msgstr ""
+msgstr "当前项颜色"
 
 #: includes/elements/breadcrumbs.php:197
 msgid "Separator Spacing"
-msgstr ""
+msgstr "分隔符间距"
 
 #: includes/elements/breadcrumbs.php:214
 msgid "Icon Size"
-msgstr ""
+msgstr "图标大小"
 
 #: includes/elements/breadcrumbs.php:228
 msgid "Icon Spacing"
-msgstr ""
+msgstr "图标间距"
 
 #: includes/elements/breadcrumbs.php:243
 msgid "Enable Schema.org Markup"
-msgstr ""
+msgstr "启用 Schema.org 标记"
 
 #: includes/elements/breadcrumbs.php:251
 msgid "Max Title Length"
-msgstr ""
+msgstr "最大标题长度"
 
 #: includes/elements/breadcrumbs.php:255
 msgid "0 = No limit"
-msgstr ""
+msgstr "0 = 无限制"
 
 #: includes/elements/breadcrumbs.php:592
 msgid "Search Results"
-msgstr ""
+msgstr "搜索结果"
 
 #: includes/elements/breadcrumbs.php:601
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - 页面未找到"
 
 #: includes/elements/breadcrumbs.php:670
 #, php-format
 msgid "Page %s"
-msgstr ""
+msgstr "第 %s 页"
 
 #: includes/elements/breadcrumbs.php:752
 msgid "No breadcrumb items defined."
-msgstr ""
+msgstr "未定义面包屑项目。"
 
 #: includes/elements/comment-form.php:19
 msgid "Comment Form"
@@ -2149,11 +2149,11 @@ msgstr "发表回复"
 
 #: includes/elements/comment-form.php:70
 msgid "Enable rating"
-msgstr ""
+msgstr "启用评分"
 
 #: includes/elements/comment-form.php:74
 msgid "Show 5-star rating selector. Rating is saved to comment custom field: snn_rating_comment"
-msgstr ""
+msgstr "显示五星评分选择器。评分保存到评论自定义字段：snn_rating_comment"
 
 #: includes/elements/comment-form.php:81
 #: includes/elements/frontend-post-form.php:163
@@ -2196,11 +2196,11 @@ msgstr "按钮内边距"
 
 #: includes/elements/comment-form.php:208
 msgid "Error: Unable to determine post ID."
-msgstr ""
+msgstr "错误：无法确定文章 ID。"
 
 #: includes/elements/comment-form.php:237
 msgid "You already rated."
-msgstr ""
+msgstr "您已评分。"
 
 #: includes/elements/comment-form.php:291
 msgid "Name"
@@ -2220,7 +2220,7 @@ msgstr "网站"
 
 #: includes/elements/comment-form.php:312
 msgid "Rating"
-msgstr ""
+msgstr "评分"
 
 #: includes/elements/comment-form.php:674
 #: includes/features/custom-code-snippets.php:1978
@@ -2253,11 +2253,11 @@ msgstr "订购"
 
 #: includes/elements/comment-list.php:39
 msgid "Number of comments"
-msgstr ""
+msgstr "评论数"
 
 #: includes/elements/comment-list.php:42
 msgid "WordPress default"
-msgstr ""
+msgstr "WordPress 默认值"
 
 #: includes/elements/comment-list.php:46
 msgid "Enable inline edit"
@@ -2265,11 +2265,11 @@ msgstr "启用内联编辑"
 
 #: includes/elements/comment-list.php:53
 msgid "Show ratings"
-msgstr ""
+msgstr "显示评分"
 
 #: includes/elements/comment-list.php:57
 msgid "Display star ratings from comment custom field: snn_rating_comment"
-msgstr ""
+msgstr "从评论自定义字段 snn_rating_comment 显示星级评分"
 
 #: includes/elements/comment-list.php:61
 msgid "Comment typography"
@@ -2432,107 +2432,107 @@ msgstr "游客"
 
 #: includes/elements/cursor.php:17
 msgid "Custom Cursor"
-msgstr ""
+msgstr "自定义光标"
 
 #: includes/elements/cursor.php:24
 msgid "Default Body Cursor Size"
-msgstr ""
+msgstr "默认页面光标大小"
 
 #: includes/elements/cursor.php:35
 msgid "Default Cursor Color"
-msgstr ""
+msgstr "默认光标颜色"
 
 #: includes/elements/cursor.php:44
 msgid "Default Cursor Border"
-msgstr ""
+msgstr "默认光标边框"
 
 #: includes/elements/cursor.php:70
 msgid "Cursor Speed"
-msgstr ""
+msgstr "光标速度"
 
 #: includes/elements/cursor.php:80
 msgid "Cursor Z-Index"
-msgstr ""
+msgstr "光标 Z 轴层级"
 
 #: includes/elements/cursor.php:90
 msgid "Cursor Aspect Ratio"
-msgstr ""
+msgstr "光标宽高比"
 
 #: includes/elements/cursor.php:100
 msgid "Hide Native Browser Cursor"
-msgstr ""
+msgstr "隐藏原生浏览器光标"
 
 #: includes/elements/cursor.php:103
 msgid "When enabled, the native browser cursor is hidden everywhere, per-element hover cursors will still show"
-msgstr ""
+msgstr "启用后，原生浏览器光标将在任何地方隐藏，单个元素的悬停光标仍会显示"
 
 #: includes/elements/cursor.php:109
 msgid "Disable Cursor Below 991px"
-msgstr ""
+msgstr "在 991px 以下禁用光标"
 
 #: includes/elements/cursor.php:112
 msgid "Disables the custom cursor on tablet and mobile (≤ 991px)."
-msgstr ""
+msgstr "在平板和移动设备（≤ 991px）上禁用自定义光标。"
 
 #: includes/elements/cursor.php:117
 msgid "Disable Cursor Below 767px"
-msgstr ""
+msgstr "在 767px 以下禁用光标"
 
 #: includes/elements/cursor.php:120
 msgid "Disables the custom cursor on small tablet and mobile (≤ 767px)."
-msgstr ""
+msgstr "在小型平板和移动设备（≤ 767px）上禁用自定义光标。"
 
 #: includes/elements/cursor.php:125
 msgid "Disable Cursor Below 478px"
-msgstr ""
+msgstr "在 478px 以下禁用光标"
 
 #: includes/elements/cursor.php:128
 msgid "Disables the custom cursor on mobile (≤ 478px)."
-msgstr ""
+msgstr "在移动设备（≤ 478px）上禁用自定义光标。"
 
 #: includes/elements/cursor.php:134
 msgid "Hover Cursors"
-msgstr ""
+msgstr "悬停光标"
 
 #: includes/elements/cursor.php:140
 msgid "Cursor Selector"
-msgstr ""
+msgstr "光标选择器"
 
 #: includes/elements/cursor.php:143
 msgid "CSS selector for the DOM element that will BE the cursor (e.g., .project-hover, .karriere-hover)"
-msgstr ""
+msgstr "将作为光标本身的 DOM 元素的 CSS 选择器（例如 .project-hover, .karriere-hover）"
 
 #: includes/elements/cursor.php:146
 msgid "Target Hover Selector"
-msgstr ""
+msgstr "目标悬停选择器"
 
 #: includes/elements/cursor.php:149
 msgid "CSS selector for elements that when hovered will show this cursor (e.g., .project, #brxe-vzibxz)"
-msgstr ""
+msgstr "悬停时将显示此光标的元素的 CSS 选择器（例如 .project, #brxe-vzibxz）"
 
 #: includes/elements/cursor.php:152
 msgid "Cursor X Position"
-msgstr ""
+msgstr "光标 X 位置"
 
 #: includes/elements/cursor.php:156
 msgid "Horizontal offset from center in pixels"
-msgstr ""
+msgstr "距中心的水平偏移量（像素）"
 
 #: includes/elements/cursor.php:160
 msgid "Cursor Y Position"
-msgstr ""
+msgstr "光标 Y 位置"
 
 #: includes/elements/cursor.php:164
 msgid "Vertical offset from center in pixels"
-msgstr ""
+msgstr "距中心的垂直偏移量（像素）"
 
 #: includes/elements/cursor.php:168
 msgid "Hide Default Cursor"
-msgstr ""
+msgstr "隐藏默认光标"
 
 #: includes/elements/cursor.php:171
 msgid "When enabled, the default cursor will be hidden and only this custom cursor will be shown on hover."
-msgstr ""
+msgstr "启用后，默认光标将被隐藏，悬停时仅显示此自定义光标。"
 
 #: includes/elements/custom-maps.php:22
 msgid "Enable Scroll Zoom"
@@ -2574,11 +2574,11 @@ msgstr "缩放级别"
 
 #: includes/elements/custom-maps.php:125
 msgid "Map Height"
-msgstr ""
+msgstr "地图高度"
 
 #: includes/elements/custom-maps.php:141
 msgid "Popup Font Size"
-msgstr ""
+msgstr "弹出窗口字体大小"
 
 #: includes/elements/custom-maps.php:158
 msgid "Map Style"
@@ -2590,63 +2590,63 @@ msgstr "传单窗格过滤器"
 
 #: includes/elements/custom-maps.php:185
 msgid "Use Post Type for Markers"
-msgstr ""
+msgstr "使用文章类型作为标记来源"
 
 #: includes/elements/custom-maps.php:189
 msgid "Enable to populate map markers from a custom post type. Uses custom fields: location_latitude, location_longitude"
-msgstr ""
+msgstr "启用后从自定义文章类型填充地图标记。使用自定义字段：location_latitude, location_longitude"
 
 #: includes/elements/custom-maps.php:202
 msgid "Select Post Type"
-msgstr ""
+msgstr "选择文章类型"
 
 #: includes/elements/custom-maps.php:206
 msgid "Select post type"
-msgstr ""
+msgstr "选择文章类型"
 
 #: includes/elements/dynamic-pdf.php:16
 msgid "Dynamic PDF Embed"
-msgstr ""
+msgstr "动态 PDF 嵌入"
 
 #: includes/elements/dynamic-pdf.php:22
 msgid "PDF File"
-msgstr ""
+msgstr "PDF 文件"
 
 #: includes/elements/dynamic-pdf.php:24
 msgid "Enter the full PDF URL"
-msgstr ""
+msgstr "输入完整的 PDF URL"
 
 #: includes/elements/dynamic-pdf.php:31
 msgid "Leave empty to auto-load PDF"
-msgstr ""
+msgstr "留空以自动加载 PDF"
 
 #: includes/elements/dynamic-pdf.php:36
 msgid "Chevron Color"
-msgstr ""
+msgstr "箭头颜色"
 
 #: includes/elements/dynamic-pdf.php:46
 msgid "Chevron Size"
-msgstr ""
+msgstr "箭头大小"
 
 #: includes/elements/dynamic-pdf.php:55
 msgid "Left Arrow Icon"
-msgstr ""
+msgstr "左箭头图标"
 
 #: includes/elements/dynamic-pdf.php:65
 msgid "Right Arrow Icon"
-msgstr ""
+msgstr "右箭头图标"
 
 #: includes/elements/dynamic-pdf.php:75
 msgid "Display Two Pages"
-msgstr ""
+msgstr "显示双页"
 
 #: includes/elements/dynamic-pdf.php:128
 msgid "No PDF URL provided."
-msgstr ""
+msgstr "未提供 PDF URL。"
 
 #: includes/elements/dynamic-pdf.php:129
 msgid "Please add a PDF URL in the element settings."
-msgstr ""
+msgstr "请在元素设置中添加 PDF URL。"
 
 #: includes/elements/element-event-action-selector.php:19
 msgid "Event ⇄ Action"
@@ -2836,7 +2836,7 @@ msgstr "职位状态"
 
 #: includes/elements/frontend-post-form.php:71
 msgid "Save Post"
-msgstr ""
+msgstr "保存文章"
 
 #: includes/elements/frontend-post-form.php:77
 msgid "Enable featured image"
@@ -2872,7 +2872,7 @@ msgstr "自定义字段"
 
 #: includes/elements/frontend-post-form.php:110
 msgid "Add Custom Field"
-msgstr ""
+msgstr "添加自定义字段"
 
 #: includes/elements/frontend-post-form.php:113
 #: includes/elements/profile-settings.php:34
@@ -2912,56 +2912,56 @@ msgstr "字段标签"
 
 #: includes/elements/frontend-post-form.php:125
 msgid "Enter field label"
-msgstr ""
+msgstr "输入字段标签"
 
 #: includes/elements/frontend-post-form.php:129
 msgid "Field Name (meta key)"
-msgstr ""
+msgstr "字段名称（元键）"
 
 #: includes/elements/frontend-post-form.php:131
 msgid "custom_field_name"
-msgstr ""
+msgstr "custom_field_name"
 
 #: includes/elements/frontend-post-form.php:135
 #: includes/elements/profile-settings.php:102
 msgid "Placeholder"
-msgstr ""
+msgstr "占位符"
 
 #: includes/elements/frontend-post-form.php:137
 msgid "Enter placeholder text"
-msgstr ""
+msgstr "输入占位符文本"
 
 #: includes/elements/frontend-post-form.php:142
 msgid "Required Field"
-msgstr ""
+msgstr "必填字段"
 
 #: includes/elements/frontend-post-form.php:147
 msgid "Default Checked"
-msgstr ""
+msgstr "默认选中"
 
 #: includes/elements/frontend-post-form.php:153
 msgid "Field Width"
-msgstr ""
+msgstr "字段宽度"
 
 #: includes/elements/frontend-post-form.php:155
 msgid "100% (e.g., 50%, 300px)"
-msgstr ""
+msgstr "100%（例如 50%, 300px）"
 
 #: includes/elements/gallery-and-thumbnails.php:17
 msgid "Image Gallery and Thumbnails"
-msgstr ""
+msgstr "图片画廊和缩略图"
 
 #: includes/elements/gallery-and-thumbnails.php:24
 msgid "Images"
-msgstr ""
+msgstr "图片"
 
 #: includes/elements/gallery-and-thumbnails.php:26
 msgid "Select images from media library"
-msgstr ""
+msgstr "从媒体库选择图片"
 
 #: includes/elements/gallery-and-thumbnails.php:32
 msgid "Thumbnail Position"
-msgstr ""
+msgstr "缩略图位置"
 
 #: includes/elements/gallery-and-thumbnails.php:35
 #: includes/elements/image-hotspot.php:105
@@ -2994,27 +2994,27 @@ msgstr "对"
 #: includes/elements/gallery-and-thumbnails.php:47
 #: includes/elements/marquee-slider-carousel.php:70
 msgid "Gap"
-msgstr ""
+msgstr "间距"
 
 #: includes/elements/gallery-and-thumbnails.php:63
 msgid "Thumbnail Gap"
-msgstr ""
+msgstr "缩略图间距"
 
 #: includes/elements/gallery-and-thumbnails.php:79
 msgid "Thumbnail Size"
-msgstr ""
+msgstr "缩略图大小"
 
 #: includes/elements/gallery-and-thumbnails.php:107
 msgid "Main Image Aspect Ratio"
-msgstr ""
+msgstr "主图宽高比"
 
 #: includes/elements/gallery-and-thumbnails.php:123
 msgid "Enable Thumbnail Zoom on Hover"
-msgstr ""
+msgstr "启用悬停时缩略图缩放"
 
 #: includes/elements/gallery-and-thumbnails.php:304
 msgid "No image(s) selected."
-msgstr ""
+msgstr "未选择图片。"
 
 #: includes/elements/gsap-animations-code.php:18
 msgid "GSAP Animations CODE (Nestable)"
@@ -4878,7 +4878,7 @@ msgstr "图像热点"
 
 #: includes/elements/image-hotspot.php:28
 msgid "Hover/Click"
-msgstr ""
+msgstr "悬停/点击"
 
 #: includes/elements/image-hotspot.php:38
 msgid "Dot Size (px)"
@@ -4895,7 +4895,7 @@ msgstr "圆点颜色"
 
 #: includes/elements/image-hotspot.php:63
 msgid "Dot Border"
-msgstr ""
+msgstr "圆点边框"
 
 #: includes/elements/image-hotspot.php:72
 msgid "Hotspots"
@@ -4992,11 +4992,11 @@ msgstr "洛蒂 JSON 文件"
 
 #: includes/elements/lottie-animation.php:32
 msgid "Or External JSON URL"
-msgstr ""
+msgstr "或外部 JSON URL"
 
 #: includes/elements/lottie-animation.php:34
 msgid "https://example.com/animation.json"
-msgstr ""
+msgstr "https://example.com/animation.json"
 
 #: includes/elements/lottie-animation.php:51
 msgid "Autoplay Animation"
@@ -5004,7 +5004,7 @@ msgstr "自动播放动画"
 
 #: includes/elements/lottie-animation.php:61
 msgid "Autoplay on Viewport Entry"
-msgstr ""
+msgstr "进入视口时自动播放"
 
 #: includes/elements/lottie-animation.php:71
 msgid "Play on Hover"
@@ -5056,106 +5056,106 @@ msgstr "http://yoursite.com"
 
 #: includes/elements/lottie-animation.php:253
 msgid "Please upload a Lottie JSON file or provide an external JSON URL."
-msgstr ""
+msgstr "请上传 Lottie JSON 文件或提供外部 JSON URL。"
 
 #: includes/elements/marquee-slider-carousel.php:17
 msgid "Marquee Slider Carousel"
-msgstr ""
+msgstr "跑马灯滑块轮播"
 
 #: includes/elements/marquee-slider-carousel.php:24
 msgid "Marquee Items"
-msgstr ""
+msgstr "跑马灯项目"
 
 #: includes/elements/marquee-slider-carousel.php:27
 msgid "Marquee Item"
-msgstr ""
+msgstr "跑马灯项"
 
 #: includes/elements/marquee-slider-carousel.php:38
 msgid "Link (Optional)"
-msgstr ""
+msgstr "链接（可选）"
 
 #: includes/elements/marquee-slider-carousel.php:47
 msgid "Direction"
-msgstr ""
+msgstr "方向"
 
 #: includes/elements/marquee-slider-carousel.php:52
 msgid "Up"
-msgstr ""
+msgstr "向上"
 
 #: includes/elements/marquee-slider-carousel.php:53
 msgid "Down"
-msgstr ""
+msgstr "向下"
 
 #: includes/elements/marquee-slider-carousel.php:61
 msgid "Duration (Speed)"
-msgstr ""
+msgstr "持续时间（速度）"
 
 #: includes/elements/marquee-slider-carousel.php:85
 msgid "Pause on Hover"
-msgstr ""
+msgstr "悬停时暂停"
 
 #: includes/elements/marquee-slider-carousel.php:93
 msgid "Enable Edge Fade"
-msgstr ""
+msgstr "启用边缘渐隐"
 
 #: includes/elements/marquee-slider-carousel.php:101
 msgid "Enable Drag Scroll"
-msgstr ""
+msgstr "启用拖拽滚动"
 
 #: includes/elements/marquee-slider-carousel.php:105
 msgid "Let users grab & drag the marquee, flick to slide faster. Momentum gradually slows back to normal speed — like phone scrolling."
-msgstr ""
+msgstr "允许用户抓取并拖动跑马灯，轻扫可加快滑动速度。惯性会逐渐减慢至正常速度 — 类似手机滚动效果。"
 
 #: includes/elements/marquee-slider-carousel.php:110
 msgid "Vertical Max Height"
-msgstr ""
+msgstr "垂直最大高度"
 
 #: includes/elements/marquee-slider-carousel.php:127
 msgid "Item Max Width"
-msgstr ""
+msgstr "项目最大宽度"
 
 #: includes/elements/marquee-slider-carousel.php:142
 msgid "Image Height"
-msgstr ""
+msgstr "图片高度"
 
 #: includes/elements/marquee-slider-carousel.php:156
 msgid "Image Aspect Ratio"
-msgstr ""
+msgstr "图片宽高比"
 
 #: includes/elements/marquee-slider-carousel.php:173
 msgid "Image Object Fit"
-msgstr ""
+msgstr "图片对象适应方式"
 
 #: includes/elements/marquee-slider-carousel.php:176
 #: includes/elements/video-player.php:185
 msgid "Cover"
-msgstr ""
+msgstr "覆盖（Cover）"
 
 #: includes/elements/marquee-slider-carousel.php:177
 msgid "Contain"
-msgstr ""
+msgstr "包含（Contain）"
 
 #: includes/elements/marquee-slider-carousel.php:178
 #: includes/elements/video-player.php:186
 msgid "Fill"
-msgstr ""
+msgstr "填充（Fill）"
 
 #: includes/elements/marquee-slider-carousel.php:180
 #: includes/elements/video-player.php:187
 msgid "Scale Down"
-msgstr ""
+msgstr "按比例缩小（Scale Down）"
 
 #: includes/elements/marquee-slider-carousel.php:194
 msgid "Image Effect on Hover"
-msgstr ""
+msgstr "悬停时的图片效果"
 
 #: includes/elements/marquee-slider-carousel.php:198
 msgid "Grayscale to Color"
-msgstr ""
+msgstr "灰度转彩色"
 
 #: includes/elements/marquee-slider-carousel.php:199
 msgid "Fade In"
-msgstr ""
+msgstr "淡入"
 
 #: includes/elements/marquee-slider-carousel.php:207
 #: includes/elements/read-more-toggle-text.php:57
@@ -5310,7 +5310,7 @@ msgstr "打印选择器"
 
 #: includes/elements/print.php:25
 msgid "If you want to print only a specific section, enter a CSS selector (#brxe-xxxx). Leave blank to print the full page."
-msgstr ""
+msgstr "如果您只想打印特定部分，请输入 CSS 选择器（#brxe-xxxx）。留空以打印整个页面。"
 
 #: includes/elements/print.php:29
 msgid "Button Selector"
@@ -5330,38 +5330,38 @@ msgstr "更改弹出窗口中的打印按钮文本。"
 
 #: includes/elements/profile-settings.php:20
 msgid "Profile Settings"
-msgstr ""
+msgstr "个人资料设置"
 
 #: includes/elements/profile-settings.php:29
 msgid "Profile Fields (Drag to Reorder)"
-msgstr ""
+msgstr "个人资料字段（拖拽以重新排序）"
 
 #: includes/elements/profile-settings.php:37
 msgid "Avatar Upload"
-msgstr ""
+msgstr "头像上传"
 
 #: includes/elements/profile-settings.php:313
 #: includes/elements/profile-settings.php:38
 msgid "First Name"
-msgstr ""
+msgstr "名"
 
 #: includes/elements/profile-settings.php:320
 #: includes/elements/profile-settings.php:39
 msgid "Last Name"
-msgstr ""
+msgstr "姓"
 
 #: includes/elements/profile-settings.php:41
 msgid "Description/Bio"
-msgstr ""
+msgstr "描述/简介"
 
 #: includes/elements/profile-settings.php:42
 msgid "Password Change"
-msgstr ""
+msgstr "密码修改"
 
 #: includes/elements/profile-settings.php:334
 #: includes/elements/profile-settings.php:43
 msgid "Website URL"
-msgstr ""
+msgstr "网站 URL"
 
 #: includes/elements/profile-settings.php:49
 #: includes/features/activity-logs.php:1660
@@ -5370,19 +5370,19 @@ msgstr "启用"
 
 #: includes/elements/profile-settings.php:70
 msgid "Custom Meta Fields"
-msgstr ""
+msgstr "自定义元字段"
 
 #: includes/elements/profile-settings.php:77
 msgid "Custom Field"
-msgstr ""
+msgstr "自定义字段"
 
 #: includes/elements/profile-settings.php:81
 msgid "Meta Key"
-msgstr ""
+msgstr "元键"
 
 #: includes/elements/profile-settings.php:84
 msgid "Use unique key (e.g., twitter_handle, phone_number)"
-msgstr ""
+msgstr "使用唯一键（例如 twitter_handle, phone_number）"
 
 #: includes/elements/profile-settings.php:93
 #: includes/features/404-logging.php:263
@@ -5399,180 +5399,180 @@ msgstr "数量"
 
 #: includes/elements/profile-settings.php:96
 msgid "Checkbox (Boolean)"
-msgstr ""
+msgstr "复选框（布尔值）"
 
 #: includes/elements/profile-settings.php:113
 msgid "Submit Button Text"
-msgstr ""
+msgstr "提交按钮文本"
 
 #: includes/elements/profile-settings.php:115
 #: includes/elements/profile-settings.php:116
 #: includes/elements/profile-settings.php:209
 msgid "Update Profile"
-msgstr ""
+msgstr "更新个人资料"
 
 #: includes/elements/profile-settings.php:122
 msgid "Success Message"
-msgstr ""
+msgstr "成功消息"
 
 #: includes/elements/profile-settings.php:124
 #: includes/elements/profile-settings.php:210
 #: includes/elements/profile-settings.php:718
 msgid "Profile updated successfully!"
-msgstr ""
+msgstr "个人资料更新成功！"
 
 #: includes/elements/profile-settings.php:130
 msgid "Label Typography"
-msgstr ""
+msgstr "标签排版"
 
 #: includes/elements/profile-settings.php:142
 msgid "Input Background"
-msgstr ""
+msgstr "输入框背景"
 
 #: includes/elements/profile-settings.php:154
 msgid "Input Border"
-msgstr ""
+msgstr "输入框边框"
 
 #: includes/elements/profile-settings.php:302
 msgid "Profile Avatar"
-msgstr ""
+msgstr "个人资料头像"
 
 #: includes/elements/profile-settings.php:304
 msgid "Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP."
-msgstr ""
+msgstr "最大文件大小：5MB。允许的格式：JPG, PNG, GIF, WebP。"
 
 #: includes/elements/profile-settings.php:327
 msgid "Email Address"
-msgstr ""
+msgstr "电子邮件地址"
 
 #: includes/elements/profile-settings.php:341
 msgid "Bio / Description"
-msgstr ""
+msgstr "简介 / 描述"
 
 #: includes/elements/profile-settings.php:348
 msgid "Change Password"
-msgstr ""
+msgstr "修改密码"
 
 #: includes/elements/profile-settings.php:351
 msgid "New Password"
-msgstr ""
+msgstr "新密码"
 
 #: includes/elements/profile-settings.php:353
 msgid "Leave blank to keep current password"
-msgstr ""
+msgstr "留空以保留当前密码"
 
 #: includes/elements/profile-settings.php:357
 msgid "Confirm New Password"
-msgstr ""
+msgstr "确认新密码"
 
 #: includes/elements/profile-settings.php:369
 msgid "Additional Information"
-msgstr ""
+msgstr "附加信息"
 
 #: includes/elements/profile-settings.php:438
 msgid "Passwords do not match!"
-msgstr ""
+msgstr "密码不匹配！"
 
 #: includes/elements/profile-settings.php:445
 msgid "Updating..."
-msgstr ""
+msgstr "更新中…"
 
 #: includes/elements/profile-settings.php:483
 msgid "Network error. Please try again."
-msgstr ""
+msgstr "网络错误。请重试。"
 
 #: includes/elements/profile-settings.php:518
 msgid "You must be logged in to update your profile."
-msgstr ""
+msgstr "您必须登录才能更新您的个人资料。"
 
 #: includes/elements/profile-settings.php:529
 msgid "Security check failed: User ID mismatch."
-msgstr ""
+msgstr "安全检查失败：用户 ID 不匹配。"
 
 #: includes/elements/profile-settings.php:537
 msgid "Security check failed: Invalid nonce."
-msgstr ""
+msgstr "安全检查失败：无效的 nonce。"
 
 #: includes/elements/profile-settings.php:544
 msgid "Invalid action."
-msgstr ""
+msgstr "无效操作。"
 
 #: includes/elements/profile-settings.php:553
 msgid "Please wait a moment before updating again."
-msgstr ""
+msgstr "请稍等片刻再进行更新。"
 
 #: includes/elements/profile-settings.php:580
 msgid "Invalid email address."
-msgstr ""
+msgstr "无效的电子邮件地址。"
 
 #: includes/elements/profile-settings.php:587
 msgid "This email is already in use."
-msgstr ""
+msgstr "此电子邮件已被使用。"
 
 #: includes/elements/profile-settings.php:621
 msgid "Passwords do not match."
-msgstr ""
+msgstr "密码不匹配。"
 
 #: includes/elements/profile-settings.php:628
 msgid "Password must be at least 8 characters long."
-msgstr ""
+msgstr "密码长度必须至少为 8 个字符。"
 
 #: includes/elements/profile-settings.php:642
 msgid "Avatar upload failed."
-msgstr ""
+msgstr "头像上传失败。"
 
 #: includes/elements/profile-settings.php:652
 msgid "Invalid file type. Only JPG, PNG, GIF, and WebP are allowed."
-msgstr ""
+msgstr "文件类型无效。仅允许 JPG, PNG, GIF 和 WebP。"
 
 #: includes/elements/profile-settings.php:659
 msgid "File size too large. Maximum 5MB allowed."
-msgstr ""
+msgstr "文件过大。最大允许 5MB。"
 
 #: includes/elements/profile-settings.php:672
 msgid "Avatar upload failed: "
-msgstr ""
+msgstr "头像上传失败："
 
 #: includes/elements/query.php:20
 msgid "Query (Nestable)"
-msgstr ""
+msgstr "查询（可嵌套）"
 
 #: includes/elements/query.php:27
 msgid "No Wrapper"
-msgstr ""
+msgstr "无包装器"
 
 #: includes/elements/query.php:43
 msgid "post_type"
-msgstr ""
+msgstr "post_type"
 
 #: includes/elements/query.php:47
 msgid "Select post types"
-msgstr ""
+msgstr "选择文章类型"
 
 #: includes/elements/query.php:53
 msgid "post_status"
-msgstr ""
+msgstr "post_status"
 
 #: includes/elements/query.php:56
 msgid "Publish"
-msgstr ""
+msgstr "已发布"
 
 #: includes/elements/query.php:57
 #: includes/features/media-image-opt.php:1505
 msgid "Pending"
-msgstr ""
+msgstr "待处理"
 
 #: includes/elements/query.php:58
 msgid "Draft"
-msgstr ""
+msgstr "草稿"
 
 #: includes/elements/query.php:59
 msgid "Auto-Draft"
-msgstr ""
+msgstr "自动草稿"
 
 #: includes/elements/query.php:60
 msgid "Future"
-msgstr ""
+msgstr "计划发布"
 
 #: includes/elements/query.php:61
 #: includes/features/post-types-settings.php:160
@@ -5582,55 +5582,55 @@ msgstr "私人"
 
 #: includes/elements/query.php:62
 msgid "Inherit"
-msgstr ""
+msgstr "继承"
 
 #: includes/elements/query.php:63
 msgid "Trash"
-msgstr ""
+msgstr "回收站"
 
 #: includes/elements/query.php:67
 msgid "Select status"
-msgstr ""
+msgstr "选择状态"
 
 #: includes/elements/query.php:77
 msgid "posts_per_page"
-msgstr ""
+msgstr "posts_per_page"
 
 #: includes/elements/query.php:79
 msgid "Use -1 to show all posts"
-msgstr ""
+msgstr "使用 -1 显示所有文章"
 
 #: includes/elements/query.php:84
 msgid "offset"
-msgstr ""
+msgstr "offset"
 
 #: includes/elements/query.php:86
 msgid "Number of posts to skip"
-msgstr ""
+msgstr "要跳过的文章数量"
 
 #: includes/elements/query.php:91
 msgid "paged"
-msgstr ""
+msgstr "paged"
 
 #: includes/elements/query.php:93
 msgid "Page number (0 = current page)"
-msgstr ""
+msgstr "页码（0 = 当前页）"
 
 #: includes/elements/query.php:98
 msgid "nopaging"
-msgstr ""
+msgstr "nopaging"
 
 #: includes/elements/query.php:104
 msgid "ignore_sticky_posts"
-msgstr ""
+msgstr "ignore_sticky_posts"
 
 #: includes/elements/query.php:114
 msgid "orderby"
-msgstr ""
+msgstr "orderby"
 
 #: includes/elements/query.php:118
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: includes/elements/query.php:119
 #: includes/features/custom-field-settings.php:193
@@ -5642,11 +5642,11 @@ msgstr "作者"
 
 #: includes/elements/query.php:121
 msgid "Name (slug)"
-msgstr ""
+msgstr "名称（别名）"
 
 #: includes/elements/query.php:122
 msgid "Post Type"
-msgstr ""
+msgstr "文章类型"
 
 #: includes/elements/query.php:123 includes/features/301-redirect.php:527
 #: includes/features/activity-logs.php:1752
@@ -5658,135 +5658,135 @@ msgstr "日期"
 
 #: includes/elements/query.php:124
 msgid "Modified Date"
-msgstr ""
+msgstr "修改日期"
 
 #: includes/elements/query.php:125
 msgid "Parent"
-msgstr ""
+msgstr "上级"
 
 #: includes/elements/query.php:127
 msgid "Comment Count"
-msgstr ""
+msgstr "评论数"
 
 #: includes/elements/query.php:128
 msgid "Relevance (search)"
-msgstr ""
+msgstr "相关性（搜索）"
 
 #: includes/elements/query.php:129
 msgid "Menu Order"
-msgstr ""
+msgstr "菜单顺序"
 
 #: includes/elements/query.php:130
 msgid "Meta Value"
-msgstr ""
+msgstr "元值"
 
 #: includes/elements/query.php:131
 msgid "Meta Value (Numeric)"
-msgstr ""
+msgstr "元值（数值）"
 
 #: includes/elements/query.php:132
 msgid "post__in order"
-msgstr ""
+msgstr "post__in 顺序"
 
 #: includes/elements/query.php:139
 msgid "order"
-msgstr ""
+msgstr "order"
 
 #: includes/elements/query.php:142
 msgid "Ascending"
-msgstr ""
+msgstr "升序"
 
 #: includes/elements/query.php:143
 msgid "Descending"
-msgstr ""
+msgstr "降序"
 
 #: includes/elements/query.php:150
 msgid "meta_key"
-msgstr ""
+msgstr "meta_key"
 
 #: includes/elements/query.php:152
 msgid "Enter meta key"
-msgstr ""
+msgstr "输入元键"
 
 #: includes/elements/query.php:153
 msgid "Required for meta_value orderby"
-msgstr ""
+msgstr "meta_value 排序时必填"
 
 #: includes/elements/query.php:163
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #: includes/elements/query.php:165
 msgid "Search keyword"
-msgstr ""
+msgstr "搜索关键词"
 
 #: includes/elements/query.php:175
 msgid "author"
-msgstr ""
+msgstr "author"
 
 #: includes/elements/query.php:177
 msgid "e.g., 1 or 1,2,3"
-msgstr ""
+msgstr "例如 1 或 1,2,3"
 
 #: includes/elements/query.php:178
 msgid "Comma-separated author IDs"
-msgstr ""
+msgstr "以逗号分隔的作者 ID"
 
 #: includes/elements/query.php:184
 msgid "author_name"
-msgstr ""
+msgstr "author_name"
 
 #: includes/elements/query.php:186
 msgid "user_nicename"
-msgstr ""
+msgstr "user_nicename"
 
 #: includes/elements/query.php:196
 msgid "cat"
-msgstr ""
+msgstr "cat"
 
 #: includes/elements/query.php:198
 msgid "Category ID(s)"
-msgstr ""
+msgstr "分类 ID"
 
 #: includes/elements/query.php:199
 msgid "e.g., 1 or 1,2,3 or -1 to exclude"
-msgstr ""
+msgstr "例如 1 或 1,2,3，或使用 -1 排除"
 
 #: includes/elements/query.php:205
 msgid "category_name"
-msgstr ""
+msgstr "category_name"
 
 #: includes/elements/query.php:207
 msgid "category-slug"
-msgstr ""
+msgstr "category-slug"
 
 #: includes/elements/query.php:217
 msgid "tag"
-msgstr ""
+msgstr "tag"
 
 #: includes/elements/query.php:219
 msgid "tag-slug"
-msgstr ""
+msgstr "tag-slug"
 
 #: includes/elements/query.php:220
 msgid "Comma-separated for OR, + for AND"
-msgstr ""
+msgstr "逗号分隔表示“或”，加号表示“且”"
 
 #: includes/elements/query.php:226
 msgid "tag_id"
-msgstr ""
+msgstr "tag_id"
 
 #: includes/elements/query.php:228
 msgid "Tag ID"
-msgstr ""
+msgstr "标签 ID"
 
 #: includes/elements/query.php:238
 msgid "p"
-msgstr ""
+msgstr "p"
 
 #: includes/elements/query.php:244
 msgid "name"
-msgstr ""
+msgstr "name"
 
 #: includes/elements/query.php:246
 #: includes/features/post-types-settings.php:131
@@ -5796,192 +5796,192 @@ msgstr "蛞蝓后"
 
 #: includes/elements/query.php:252
 msgid "post__in"
-msgstr ""
+msgstr "post__in"
 
 #: includes/elements/query.php:254 includes/elements/query.php:262
 #: includes/elements/query.php:283 includes/elements/query.php:292
 msgid "e.g., 1,2,3"
-msgstr ""
+msgstr "例如 1,2,3"
 
 #: includes/elements/query.php:260
 msgid "post__not_in"
-msgstr ""
+msgstr "post__not_in"
 
 #: includes/elements/query.php:272
 msgid "post_parent"
-msgstr ""
+msgstr "post_parent"
 
 #: includes/elements/query.php:274
 msgid "Parent post ID"
-msgstr ""
+msgstr "上级文章 ID"
 
 #: includes/elements/query.php:275
 msgid "Get children of this parent. Use 0 for top-level posts only. For nested queries, use {post_id} or {parent_id} - the tag will be processed at the correct time in the loop context."
-msgstr ""
+msgstr "获取该上级的子项。使用 0 仅获取顶级文章。对于嵌套查询，请使用 {post_id} 或 {parent_id} — 标签将在循环上下文的正确时机被处理。"
 
 #: includes/elements/query.php:281
 msgid "post_parent__in"
-msgstr ""
+msgstr "post_parent__in"
 
 #: includes/elements/query.php:284
 msgid "Comma-separated parent IDs to include"
-msgstr ""
+msgstr "要包含的以逗号分隔的上级 ID"
 
 #: includes/elements/query.php:290
 msgid "post_parent__not_in"
-msgstr ""
+msgstr "post_parent__not_in"
 
 #: includes/elements/query.php:293
 msgid "Comma-separated parent IDs to exclude"
-msgstr ""
+msgstr "要排除的以逗号分隔的上级 ID"
 
 #: includes/elements/query.php:299
 msgid "Direct Children Only"
-msgstr ""
+msgstr "仅直接子项"
 
 #: includes/elements/query.php:301
 msgid "When using post_parent, get only direct children (not grandchildren)"
-msgstr ""
+msgstr "使用 post_parent 时，仅获取直接子项（不包括孙项）"
 
 #: includes/elements/query.php:310
 msgid "has_password"
-msgstr ""
+msgstr "has_password"
 
 #: includes/elements/query.php:314
 msgid "Has Password"
-msgstr ""
+msgstr "有密码"
 
 #: includes/elements/query.php:315
 msgid "No Password"
-msgstr ""
+msgstr "无密码"
 
 #: includes/elements/query.php:326
 msgid "year"
-msgstr ""
+msgstr "year"
 
 #: includes/elements/query.php:328
 msgid "e.g., 2024"
-msgstr ""
+msgstr "例如 2024"
 
 #: includes/elements/query.php:333
 msgid "monthnum"
-msgstr ""
+msgstr "monthnum"
 
 #: includes/elements/query.php:335
 msgid "1-12"
-msgstr ""
+msgstr "1-12"
 
 #: includes/elements/query.php:340
 msgid "day"
-msgstr ""
+msgstr "day"
 
 #: includes/elements/query.php:342
 msgid "1-31"
-msgstr ""
+msgstr "1-31"
 
 #: includes/elements/query.php:351
 msgid "comment_count"
-msgstr ""
+msgstr "comment_count"
 
 #: includes/elements/query.php:357
 msgid "Comment Count Compare"
-msgstr ""
+msgstr "评论数比较"
 
 #: includes/elements/query.php:376
 msgid "no_found_rows"
-msgstr ""
+msgstr "no_found_rows"
 
 #: includes/elements/query.php:378
 msgid "Improves performance if pagination not needed"
-msgstr ""
+msgstr "如果不需要分页，可提升性能"
 
 #: includes/elements/query.php:384
 msgid "Suppress Filters"
-msgstr ""
+msgstr "抑制过滤器"
 
 #: includes/elements/query.php:386
 msgid "Useful for archives: prevents themes/plugins from hijacking the query."
-msgstr ""
+msgstr "对归档页很有用：防止主题/插件劫持查询。"
 
 #: includes/elements/query.php:391
 msgid "cache_results"
-msgstr ""
+msgstr "cache_results"
 
 #: includes/elements/query.php:397
 msgid "Clear Query Cache"
-msgstr ""
+msgstr "清除查询缓存"
 
 #: includes/elements/query.php:399
 msgid "Clear WordPress cache before running query to ensure fresh results"
-msgstr ""
+msgstr "运行查询前清除 WordPress 缓存以确保获取最新结果"
 
 #: includes/elements/query.php:404
 msgid "update_post_meta_cache"
-msgstr ""
+msgstr "update_post_meta_cache"
 
 #: includes/elements/query.php:410
 msgid "update_post_term_cache"
-msgstr ""
+msgstr "update_post_term_cache"
 
 #: includes/elements/query.php:420
 msgid "tax_query"
-msgstr ""
+msgstr "tax_query"
 
 #: includes/elements/query.php:422
 msgid "Enter JSON for tax_query"
-msgstr ""
+msgstr "输入 tax_query 的 JSON"
 
 #: includes/elements/query.php:423
 msgid "Advanced: JSON format for complex taxonomy queries"
-msgstr ""
+msgstr "高级：用于复杂分类法查询的 JSON 格式"
 
 #: includes/elements/query.php:428
 msgid "meta_query"
-msgstr ""
+msgstr "meta_query"
 
 #: includes/elements/query.php:430
 msgid "Enter JSON for meta_query"
-msgstr ""
+msgstr "输入 meta_query 的 JSON"
 
 #: includes/elements/query.php:431
 msgid "Advanced: JSON format for complex meta queries"
-msgstr ""
+msgstr "高级：用于复杂元数据查询的 JSON 格式"
 
 #: includes/elements/query.php:436
 msgid "date_query"
-msgstr ""
+msgstr "date_query"
 
 #: includes/elements/query.php:438
 msgid "Enter JSON for date_query"
-msgstr ""
+msgstr "输入 date_query 的 JSON"
 
 #: includes/elements/query.php:439
 msgid "Advanced: JSON format for complex date queries"
-msgstr ""
+msgstr "高级：用于复杂日期查询的 JSON 格式"
 
 #: includes/elements/query.php:448
 msgid "Empty Message"
-msgstr ""
+msgstr "空消息"
 
 #: includes/elements/query.php:450
 msgid "No posts found"
-msgstr ""
+msgstr "未找到文章"
 
 #: includes/elements/query.php:460
 msgid "Custom Args (PHP)"
-msgstr ""
+msgstr "自定义参数（PHP）"
 
 #: includes/elements/query.php:464
 msgid "Advanced: Enter valid PHP array syntax for WP_Query arguments. These will be merged with (and can override) other control settings. Example: array('posts_per_page' => 5, 'orderby' => 'rand')"
-msgstr ""
+msgstr "高级：为 WP_Query 参数输入有效的 PHP 数组语法。这些参数将与其他控件设置合并（并可覆盖它们）。示例：array('posts_per_page' => 5, 'orderby' => 'rand')"
 
 #: includes/elements/query.php:473
 msgid "Debug"
-msgstr ""
+msgstr "调试"
 
 #: includes/elements/query.php:637
 msgid "No posts matched your criteria."
-msgstr ""
+msgstr "没有符合您条件的文章。"
 
 #: includes/elements/read-more-toggle-text.php:17
 msgid "Read More and Toggle Text"
@@ -5997,7 +5997,7 @@ msgstr "文本高度（px）"
 
 #: includes/elements/read-more-toggle-text.php:39
 msgid "Button Selector (ID or Class)"
-msgstr ""
+msgstr "按钮选择器（ID 或类）"
 
 #: includes/elements/read-more-toggle-text.php:72
 msgid "Your content goes here..."
@@ -6170,139 +6170,139 @@ msgstr "内容"
 
 #: includes/elements/video-player.php:17
 msgid "Video Player"
-msgstr ""
+msgstr "视频播放器"
 
 #: includes/elements/video-player.php:23
 msgid "Video File (Media Library)"
-msgstr ""
+msgstr "视频文件（媒体库）"
 
 #: includes/elements/video-player.php:32
 msgid "Video URL (Manual)"
-msgstr ""
+msgstr "视频 URL（手动）"
 
 #: includes/elements/video-player.php:35
 msgid "Enter a direct URL to your video file or dynamic tag."
-msgstr ""
+msgstr "输入视频文件的直接 URL 或动态标签。"
 
 #: includes/elements/video-player.php:40
 msgid "Poster Image URL"
-msgstr ""
+msgstr "海报图片 URL"
 
 #: includes/elements/video-player.php:43
 msgid "Enter a direct URL to your poster image."
-msgstr ""
+msgstr "输入海报图片的直接 URL。"
 
 #: includes/elements/video-player.php:48
 msgid "Use Featured Image as Poster"
-msgstr ""
+msgstr "使用特色图片作为海报"
 
 #: includes/elements/video-player.php:51
 msgid "Enable this to automatically use the current post's featured image as the video poster."
-msgstr ""
+msgstr "启用此项以自动使用当前文章的特色图片作为视频海报。"
 
 #: includes/elements/video-player.php:56
 msgid "Enable Subtitle Looping"
-msgstr ""
+msgstr "启用字幕循环"
 
 #: includes/elements/video-player.php:59
 msgid "When enabled, subtitles will be automatically loaded from the current post custom fields named \"subtitle\" or \"subtitles\". Use the Double Text custom field for this."
-msgstr ""
+msgstr "启用后，字幕将自动从当前文章名为 “subtitle” 或 “subtitles” 的自定义字段中加载。为此请使用双文本自定义字段。"
 
 #: includes/elements/video-player.php:64
 msgid "Subtitles / Captions"
-msgstr ""
+msgstr "字幕 / 说明文字"
 
 #: includes/elements/video-player.php:67
 msgid "Subtitle language"
-msgstr ""
+msgstr "字幕语言"
 
 #: includes/elements/video-player.php:70
 msgid "WebVTT File"
-msgstr ""
+msgstr "WebVTT 文件"
 
 #: includes/elements/video-player.php:72
 msgid "Upload a WebVTT subtitle file (.vtt)"
-msgstr ""
+msgstr "上传 WebVTT 字幕文件（.vtt）"
 
 #: includes/elements/video-player.php:77
 msgid "e.g., English, Spanish, French"
-msgstr ""
+msgstr "例如 英语、西班牙语、法语"
 
 #: includes/elements/video-player.php:78
 msgid "Language name shown to users. If empty, will use the filename."
-msgstr ""
+msgstr "向用户显示的语言名称。如果留空，将使用文件名。"
 
 #: includes/elements/video-player.php:81
 msgid "Default"
-msgstr ""
+msgstr "默认"
 
 #: includes/elements/video-player.php:84
 msgid "Set as default subtitle"
-msgstr ""
+msgstr "设为默认字幕"
 
 #: includes/elements/video-player.php:113
 msgid "Play on Viewport Entry"
-msgstr ""
+msgstr "进入视口时播放"
 
 #: includes/elements/video-player.php:116
 msgid "Automatically play when the player is more than 50% visible in the viewport, and pause when it leaves. Only one video plays at a time."
-msgstr ""
+msgstr "当播放器在视口中可见超过 50% 时自动播放，离开时暂停。同一时间只播放一个视频。"
 
 #: includes/elements/video-player.php:121
 msgid "Disable Auto Hide Controls"
-msgstr ""
+msgstr "禁用自动隐藏控件"
 
 #: includes/elements/video-player.php:128
 msgid "Enable Chapter Looping"
-msgstr ""
+msgstr "启用章节循环"
 
 #: includes/elements/video-player.php:131
 msgid "When enabled, chapters will be automatically loaded from the current post custom fields named \"chapter\" or \"chapters\". Use the Double Text custom field for this."
-msgstr ""
+msgstr "启用后，章节将自动从当前文章名为 “chapter” 或 “chapters” 的自定义字段中加载。为此请使用双文本自定义字段。"
 
 #: includes/elements/video-player.php:136
 msgid "Video Chapters"
-msgstr ""
+msgstr "视频章节"
 
 #: includes/elements/video-player.php:145
 msgid "Chapter Title"
-msgstr ""
+msgstr "章节标题"
 
 #: includes/elements/video-player.php:146
 msgid "Start Time (e.g., 0:00, 1:45)"
-msgstr ""
+msgstr "开始时间（例如 0:00, 1:45）"
 
 #: includes/elements/video-player.php:181
 msgid "Video Object Fit"
-msgstr ""
+msgstr "视频对象适应方式"
 
 #: includes/elements/video-player.php:184
 msgid "Contain (Default)"
-msgstr ""
+msgstr "包含（默认）"
 
 #: includes/elements/video-player.php:191
 msgid "Controls how the video fits within its container."
-msgstr ""
+msgstr "控制视频如何适应其容器。"
 
 #: includes/elements/video-player.php:203
 msgid "Slider Thumb Color"
-msgstr ""
+msgstr "滑块滑块颜色"
 
 #: includes/elements/video-player.php:238
 msgid "Button Color"
-msgstr ""
+msgstr "按钮颜色"
 
 #: includes/elements/video-player.php:252
 msgid "Controls Bar Background"
-msgstr ""
+msgstr "控制栏背景"
 
 #: includes/elements/video-player.php:260
 msgid "Enable Video SEO Meta Tags"
-msgstr ""
+msgstr "启用视频 SEO Meta 标签"
 
 #: includes/elements/video-player.php:263
 msgid "Adds VideoObject microdata meta tags to the page <head> to help Google understand your video. Outputs: video name (page title), thumbnailUrl (poster image or featured image), uploadDate (post published date), contentUrl (video file URL), embedUrl (current page URL), and the site language. Enables rich video results in Google Search."
-msgstr ""
+msgstr "在页面 <head> 中添加 VideoObject 微数据 meta 标签，帮助 Google 理解您的视频。输出内容包括：视频名称（页面标题）、thumbnailUrl（海报或特色图片）、uploadDate（文章发布日期）、contentUrl（视频文件 URL）、embedUrl（当前页面 URL）以及网站语言。可在 Google 搜索中启用富媒体视频结果。"
 
 #: includes/features/301-redirect.php:14
 msgid "SNN 301 Redirects"
@@ -6584,23 +6584,23 @@ msgstr "启用无障碍小工具"
 
 #: includes/features/accessibility-settings.php:55
 msgid "Primary Color"
-msgstr ""
+msgstr "主色"
 
 #: includes/features/accessibility-settings.php:62
 msgid "Secondary Color"
-msgstr ""
+msgstr "辅助色"
 
 #: includes/features/accessibility-settings.php:69
 msgid "Option Background Color"
-msgstr ""
+msgstr "选项背景颜色"
 
 #: includes/features/accessibility-settings.php:76
 msgid "Option Text Color"
-msgstr ""
+msgstr "选项文本颜色"
 
 #: includes/features/accessibility-settings.php:83
 msgid "Option Icon Color"
-msgstr ""
+msgstr "选项图标颜色"
 
 #: includes/features/accessibility-settings.php:90
 msgid "Button Width (px)"
@@ -6642,275 +6642,275 @@ msgstr "活动日志"
 
 #: includes/features/activity-logs.php:97
 msgid "Critical: Essential for security monitoring and detecting potential attacks"
-msgstr ""
+msgstr "关键：对安全监控和检测潜在攻击至关重要"
 
 #: includes/features/activity-logs.php:98
 msgid "Critical: Important for compliance and security auditing"
-msgstr ""
+msgstr "关键：对合规性和安全审计很重要"
 
 #: includes/features/activity-logs.php:99
 msgid "Critical: Essential for tracking privilege escalation"
-msgstr ""
+msgstr "关键：对追踪权限提升至关重要"
 
 #: includes/features/activity-logs.php:100
 msgid "Critical: Essential for tracking permission changes"
-msgstr ""
+msgstr "关键：对追踪权限变更至关重要"
 
 #: includes/features/activity-logs.php:101
 msgid "Critical: Detects unauthorized code modifications"
-msgstr ""
+msgstr "关键：检测未经授权的代码修改"
 
 #: includes/features/activity-logs.php:102
 msgid "Critical: New plugins can introduce security risks"
-msgstr ""
+msgstr "关键：新插件可能带来安全风险"
 
 #: includes/features/activity-logs.php:103
 msgid "Critical: Track changes to site functionality"
-msgstr ""
+msgstr "关键：追踪网站功能的变更"
 
 #: includes/features/activity-logs.php:104
 msgid "Critical: Permanent removal should be tracked"
-msgstr ""
+msgstr "关键：永久删除应被追踪"
 
 #: includes/features/activity-logs.php:105
 msgid "Critical: New plugin installations can introduce security risks"
-msgstr ""
+msgstr "关键：新插件安装可能带来安全风险"
 
 #: includes/features/activity-logs.php:106
 msgid "Critical: Track WordPress version changes"
-msgstr ""
+msgstr "关键：追踪 WordPress 版本变更"
 
 #: includes/features/activity-logs.php:107
 msgid "Critical: Monitor API access credentials"
-msgstr ""
+msgstr "关键：监控 API 访问凭据"
 
 #: includes/features/activity-logs.php:108
 msgid "Critical: Required for GDPR compliance"
-msgstr ""
+msgstr "关键：GDPR 合规所需"
 
 #: includes/features/activity-logs.php:109
 msgid "Critical: Email changes can indicate account compromise"
-msgstr ""
+msgstr "关键：电子邮件更改可能表明账户被盗用"
 
 #: includes/features/activity-logs.php:110
 msgid "Critical: Password changes should be monitored"
-msgstr ""
+msgstr "关键：应监控密码更改"
 
 #: includes/features/activity-logs.php:111
 msgid "Critical: Site URL changes can break the site"
-msgstr ""
+msgstr "关键：网站 URL 更改可能导致网站故障"
 
 #: includes/features/activity-logs.php:112
 msgid "Critical: Admin email changes affect site notifications"
-msgstr ""
+msgstr "关键：管理员电子邮件更改会影响网站通知"
 
 #: includes/features/activity-logs.php:113
 msgid "Critical: XML-RPC is often targeted by attackers"
-msgstr ""
+msgstr "关键：XML-RPC 经常成为攻击目标"
 
 #: includes/features/activity-logs.php:114
 msgid "Critical: REST API authentication failures may indicate attacks"
-msgstr ""
+msgstr "关键：REST API 身份验证失败可能表明存在攻击"
 
 #: includes/features/activity-logs.php:115
 msgid "Low: Track REST API GET requests (read queries — high volume)"
-msgstr ""
+msgstr "低：追踪 REST API GET 请求（读取查询 — 高流量）"
 
 #: includes/features/activity-logs.php:116
 msgid "Important: Track REST API POST requests (create operations)"
-msgstr ""
+msgstr "重要：追踪 REST API POST 请求（创建操作）"
 
 #: includes/features/activity-logs.php:117
 msgid "Important: Track REST API PUT requests (full update operations)"
-msgstr ""
+msgstr "重要：追踪 REST API PUT 请求（完整更新操作）"
 
 #: includes/features/activity-logs.php:118
 msgid "Important: Track REST API PATCH requests (partial update operations)"
-msgstr ""
+msgstr "重要：追踪 REST API PATCH 请求（部分更新操作）"
 
 #: includes/features/activity-logs.php:119
 msgid "Critical: Track REST API DELETE requests (delete operations)"
-msgstr ""
+msgstr "关键：追踪 REST API DELETE 请求（删除操作）"
 
 #: includes/features/activity-logs.php:120
 msgid "Critical: New theme installations can introduce security risks"
-msgstr ""
+msgstr "关键：新主题安装可能带来安全风险"
 
 #: includes/features/activity-logs.php:123
 msgid "Important: Good for accountability and security"
-msgstr ""
+msgstr "重要：有利于问责和安全"
 
 #: includes/features/activity-logs.php:124
 msgid "Important: Track new user accounts"
-msgstr ""
+msgstr "重要：追踪新用户账户"
 
 #: includes/features/activity-logs.php:125
 msgid "Important: Monitor password change requests"
-msgstr ""
+msgstr "重要：监控密码更改请求"
 
 #: includes/features/activity-logs.php:126
 msgid "Important: Permanent deletion should be tracked"
-msgstr ""
+msgstr "重要：永久删除应被追踪"
 
 #: includes/features/activity-logs.php:127
 msgid "Important: Track content removal"
-msgstr ""
+msgstr "重要：追踪内容删除"
 
 #: includes/features/activity-logs.php:128
 msgid "Important: Track content restoration"
-msgstr ""
+msgstr "重要：追踪内容恢复"
 
 #: includes/features/activity-logs.php:129
 msgid "Important: Track revision restorations"
-msgstr ""
+msgstr "重要：追踪修订版本恢复"
 
 #: includes/features/activity-logs.php:130
 msgid "Important: Track media library changes"
-msgstr ""
+msgstr "重要：追踪媒体库变更"
 
 #: includes/features/activity-logs.php:131
 msgid "Important: Track visual and functional changes"
-msgstr ""
+msgstr "重要：追踪视觉和功能变更"
 
 #: includes/features/activity-logs.php:132
 msgid "Important: Track theme removal"
-msgstr ""
+msgstr "重要：追踪主题删除"
 
 #: includes/features/activity-logs.php:133
 msgid "Important: Track configuration changes"
-msgstr ""
+msgstr "重要：追踪配置变更"
 
 #: includes/features/activity-logs.php:134
 msgid "Informational: Track WordPress cron transient updates (very frequent)"
-msgstr ""
+msgstr "信息性：追踪 WordPress cron 临时数据更新（非常频繁）"
 
 #: includes/features/activity-logs.php:135
 msgid "Important: Track permanent comment removal"
-msgstr ""
+msgstr "重要：追踪永久删除评论"
 
 #: includes/features/activity-logs.php:136
 msgid "Important: Track taxonomy changes"
-msgstr ""
+msgstr "重要：追踪分类法变更"
 
 #: includes/features/activity-logs.php:137
 msgid "Important: Required for GDPR compliance"
-msgstr ""
+msgstr "重要：GDPR 合规所需"
 
 #: includes/features/activity-logs.php:138
 msgid "Important: Track data exports for security"
-msgstr ""
+msgstr "重要：出于安全考虑追踪数据导出"
 
 #: includes/features/activity-logs.php:139
 msgid "Important: Track user session terminations"
-msgstr ""
+msgstr "重要：追踪用户会话终止"
 
 #: includes/features/activity-logs.php:140
 msgid "Important: Bulk operations can affect many items"
-msgstr ""
+msgstr "重要：批量操作可能影响许多项目"
 
 #: includes/features/activity-logs.php:141
 msgid "Important: Track plugin version changes"
-msgstr ""
+msgstr "重要：追踪插件版本变更"
 
 #: includes/features/activity-logs.php:142
 msgid "Important: Permalink changes affect SEO and links"
-msgstr ""
+msgstr "重要：固定链接更改会影响 SEO 和链接"
 
 #: includes/features/activity-logs.php:143
 msgid "Important: Track theme customization changes"
-msgstr ""
+msgstr "重要：追踪主题自定义变更"
 
 #: includes/features/activity-logs.php:146
 msgid "Low Priority: Creates high volume, mainly informational"
-msgstr ""
+msgstr "低优先级：产生大量流量，主要为信息性"
 
 #: includes/features/activity-logs.php:147
 #: includes/features/activity-logs.php:152
 msgid "Low Priority: Frequent updates, less critical"
-msgstr ""
+msgstr "低优先级：频繁更新，重要性较低"
 
 #: includes/features/activity-logs.php:148
 #: includes/features/activity-logs.php:153
 msgid "Low Priority: High volume on active sites"
-msgstr ""
+msgstr "低优先级：活跃网站上流量较大"
 
 #: includes/features/activity-logs.php:149
 msgid "Low Priority: Very high volume, can cause bloat"
-msgstr ""
+msgstr "低优先级：流量非常大，可能导致数据膨胀"
 
 #: includes/features/activity-logs.php:150
 msgid "Low Priority: Frequent on editorial sites"
-msgstr ""
+msgstr "低优先级：在编辑类网站上频繁出现"
 
 #: includes/features/activity-logs.php:151
 msgid "Low Priority: High volume, mainly informational"
-msgstr ""
+msgstr "低优先级：流量较大，主要为信息性"
 
 #: includes/features/activity-logs.php:154
 #: includes/features/activity-logs.php:155
 #: includes/features/activity-logs.php:156
 msgid "Low Priority: Routine moderation action"
-msgstr ""
+msgstr "低优先级：常规审核操作"
 
 #: includes/features/activity-logs.php:157
 msgid "Low Priority: Routine spam filtering"
-msgstr ""
+msgstr "低优先级：常规垃圾邮件过滤"
 
 #: includes/features/activity-logs.php:158
 msgid "Low Priority: Regular maintenance activity"
-msgstr ""
+msgstr "低优先级：常规维护活动"
 
 #: includes/features/activity-logs.php:159
 msgid "Low Priority: Minor configuration changes"
-msgstr ""
+msgstr "低优先级：轻微配置变更"
 
 #: includes/features/activity-logs.php:160
 msgid "Low Priority: Routine navigation changes"
-msgstr ""
+msgstr "低优先级：常规导航变更"
 
 #: includes/features/activity-logs.php:161
 msgid "Low Priority: Routine taxonomy management"
-msgstr ""
+msgstr "低优先级：常规分类法管理"
 
 #: includes/features/activity-logs.php:162
 msgid "Low Priority: Routine taxonomy updates"
-msgstr ""
+msgstr "低优先级：常规分类法更新"
 
 #: includes/features/activity-logs.php:163
 msgid "Low Priority: Very high volume, mainly for debugging"
-msgstr ""
+msgstr "低优先级：流量非常大，主要用于调试"
 
 #: includes/features/activity-logs.php:164
 msgid "Low Priority: For debugging database issues"
-msgstr ""
+msgstr "低优先级：用于调试数据库问题"
 
 #: includes/features/activity-logs.php:165
 msgid "Low Priority: Routine maintenance activity"
-msgstr ""
+msgstr "低优先级：常规维护活动"
 
 #: includes/features/activity-logs.php:166
 msgid "Low Priority: Track featured image updates"
-msgstr ""
+msgstr "低优先级：追踪特色图片更新"
 
 #: includes/features/activity-logs.php:167
 msgid "Low Priority: Track reusable block changes"
-msgstr ""
+msgstr "低优先级：追踪可复用区块变更"
 
 #: includes/features/activity-logs.php:168
 msgid "Low Priority: Track post meta / custom field value changes (e.g. Bricks builder, ACF)"
-msgstr ""
+msgstr "低优先级：追踪文章元数据/自定义字段值变更（例如 Bricks builder, ACF）"
 
 #: includes/features/activity-logs.php:169
 msgid "Low Priority: Track new post meta / custom field additions"
-msgstr ""
+msgstr "低优先级：追踪新增的文章元数据/自定义字段"
 
 #: includes/features/activity-logs.php:170
 msgid "Low Priority: Track post meta / custom field deletions"
-msgstr ""
+msgstr "低优先级：追踪文章元数据/自定义字段删除"
 
 #: includes/features/activity-logs.php:171
 msgid "Important: Track all WordPress options and settings changes"
-msgstr ""
+msgstr "重要：追踪所有 WordPress 选项和设置变更"
 
 #: includes/features/activity-logs.php:184
 msgid "User Login"
@@ -6946,7 +6946,7 @@ msgstr "密码重置申请"
 
 #: includes/features/activity-logs.php:192
 msgid "Password Changes"
-msgstr ""
+msgstr "密码变更"
 
 #: includes/features/activity-logs.php:193
 msgid "Failed Login Attempts"
@@ -6954,11 +6954,11 @@ msgstr "登录失败"
 
 #: includes/features/activity-logs.php:194
 msgid "Email Address Changes"
-msgstr ""
+msgstr "电子邮件地址变更"
 
 #: includes/features/activity-logs.php:195
 msgid "Session Terminations"
-msgstr ""
+msgstr "会话终止"
 
 #: includes/features/activity-logs.php:198
 msgid "Post/Page Creation"
@@ -6978,7 +6978,7 @@ msgstr "帖子/页面被删除"
 
 #: includes/features/activity-logs.php:202
 msgid "Post/Page Restored"
-msgstr ""
+msgstr "文章/页面已恢复"
 
 #: includes/features/activity-logs.php:203
 msgid "Post Status Changes"
@@ -6986,11 +6986,11 @@ msgstr "职位状态更改"
 
 #: includes/features/activity-logs.php:204
 msgid "Revision Restored"
-msgstr ""
+msgstr "修订版本已恢复"
 
 #: includes/features/activity-logs.php:205
 msgid "Bulk Actions"
-msgstr ""
+msgstr "批量操作"
 
 #: includes/features/activity-logs.php:206
 msgid "Media Uploads"
@@ -7006,23 +7006,23 @@ msgstr "媒体更新"
 
 #: includes/features/activity-logs.php:209
 msgid "Featured Image Changes"
-msgstr ""
+msgstr "特色图片变更"
 
 #: includes/features/activity-logs.php:210
 msgid "Reusable Block Changes"
-msgstr ""
+msgstr "可复用区块变更"
 
 #: includes/features/activity-logs.php:211
 msgid "Custom Field Updates"
-msgstr ""
+msgstr "自定义字段更新"
 
 #: includes/features/activity-logs.php:212
 msgid "Custom Field Added"
-msgstr ""
+msgstr "自定义字段已添加"
 
 #: includes/features/activity-logs.php:213
 msgid "Custom Field Deleted"
-msgstr ""
+msgstr "自定义字段已删除"
 
 #: includes/features/activity-logs.php:216
 msgid "Comment Posted"
@@ -7050,7 +7050,7 @@ msgstr "删除评论"
 
 #: includes/features/activity-logs.php:224
 msgid "Plugin Installation"
-msgstr ""
+msgstr "插件安装"
 
 #: includes/features/activity-logs.php:225
 msgid "Plugin Activation"
@@ -7062,7 +7062,7 @@ msgstr "停用插件"
 
 #: includes/features/activity-logs.php:227
 msgid "Plugin Updates"
-msgstr ""
+msgstr "插件更新"
 
 #: includes/features/activity-logs.php:228
 msgid "Plugin Deletion"
@@ -7070,7 +7070,7 @@ msgstr "插件删除"
 
 #: includes/features/activity-logs.php:229
 msgid "Theme Installation"
-msgstr ""
+msgstr "主题安装"
 
 #: includes/features/activity-logs.php:230
 msgid "Theme Switch"
@@ -7098,11 +7098,11 @@ msgstr "菜单更新"
 
 #: includes/features/activity-logs.php:236
 msgid "Permalink Structure Changes"
-msgstr ""
+msgstr "固定链接结构变更"
 
 #: includes/features/activity-logs.php:237
 msgid "Customizer Changes"
-msgstr ""
+msgstr "自定义器变更"
 
 #: includes/features/activity-logs.php:238
 msgid "Data Exports"
@@ -7130,39 +7130,39 @@ msgstr "应用程序密码事件"
 
 #: includes/features/activity-logs.php:246
 msgid "XML-RPC Access"
-msgstr ""
+msgstr "XML-RPC 访问"
 
 #: includes/features/activity-logs.php:247
 msgid "REST API Authentication Failures"
-msgstr ""
+msgstr "REST API 身份验证失败"
 
 #: includes/features/activity-logs.php:248
 msgid "REST API GET Requests"
-msgstr ""
+msgstr "REST API GET 请求"
 
 #: includes/features/activity-logs.php:249
 msgid "REST API POST Requests"
-msgstr ""
+msgstr "REST API POST 请求"
 
 #: includes/features/activity-logs.php:250
 msgid "REST API PUT Requests"
-msgstr ""
+msgstr "REST API PUT 请求"
 
 #: includes/features/activity-logs.php:251
 msgid "REST API PATCH Requests"
-msgstr ""
+msgstr "REST API PATCH 请求"
 
 #: includes/features/activity-logs.php:252
 msgid "REST API DELETE Requests"
-msgstr ""
+msgstr "REST API DELETE 请求"
 
 #: includes/features/activity-logs.php:253
 msgid "Site URL Changes"
-msgstr ""
+msgstr "网站 URL 变更"
 
 #: includes/features/activity-logs.php:254
 msgid "Admin Email Changes"
-msgstr ""
+msgstr "管理员电子邮件变更"
 
 #: includes/features/activity-logs.php:257
 msgid "Category/Tag Creation"
@@ -7186,11 +7186,11 @@ msgstr "数据库优化"
 
 #: includes/features/activity-logs.php:266
 msgid "WordPress Options/Settings Changed"
-msgstr ""
+msgstr "WordPress 选项/设置已更改"
 
 #: includes/features/activity-logs.php:267
 msgid "Transient Doing Cron Updates"
-msgstr ""
+msgstr "Cron 执行临时数据更新"
 
 #: includes/features/activity-logs.php:1596
 msgid "Activity log cleared."
@@ -7218,7 +7218,7 @@ msgstr "所有日志记录选项"
 
 #: includes/features/activity-logs.php:1681
 msgid "Export to CSV"
-msgstr ""
+msgstr "导出为 CSV"
 
 #: includes/features/activity-logs.php:1688
 msgid "Recent Activity"
@@ -7226,27 +7226,27 @@ msgstr "近期活动"
 
 #: includes/features/activity-logs.php:1693
 msgid "Search:"
-msgstr ""
+msgstr "搜索："
 
 #: includes/features/activity-logs.php:1694
 msgid "Search logs..."
-msgstr ""
+msgstr "搜索日志…"
 
 #: includes/features/activity-logs.php:1697
 msgid "From Date:"
-msgstr ""
+msgstr "起始日期："
 
 #: includes/features/activity-logs.php:1701
 msgid "To Date:"
-msgstr ""
+msgstr "结束日期："
 
 #: includes/features/activity-logs.php:1705
 msgid "Filter"
-msgstr ""
+msgstr "筛选"
 
 #: includes/features/activity-logs.php:1707
 msgid "Reset"
-msgstr ""
+msgstr "重置"
 
 #: includes/features/activity-logs.php:1753
 msgid "User"
@@ -7263,7 +7263,7 @@ msgstr "之前"
 
 #: includes/features/activity-logs.php:1827
 msgid "View IP details on Cloudflare Radar"
-msgstr ""
+msgstr "在 Cloudflare Radar 上查看 IP 详情"
 
 #: includes/features/activity-logs.php:1840
 msgid "No activity logged yet."
@@ -7271,11 +7271,11 @@ msgstr "尚无活动记录。"
 
 #: includes/features/activity-logs.php:1866
 msgid "&laquo; Previous"
-msgstr ""
+msgstr "&laquo; 上一页"
 
 #: includes/features/activity-logs.php:1867
 msgid "Next &raquo;"
-msgstr ""
+msgstr "下一页 &raquo;"
 
 #: includes/features/auto-update-snn-brx-github.php:120
 msgid "Latest release information from GitHub."
@@ -7351,19 +7351,19 @@ msgstr "Cookie 设置"
 #: includes/features/mail-customizer.php:598
 #: includes/features/mail-customizer.php:665
 msgid "Permission denied"
-msgstr ""
+msgstr "权限被拒绝"
 
 #: includes/features/cookie-banner.php:37
 msgid "No page URL provided"
-msgstr ""
+msgstr "未提供页面 URL"
 
 #: includes/features/cookie-banner.php:47
 msgid "Failed to fetch page: "
-msgstr ""
+msgstr "获取页面失败："
 
 #: includes/features/cookie-banner.php:53
 msgid "Page content is empty"
-msgstr ""
+msgstr "页面内容为空"
 
 #: includes/features/cookie-banner.php:126
 #: includes/features/custom-code-snippets.php:1254
@@ -7389,11 +7389,11 @@ msgstr "本网站使用 cookie 进行分析和实现功能。"
 
 #: includes/features/cookie-banner.php:244
 msgid "Imprint"
-msgstr ""
+msgstr "版权声明"
 
 #: includes/features/cookie-banner.php:244
 msgid "Privacy Policy"
-msgstr ""
+msgstr "隐私政策"
 
 #: includes/features/cookie-banner.php:1243
 #: includes/features/cookie-banner.php:246
@@ -7414,7 +7414,7 @@ msgstr "首选项"
 #: includes/features/cookie-banner.php:272
 #: includes/features/cookie-banner.php:716
 msgid "Please accept cookies to see the contents of this iframe."
-msgstr ""
+msgstr "请接受 Cookie 以查看此 iframe 的内容。"
 
 #: includes/features/cookie-banner.php:277
 msgid "Cookie Banner"
@@ -7430,7 +7430,7 @@ msgstr "脚本与服务"
 
 #: includes/features/cookie-banner.php:299
 msgid "Page Scanner"
-msgstr ""
+msgstr "页面扫描器"
 
 #: includes/features/cookie-banner.php:300
 msgid "Styles and Layout"
@@ -7514,27 +7514,27 @@ msgstr "首选项按钮文本"
 
 #: includes/features/cookie-banner.php:404
 msgid "Change Cookie Preferences"
-msgstr ""
+msgstr "更改 Cookie 偏好设置"
 
 #: includes/features/cookie-banner.php:408
 msgid "Allow users to change their cookie preferences anytime (GDPR requirement)"
-msgstr ""
+msgstr "允许用户随时更改其 Cookie 偏好设置（GDPR 要求）"
 
 #: includes/features/cookie-banner.php:411
 msgid "Add the CSS class"
-msgstr ""
+msgstr "添加 CSS 类"
 
 #: includes/features/cookie-banner.php:411
 msgid "to any button or link on your website. When clicked, it will reopen the cookie banner allowing users to modify their preferences."
-msgstr ""
+msgstr "到您网站上的任何按钮或链接。点击后将重新打开 Cookie 横幅，允许用户修改其偏好设置。"
 
 #: includes/features/cookie-banner.php:413
 msgid "Examples:"
-msgstr ""
+msgstr "示例："
 
 #: includes/features/cookie-banner.php:414
 msgid "Change Cookie Settings"
-msgstr ""
+msgstr "更改 Cookie 设置"
 
 #: includes/features/cookie-banner.php:423
 msgid "Use this tab to add or modify services to ensure they load according to user consent preferences."
@@ -7631,136 +7631,136 @@ msgstr "添加服务"
 
 #: includes/features/cookie-banner.php:532 includes/features/seo.php:294
 msgid "Reminder:"
-msgstr ""
+msgstr "提醒："
 
 #: includes/features/cookie-banner.php:533
 msgid "Services have been reordered or removed. Please save your changes to prevent index mismatches."
-msgstr ""
+msgstr "服务已重新排序或移除。请保存您的更改以避免索引不匹配。"
 
 #: includes/features/cookie-banner.php:622
 msgid "Page Script Scanner"
-msgstr ""
+msgstr "页面脚本扫描器"
 
 #: includes/features/cookie-banner.php:624
 msgid "This tool helps you scan any page on your website to detect scripts and iframes. You can then select which scripts to block until users accept cookies."
-msgstr ""
+msgstr "此工具可帮助您扫描网站上的任何页面，以检测脚本和 iframe。然后您可以选择在用户接受 Cookie 之前要阻止哪些脚本。"
 
 #: includes/features/cookie-banner.php:626
 msgid "How it works:"
-msgstr ""
+msgstr "工作原理："
 
 #: includes/features/cookie-banner.php:627
 msgid "Select a page from the list below (start typing to search)"
-msgstr ""
+msgstr "从下方列表中选择一个页面（开始输入以搜索）"
 
 #: includes/features/cookie-banner.php:628
 msgid "Click \"Scan Page\" to analyze all scripts on that page"
-msgstr ""
+msgstr "点击“扫描页面”以分析该页面上的所有脚本"
 
 #: includes/features/cookie-banner.php:629
 msgid "Review the detected scripts and select which ones to block"
-msgstr ""
+msgstr "查看检测到的脚本并选择要阻止的脚本"
 
 #: includes/features/cookie-banner.php:630
 msgid "Blocked scripts will not load until users accept cookies"
-msgstr ""
+msgstr "被阻止的脚本在用户接受 Cookie 之前不会加载"
 
 #: includes/features/cookie-banner.php:635
 msgid "Select Page to Scan"
-msgstr ""
+msgstr "选择要扫描的页面"
 
 #: includes/features/cookie-banner.php:637
 msgid "Start typing page title..."
-msgstr ""
+msgstr "开始输入页面标题…"
 
 #: includes/features/cookie-banner.php:650
 msgid "Homepage"
-msgstr ""
+msgstr "首页"
 
 #: includes/features/cookie-banner.php:657
 msgid "Scan Page"
-msgstr ""
+msgstr "扫描页面"
 
 #: includes/features/cookie-banner.php:660
 msgid "Scanning page..."
-msgstr ""
+msgstr "正在扫描页面…"
 
 #: includes/features/cookie-banner.php:665
 msgid "Detected Scripts"
-msgstr ""
+msgstr "检测到的脚本"
 
 #: includes/features/cookie-banner.php:671
 msgid "Currently Blocked Scripts"
-msgstr ""
+msgstr "当前被阻止的脚本"
 
 #: includes/features/cookie-banner.php:689
 #: includes/features/cookie-banner.php:888
 msgid "e.g., Google Analytics"
-msgstr ""
+msgstr "例如 Google Analytics"
 
 #: includes/features/cookie-banner.php:694
 #: includes/features/cookie-banner.php:903
 msgid "e.g., Analytics for tracking site usage"
-msgstr ""
+msgstr "例如 用于追踪网站使用情况的 Analytics"
 
 #: includes/features/cookie-banner.php:698
 #: includes/features/cookie-banner.php:911
 msgid "Script URL:"
-msgstr ""
+msgstr "脚本 URL："
 
 #: includes/features/cookie-banner.php:707
 #: includes/features/cookie-banner.php:946
 msgid "No scripts are currently blocked."
-msgstr ""
+msgstr "当前没有被阻止的脚本。"
 
 #: includes/features/cookie-banner.php:714
 msgid "Iframe Blocking Text"
-msgstr ""
+msgstr "Iframe 阻止文本"
 
 #: includes/features/cookie-banner.php:717
 msgid "This text will be displayed inside blocked iframes until the user accepts cookies."
-msgstr ""
+msgstr "在用户接受 Cookie 之前，此文本将显示在被阻止的 iframe 内。"
 
 #: includes/features/cookie-banner.php:729
 msgid "Please select or enter a page URL"
-msgstr ""
+msgstr "请选择或输入页面 URL"
 
 #: includes/features/cookie-banner.php:750
 msgid "Error scanning page:"
-msgstr ""
+msgstr "扫描页面时出错："
 
 #: includes/features/cookie-banner.php:755
 msgid "Failed to scan page. Please try again."
-msgstr ""
+msgstr "扫描页面失败。请重试。"
 
 #: includes/features/cookie-banner.php:764
 msgid "No external scripts or iframes detected on this page."
-msgstr ""
+msgstr "未在此页面上检测到外部脚本或 iframe。"
 
 #: includes/features/cookie-banner.php:768
 msgid "Scripts Found:"
-msgstr ""
+msgstr "发现的脚本："
 
 #: includes/features/cookie-banner.php:784
 #: includes/features/cookie-banner.php:810
 msgid "Already Blocked"
-msgstr ""
+msgstr "已阻止"
 
 #: includes/features/cookie-banner.php:794
 msgid "Iframes Found:"
-msgstr ""
+msgstr "发现的 Iframe："
 
 #: includes/features/cookie-banner.php:818
 msgid "Block Selected Resources"
-msgstr ""
+msgstr "阻止选定的资源"
 
 #: includes/features/cookie-banner.php:840
 msgid "Please select at least one script to block"
-msgstr ""
+msgstr "请至少选择一个要阻止的脚本"
 
 #: includes/features/cookie-banner.php:929
 msgid "Scripts added to blocked list. Please add Service Name and Description, then save settings!"
-msgstr ""
+msgstr "脚本已添加到阻止列表。请添加服务名称和描述，然后保存设置！"
 
 #: includes/features/cookie-banner.php:956
 msgid "Cookie Banner Background Color"
@@ -7893,15 +7893,15 @@ msgstr "底部富文本"
 
 #: includes/features/cookie-banner.php:1070
 msgid "GDPR Cookie Preference Change:"
-msgstr ""
+msgstr "GDPR Cookie 偏好变更："
 
 #: includes/features/cookie-banner.php:1071
 msgid "Add this class to any button or link to allow users to reopen the cookie banner and change their preferences."
-msgstr ""
+msgstr "将此类添加到任何按钮或链接，以允许用户重新打开 Cookie 横幅并更改其偏好设置。"
 
 #: includes/features/cookie-banner.php:1177
 msgid "Blocked Script"
-msgstr ""
+msgstr "已阻止的脚本"
 
 #: includes/features/cookie-banner.php:1206
 msgid "*"
@@ -7929,7 +7929,7 @@ msgstr "PHP (functions.php)"
 
 #: includes/features/custom-code-snippets.php:65
 msgid "Advanced Code (functions.php)"
-msgstr ""
+msgstr "高级代码（functions.php）"
 
 #: includes/features/custom-code-snippets.php:364
 msgctxt "post type general name"
@@ -8011,34 +8011,34 @@ msgstr "您确定要删除所有错误日志吗？此操作无法撤销。"
 
 #: includes/features/custom-code-snippets.php:1163
 msgid "A previous request ended in a fatal PHP error while this snippet was executing. The error could not be pinned to an exact line, which usually means it happened inside a hook this snippet registered, inside a file it included, or that the request ran out of memory or time. Fix the snippet and save to re-enable it."
-msgstr ""
+msgstr "此代码片段执行期间，先前的一个请求以严重的 PHP 错误结束。该错误无法定位到确切的行，这通常意味着它发生在此代码片段注册的钩子内、其包含的文件内，或请求耗尽了内存或时间。请修复该代码片段并保存以重新启用它。"
 
 #: includes/features/custom-code-snippets.php:1164
 msgid "A previous request ended in a fatal error while this snippet was executing."
-msgstr ""
+msgstr "此代码片段执行期间，先前的一个请求以严重错误结束。"
 
 #: includes/features/custom-code-snippets.php:1166
 msgid "A previous request stopped while this snippet was executing and never completed - the process was killed outright (execution timeout, memory limit or a crash). Fix the snippet and save to re-enable it."
-msgstr ""
+msgstr "此代码片段执行期间，先前的一个请求停止且从未完成 - 该进程被直接终止（执行超时、内存限制或崩溃）。请修复该代码片段并保存以重新启用它。"
 
 #: includes/features/custom-code-snippets.php:1167
 msgid "A previous request stopped while this snippet was executing and never finished."
-msgstr ""
+msgstr "此代码片段执行期间，先前的一个请求停止且从未结束。"
 
 #: includes/features/custom-code-snippets.php:1174
 #, php-format
 msgid "(started %1$d time(s) without completing, %2$d second(s) since first run)"
-msgstr ""
+msgstr "（已启动 %1$d 次但未完成，自首次运行以来已过 %2$d 秒）"
 
 #: includes/features/custom-code-snippets.php:1216
 #, php-format
 msgid "\"%s\" parses cleanly and has been re-enabled."
-msgstr ""
+msgstr "“%s” 解析正常，已重新启用。"
 
 #: includes/features/custom-code-snippets.php:1240
 #, php-format
 msgid "\"%1$s\" was saved but will NOT run: %2$s (line %3$d). Fix the error and save again to re-enable it."
-msgstr ""
+msgstr "“%1$s” 已保存但不会运行：%2$s（第 %3$d 行）。修复错误后再次保存以重新启用。"
 
 #: includes/features/custom-code-snippets.php:1266
 msgid "PHP code or HTML executed within the <code>&lt;head&gt;</code> tags on the frontend. Use for dynamic meta tags, conditional CSS/JS links, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code."
@@ -8071,7 +8071,7 @@ msgstr "已清除所有错误日志。"
 #: includes/features/custom-code-snippets.php:1318
 #, php-format
 msgid "\"%s\" has been re-enabled. If it is still broken it will be blocked again automatically."
-msgstr ""
+msgstr "“%s” 已重新启用。如果它仍然损坏，将自动再次被阻止。"
 
 #: includes/features/custom-code-snippets.php:1338
 #, php-format
@@ -8138,7 +8138,7 @@ msgstr "请注意这些设置不适合普通用户！如果您不具备 HTML、C
 
 #: includes/features/custom-code-snippets.php:1540
 msgid "If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php file to disable the code snippets feature temporarly. "
-msgstr ""
+msgstr "如需要，可在 functions.php 文件中使用 define( ‘SNN_CODE_DISABLE’, true ); 来临时禁用代码片段功能。 "
 
 #: includes/features/custom-code-snippets.php:1553
 #: includes/features/custom-code-snippets.php:1556
@@ -8181,7 +8181,7 @@ msgstr "类型"
 
 #: includes/features/custom-code-snippets.php:1612
 msgid "Tab/Snippet"
-msgstr ""
+msgstr "标签页/代码片段"
 
 #: includes/features/custom-code-snippets.php:1613
 msgid "Line"
@@ -8189,23 +8189,23 @@ msgstr "线路"
 
 #: includes/features/custom-code-snippets.php:1614
 msgid "Function/Context"
-msgstr ""
+msgstr "函数/上下文"
 
 #: includes/features/custom-code-snippets.php:1615
 msgid "Error Message"
-msgstr ""
+msgstr "错误消息"
 
 #: includes/features/custom-code-snippets.php:1616
 msgid "Code Context"
-msgstr ""
+msgstr "代码上下文"
 
 #: includes/features/custom-code-snippets.php:1630
 msgid "Top-level"
-msgstr ""
+msgstr "顶层"
 
 #: includes/features/custom-code-snippets.php:1634
 msgid "View Code"
-msgstr ""
+msgstr "查看代码"
 
 #: includes/features/custom-code-snippets.php:1636
 #: includes/features/role-manager.php:464
@@ -8225,23 +8225,23 @@ msgstr "尚未记录错误。"
 #: includes/features/custom-code-snippets.php:1665
 #: includes/features/custom-code-snippets.php:1730
 msgid "This snippet is blocked and is not running."
-msgstr ""
+msgstr "此代码片段已被阻止且未运行。"
 
 #: includes/features/custom-code-snippets.php:1669
 #: includes/features/custom-code-snippets.php:1734
 #, php-format
 msgid "(line %d)"
-msgstr ""
+msgstr "（第 %d 行）"
 
 #: includes/features/custom-code-snippets.php:1674
 #: includes/features/custom-code-snippets.php:1740
 msgid "Re-enable this snippet"
-msgstr ""
+msgstr "重新启用此代码片段"
 
 #: includes/features/custom-code-snippets.php:1684
 #: includes/features/custom-code-snippets.php:1750
 msgid "Run this snippet"
-msgstr ""
+msgstr "运行此代码片段"
 
 #: includes/features/custom-code-snippets.php:1692
 msgid "Enter your raw, unsanitized PHP code here..."
@@ -8259,7 +8259,7 @@ msgstr "警告"
 
 #: includes/features/custom-code-snippets.php:1737
 msgid "Fix the code and save to re-enable it automatically, or force it back on now:"
-msgstr ""
+msgstr "修复代码并保存以自动重新启用，或立即强制开启："
 
 #: includes/features/custom-code-snippets.php:1757
 msgid "Enter your PHP code or HTML here..."
@@ -8346,25 +8346,25 @@ msgstr "访问此修订内容的权限已被拒绝。"
 #: includes/features/custom-code-snippets.php:2039
 #, php-format
 msgid "%1$d consecutive requests ended in a fatal error while snippets were running, and none could be attributed to a specific snippet. Global snippet execution has been switched off so the site can load. Last error: %2$s"
-msgstr ""
+msgstr "代码片段运行期间，%1$d 个连续请求以严重错误结束，且无法归因于某个特定代码片段。全局代码片段执行已被关闭，以便网站可以加载。最后一次错误：%2$s"
 
 #: includes/features/custom-code-snippets.php:2053
 #, php-format
 msgid "%d consecutive requests ended in a fatal error while snippets were running. The error could not be traced to one snippet, so global snippet execution was switched off."
-msgstr ""
+msgstr "代码片段运行期间，%d 个连续请求以严重错误结束。无法将该错误追溯到某一个代码片段，因此全局代码片段执行已被关闭。"
 
 #: includes/features/custom-code-snippets.php:2193
 msgid "CRITICAL: A code snippet was blocked after a fatal error."
-msgstr ""
+msgstr "严重：一个代码片段在发生严重错误后被阻止。"
 
 #: includes/features/custom-code-snippets.php:2199
 #, php-format
 msgid "The snippet \"%s\" caused a fatal PHP error and has been blocked so your site keeps loading. Other snippets are unaffected."
-msgstr ""
+msgstr "代码片段 “%s” 导致了严重的 PHP 错误，已被阻止以确保您的网站继续加载。其他代码片段不受影响。"
 
 #: includes/features/custom-code-snippets.php:2203
 msgid "A custom code snippet caused a fatal PHP error, so snippet execution was disabled. This is a safety measure to prevent your site from breaking further."
-msgstr ""
+msgstr "一个自定义代码片段导致了严重的 PHP 错误，因此代码片段执行已被禁用。这是防止您的网站进一步损坏的安全措施。"
 
 #: includes/features/custom-code-snippets.php:2207
 msgid "Error Details:"
@@ -8373,7 +8373,7 @@ msgstr "错误详情："
 #: includes/features/custom-code-snippets.php:2233
 #, php-format
 msgid "Open <a href=\"%1$s\">that snippet</a> and fix the code - saving a working version re-enables it automatically. Global snippet execution was NOT switched off, so your other snippets are still running. Full details are in the <a href=\"%2$s\">Error Logs tab</a>."
-msgstr ""
+msgstr "打开<a href=\"%1$s\">该代码片段</a>并修复代码 - 保存一个可正常工作的版本会自动重新启用它。全局代码片段执行未被关闭，因此您的其他代码片段仍在运行。完整详情请查看<a href=\"%2$s\">错误日志标签页</a>。"
 
 #: includes/features/custom-code-snippets.php:2240
 #, php-format
@@ -8383,7 +8383,7 @@ msgstr "请查看 <a href=\"%s\">Error Logs（错误日志）选项卡</a> 了�
 #: includes/features/custom-code-snippets.php:2250
 #, php-format
 msgid "If the front end is still broken, add <code>?snn_safe_mode=1</code> to any URL to load the site with every snippet switched off, or set <code>define( 'SNN_CODE_SAFE_MODE', true );</code> in <code>wp-config.php</code>. The snippets settings page never executes snippets, so it always loads: <a href=\"%s\">open it now</a>."
-msgstr ""
+msgstr "如果前端仍然损坏，请在任意 URL 后添加 <code>?snn_safe_mode=1</code> 以在所有代码片段关闭的情况下加载网站，或在 <code>wp-config.php</code> 中设置 <code>define( 'SNN_CODE_SAFE_MODE', true );</code>。代码片段设置页面从不执行代码片段，因此始终可以加载：<a href=\"%s\">立即打开</a>。"
 
 #: includes/features/custom-code-snippets.php:2255
 msgid "Dismiss This Notice"
@@ -8455,12 +8455,12 @@ msgstr "宽度 (%)"
 #: includes/features/custom-field-settings.php:146
 #: includes/features/custom-field-settings.php:410
 msgid "Double Text"
-msgstr ""
+msgstr "双文本"
 
 #: includes/features/custom-field-settings.php:148
 #: includes/features/custom-field-settings.php:412
 msgid "Double Textarea"
-msgstr ""
+msgstr "双文本域"
 
 #: includes/features/custom-field-settings.php:149
 #: includes/features/custom-field-settings.php:413
@@ -8499,7 +8499,7 @@ msgstr "真/假"
 #: includes/features/custom-field-settings.php:161
 #: includes/features/custom-field-settings.php:425
 msgid "Map"
-msgstr ""
+msgstr "地图"
 
 #: includes/features/custom-field-settings.php:165
 #: includes/features/custom-field-settings.php:429
@@ -8538,7 +8538,7 @@ msgstr "分类法"
 #: includes/features/custom-field-settings.php:197
 #: includes/features/custom-field-settings.php:292
 msgid "This field type cannot be assigned to Author"
-msgstr ""
+msgstr "此字段类型不能分配给作者"
 
 #: includes/features/custom-field-settings.php:200
 #: includes/features/custom-field-settings.php:443
@@ -8548,7 +8548,7 @@ msgstr "选项页面"
 #: includes/features/custom-field-settings.php:204
 #: includes/features/custom-field-settings.php:293
 msgid "This field type cannot be assigned to Options Page"
-msgstr ""
+msgstr "此字段类型不能分配给选项页面"
 
 #: includes/features/custom-field-settings.php:207
 #: includes/features/custom-field-settings.php:444
@@ -8558,12 +8558,12 @@ msgstr "中继器"
 #: includes/features/custom-field-settings.php:213
 #: includes/features/custom-field-settings.php:445
 msgid "Quick Edit"
-msgstr ""
+msgstr "快速编辑"
 
 #: includes/features/custom-field-settings.php:216
 #: includes/features/custom-field-settings.php:445
 msgid "Enable Quick Edit for this field"
-msgstr ""
+msgstr "为此字段启用快速编辑"
 
 #: includes/features/custom-field-settings.php:220
 msgid "Return URL"
@@ -8573,7 +8573,7 @@ msgstr "返回 URL"
 #: includes/features/custom-field-settings.php:370
 #: includes/features/custom-field-settings.php:447
 msgid "Date Format"
-msgstr ""
+msgstr "日期格式"
 
 #: includes/features/custom-field-settings.php:241
 msgid "Add New Field"
@@ -8613,19 +8613,19 @@ msgstr "添加更多 +"
 
 #: includes/features/custom-field-settings.php:1385
 msgid "Input 1"
-msgstr ""
+msgstr "输入 1"
 
 #: includes/features/custom-field-settings.php:1388
 msgid "Input 2"
-msgstr ""
+msgstr "输入 2"
 
 #: includes/features/custom-field-settings.php:1425
 msgid "Textarea 1"
-msgstr ""
+msgstr "文本域 1"
 
 #: includes/features/custom-field-settings.php:1428
 msgid "Textarea 2"
-msgstr ""
+msgstr "文本域 2"
 
 #: includes/features/custom-field-settings.php:1580
 #: includes/features/custom-field-settings.php:1599
@@ -8634,15 +8634,15 @@ msgstr "没有明确的选择。"
 
 #: includes/features/custom-field-settings.php:1666
 msgid "Search for a place (city, country, address...)"
-msgstr ""
+msgstr "搜索地点（城市、国家、地址…）"
 
 #: includes/features/custom-field-settings.php:1676
 msgid "Latitude:"
-msgstr ""
+msgstr "纬度："
 
 #: includes/features/custom-field-settings.php:1677
 msgid "Longitude:"
-msgstr ""
+msgstr "经度："
 
 #: includes/features/custom-field-settings.php:2317
 msgid "Custom Author Information"
@@ -8698,28 +8698,28 @@ msgstr "选中此复选框可禁用整个网站的 Gravatar 支持。"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:58
 msgid "Disable REST API Endpoints for Guests"
-msgstr ""
+msgstr "为访客禁用 REST API 端点"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:79
 msgid "Select which REST API endpoints should be disabled for non-logged-in users. Logged-in users will still have access."
-msgstr ""
+msgstr "选择应为未登录用户禁用哪些 REST API 端点。已登录用户仍可访问。"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:85
 msgid "Select/Deselect All"
-msgstr ""
+msgstr "全选/取消全选"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:95
 msgid "endpoints"
-msgstr ""
+msgstr "个端点"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:129
 #, php-format
 msgid "Total endpoints found: %d"
-msgstr ""
+msgstr "找到的端点总数：%d"
 
 #: includes/features/disable-wp-json-if-not-logged-in.php:263
 msgid "This endpoint is not available for non-logged-in users."
-msgstr ""
+msgstr "此端点对未登录用户不可用。"
 
 #: includes/features/disable-xmlrpc.php:15
 msgid "Disable XML-RPC"
@@ -8731,57 +8731,57 @@ msgstr "启用此设置将禁用 WordPress 中的 XML-RPC 功能。"
 
 #: includes/features/draft-revision.php:58
 msgid "Sync with Original"
-msgstr ""
+msgstr "与原始文章同步"
 
 #: includes/features/draft-revision.php:70
 msgid "Create Revision"
-msgstr ""
+msgstr "创建修订版本"
 
 #: includes/features/draft-revision.php:214
 #: includes/features/draft-revision.php:86
 msgid "Security check failed"
-msgstr ""
+msgstr "安全检查失败"
 
 #: includes/features/draft-revision.php:219
 #: includes/features/draft-revision.php:91
 msgid "You do not have permission to do this"
-msgstr ""
+msgstr "您没有执行此操作的权限"
 
 #: includes/features/draft-revision.php:98
 msgid "Post not found"
-msgstr ""
+msgstr "未找到文章"
 
 #: includes/features/draft-revision.php:226
 msgid "Draft post not found"
-msgstr ""
+msgstr "未找到草稿文章"
 
 #: includes/features/draft-revision.php:233
 msgid "Original post ID not found"
-msgstr ""
+msgstr "未找到原始文章 ID"
 
 #: includes/features/draft-revision.php:240
 msgid "Original post not found"
-msgstr ""
+msgstr "未找到原始文章"
 
 #: includes/features/draft-revision.php:245
 msgid "You do not have permission to edit the original post"
-msgstr ""
+msgstr "您没有编辑原始文章的权限"
 
 #: includes/features/draft-revision.php:384
 msgid "Draft revision created successfully!"
-msgstr ""
+msgstr "草稿修订版本创建成功！"
 
 #: includes/features/draft-revision.php:384
 msgid "You can now edit this draft. When ready, click \"Sync with Original\" to update the original post."
-msgstr ""
+msgstr "您现在可以编辑此草稿。准备好后，点击“与原始文章同步”以更新原始文章。"
 
 #: includes/features/draft-revision.php:391
 msgid "All changes from the draft have been applied to this post. The draft has been moved to trash."
-msgstr ""
+msgstr "草稿中的所有更改已应用到此文章。该草稿已移至回收站。"
 
 #: includes/features/draft-revision.php:391
 msgid "Draft synced successfully!"
-msgstr ""
+msgstr "草稿同步成功！"
 
 #: includes/features/editor-settings-bricks.php:41
 #: includes/features/editor-settings-bricks.php:7
@@ -8815,11 +8815,11 @@ msgstr "启用 SNN-BRX 面板。图像优化器、钳位发生器和旧全局颜
 #: includes/features/editor-settings-bricks.php:145
 #: includes/features/editor-settings-bricks.php:80
 msgid "Enable Custom CSS Overlay in Bricks Builder"
-msgstr ""
+msgstr "在 Bricks Builder 中启用自定义 CSS 覆盖层"
 
 #: includes/features/editor-settings-bricks.php:88
 msgid "URL Coming Soon Bypass"
-msgstr ""
+msgstr "URL“即将推出”绕行"
 
 #: includes/features/editor-settings-bricks.php:121
 msgid "Configure Bricks Builder editor-specific settings below.<br>"
@@ -8831,7 +8831,7 @@ msgstr "启用 SNN-BRX 编辑面板"
 
 #: includes/features/editor-settings-bricks.php:147
 msgid "Adds a floating CodeMirror CSS editor at the bottom of the Bricks builder. Click the <code>&lt;/&gt;</code> button in the panel header to toggle it. Syncs with the selected element's CSS or the page CSS when no element is selected."
-msgstr ""
+msgstr "在 Bricks builder 底部添加一个悬浮的 CodeMirror CSS 编辑器。点击面板标题中的 <code>&lt;/&gt;</code> 按钮以切换显示。未选择元素时，会与选定元素的 CSS 或页面 CSS 同步。"
 
 #: includes/features/editor-settings-bricks.php:168
 msgid "Make Elements Compact But Keep Icons"
@@ -8839,27 +8839,27 @@ msgstr "压缩元素，保留图标"
 
 #: includes/features/editor-settings-bricks.php:277
 msgid "Enable URL Coming Soon Bypass"
-msgstr ""
+msgstr "启用 URL“即将推出”绕行"
 
 #: includes/features/editor-settings-bricks.php:280
 msgid "Bypass Key (URL slug)"
-msgstr ""
+msgstr "绕行密钥（URL 别名）"
 
 #: includes/features/editor-settings-bricks.php:291
 msgid "Only letters, numbers, <code>-</code> and <code>_</code> are allowed."
-msgstr ""
+msgstr "仅允许使用字母、数字、<code>-</code> 和 <code>_</code>。"
 
 #: includes/features/editor-settings-bricks.php:293
 msgid "Preview link:"
-msgstr ""
+msgstr "预览链接："
 
 #: includes/features/editor-settings-bricks.php:297
 msgid "(valid 24 h)"
-msgstr ""
+msgstr "（24 小时有效）"
 
 #: includes/features/editor-settings-bricks.php:299
 msgid "Visit <code>/?key=YOUR_SLUG</code> to set the bypass cookie (valid 24 h)."
-msgstr ""
+msgstr "访问 <code>/?key=您的密钥</code> 以设置绕行 Cookie（24 小时有效）。"
 
 #: includes/features/editor-settings-panel-bricks.php:45
 msgid "SNN-BRX"
@@ -8893,7 +8893,7 @@ msgstr "保存后刷新编辑器"
 
 #: includes/features/editor-settings-panel-clamp.php:10
 msgid "Generate CSS clamp() values for responsive typography and spacing. Copy the generated value or save it directly to Bricks Global Variables for easy reuse. (Do not forget to match your HTML font-size with clamp. Go to: Theme Styles > Typography > HTML font-size)"
-msgstr ""
+msgstr "为响应式排版和间距生成 CSS clamp() 值。复制生成的值，或直接保存到 Bricks 全局变量以便重复使用。（别忘了将您的 HTML 字体大小与 clamp 匹配。请前往：主题样式 > 排版 > HTML 字体大小）"
 
 #: includes/features/editor-settings-panel-color-sync.php:104
 msgid "primary-color"
@@ -9019,32 +9019,32 @@ msgstr "文件大小"
 #: includes/features/interactions.php:7
 #: includes/features/settings-page.php:46
 msgid "Interactions"
-msgstr ""
+msgstr "交互"
 
 #: includes/features/interactions.php:26
 msgid "Interactions & Animations"
-msgstr ""
+msgstr "交互与动画"
 
 #: includes/features/interactions.php:47
 msgid "Animation Settings"
-msgstr ""
+msgstr "动画设置"
 
 #: includes/features/interactions.php:54
 msgid "Enable GSAP and GSAP Elements"
-msgstr ""
+msgstr "启用 GSAP 和 GSAP 元素"
 
 #: includes/features/interactions.php:246
 #: includes/features/interactions.php:62
 msgid "Enable Lenis Smooth Scroll"
-msgstr ""
+msgstr "启用 Lenis 平滑滚动"
 
 #: includes/features/interactions.php:70
 msgid "Enable Page Transitions"
-msgstr ""
+msgstr "启用页面过渡"
 
 #: includes/features/interactions.php:120
 msgid "Configure animation and interaction settings for your site below."
-msgstr ""
+msgstr "在下方配置您网站的动画和交互设置。"
 
 #: includes/features/interactions.php:221
 msgid "Enabling this setting will enqueue the GSAP library and its associated scripts on your website."
@@ -9072,325 +9072,325 @@ msgstr "gsap-data-animate.php：自定义脚本，利用 GSAP 和 ScrollTrigger 
 
 #: includes/features/interactions.php:247
 msgid "Lenis is a lightweight, robust, and performant smooth scroll library designed for creating smooth scrolling experiences."
-msgstr ""
+msgstr "Lenis 是一个轻量、稳健且高性能的平滑滚动库，专为创造流畅的滚动体验而设计。"
 
 #: includes/features/interactions.php:249
 msgid "Basic Settings"
-msgstr ""
+msgstr "基本设置"
 
 #: includes/features/interactions.php:250
 msgid "Auto RAF (Recommended)"
-msgstr ""
+msgstr "自动 RAF（推荐）"
 
 #: includes/features/interactions.php:250
 msgid "Automatically run requestAnimationFrame loop. Keep this enabled for best performance."
-msgstr ""
+msgstr "自动运行 requestAnimationFrame 循环。为获得最佳性能，请保持启用。"
 
 #: includes/features/interactions.php:251
 msgid "Animation duration in seconds. Default: 0.7"
-msgstr ""
+msgstr "动画持续时间（秒）。默认：0.7"
 
 #: includes/features/interactions.php:251
 msgid "Duration (seconds)"
-msgstr ""
+msgstr "持续时间（秒）"
 
 #: includes/features/interactions.php:252
 msgid "Lerp (smoothness)"
-msgstr ""
+msgstr "Lerp（平滑度）"
 
 #: includes/features/interactions.php:252
 msgid "Linear interpolation intensity (0.01 to 1). Lower = smoother. Default: 0.1"
-msgstr ""
+msgstr "线性插值强度（0.01 到 1）。数值越低越平滑。默认：0.1"
 
 #: includes/features/interactions.php:253
 msgid "Mouse wheel scroll speed. Default: 1"
-msgstr ""
+msgstr "鼠标滚轮滚动速度。默认：1"
 
 #: includes/features/interactions.php:253
 msgid "Wheel Multiplier"
-msgstr ""
+msgstr "滚轮倍数"
 
 #: includes/features/interactions.php:254
 msgid "Smooth Wheel Events"
-msgstr ""
+msgstr "平滑滚轮事件"
 
 #: includes/features/interactions.php:254
 msgid "Smooth the scroll initiated by wheel events. Default: enabled"
-msgstr ""
+msgstr "平滑由滚轮事件触发的滚动。默认：启用"
 
 #: includes/features/interactions.php:256
 #: includes/features/interactions.php:326
 msgid "Advanced Settings"
-msgstr ""
+msgstr "高级设置"
 
 #: includes/features/interactions.php:258
 msgid "Orientation"
-msgstr ""
+msgstr "方向"
 
 #: includes/features/interactions.php:258
 msgid "Scrolling orientation. Default: vertical"
-msgstr ""
+msgstr "滚动方向。默认：垂直"
 
 #: includes/features/interactions.php:259
 msgid "Gesture Orientation"
-msgstr ""
+msgstr "手势方向"
 
 #: includes/features/interactions.php:259
 msgid "Touch gesture orientation. Default: vertical"
-msgstr ""
+msgstr "触摸手势方向。默认：垂直"
 
 #: includes/features/interactions.php:260
 msgid "Mimic touch device scroll (can be unstable on iOS<16). Default: disabled"
-msgstr ""
+msgstr "模拟触摸设备滚动（在 iOS<16 上可能不稳定）。默认：禁用"
 
 #: includes/features/interactions.php:260
 msgid "Sync Touch"
-msgstr ""
+msgstr "同步触摸"
 
 #: includes/features/interactions.php:261
 msgid "Lerp applied during syncTouch inertia. Default: 0.075"
-msgstr ""
+msgstr "syncTouch 惯性期间应用的 Lerp。默认：0.075"
 
 #: includes/features/interactions.php:261
 msgid "Sync Touch Lerp"
-msgstr ""
+msgstr "同步触摸 Lerp"
 
 #: includes/features/interactions.php:262
 msgid "Touch Multiplier"
-msgstr ""
+msgstr "触摸倍数"
 
 #: includes/features/interactions.php:262
 msgid "Touch scroll speed multiplier. Default: 1"
-msgstr ""
+msgstr "触摸滚动速度倍数。默认：1"
 
 #: includes/features/interactions.php:263
 msgid "Strength of syncTouch inertia. Default: 1.7"
-msgstr ""
+msgstr "syncTouch 惯性的强度。默认：1.7"
 
 #: includes/features/interactions.php:263
 msgid "Touch Inertia Exponent"
-msgstr ""
+msgstr "触摸惯性指数"
 
 #: includes/features/interactions.php:264
 msgid "Enable infinite scrolling. Requires syncTouch on touch devices. Default: disabled"
-msgstr ""
+msgstr "启用无限滚动。在触摸设备上需要 syncTouch。默认：禁用"
 
 #: includes/features/interactions.php:264
 msgid "Infinite Scroll"
-msgstr ""
+msgstr "无限滚动"
 
 #: includes/features/interactions.php:265
 msgid "Overscroll"
-msgstr ""
+msgstr "过度滚动"
 
 #: includes/features/interactions.php:265
 msgid "Similar to CSS overscroll-behavior. Default: enabled"
-msgstr ""
+msgstr "类似于 CSS overscroll-behavior。默认：启用"
 
 #: includes/features/interactions.php:266
 msgid "Easing Function"
-msgstr ""
+msgstr "缓动函数"
 
 #: includes/features/interactions.php:266
 msgid "Easing function for scroll animation. Default: custom exponential"
-msgstr ""
+msgstr "滚动动画的缓动函数。默认：自定义指数"
 
 #: includes/features/interactions.php:281
 msgid "Enable Page Transitions with View Transition API"
-msgstr ""
+msgstr "使用 View Transition API 启用页面过渡"
 
 #: includes/features/interactions.php:282
 msgid "The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience."
-msgstr ""
+msgstr "View Transition API 提供了一种机制，可轻松在不同网站页面之间创建动画过渡。它允许您在页面导航时创建无缝的视觉过渡，从而改善用户体验。"
 
 #: includes/features/interactions.php:283
 msgid "Learn more:"
-msgstr ""
+msgstr "了解更多："
 
 #: includes/features/interactions.php:285
 msgid "Transition Settings"
-msgstr ""
+msgstr "过渡设置"
 
 #: includes/features/interactions.php:287
 msgid "Transition Type"
-msgstr ""
+msgstr "过渡类型"
 
 #: includes/features/interactions.php:289
 msgid "Wipe Down (Top to Bottom)"
-msgstr ""
+msgstr "向下擦除（从上到下）"
 
 #: includes/features/interactions.php:290
 msgid "Wipe Down Soft Edge (Fade Leading Edge)"
-msgstr ""
+msgstr "向下擦除柔边（前缘淡出）"
 
 #: includes/features/interactions.php:291
 msgid "Wipe Up (Bottom to Top)"
-msgstr ""
+msgstr "向上擦除（从下到上）"
 
 #: includes/features/interactions.php:292
 msgid "Wipe Left (Right to Left)"
-msgstr ""
+msgstr "向左擦除（从右到左）"
 
 #: includes/features/interactions.php:293
 msgid "Wipe Right (Left to Right)"
-msgstr ""
+msgstr "向右擦除（从左到右）"
 
 #: includes/features/interactions.php:294
 msgid "3D Perspective Flip"
-msgstr ""
+msgstr "3D 透视翻转"
 
 #: includes/features/interactions.php:295
 msgid "Mosaic Grid Reveal"
-msgstr ""
+msgstr "马赛克网格显现"
 
 #: includes/features/interactions.php:296
 msgid "Halftone Dots"
-msgstr ""
+msgstr "半色调点"
 
 #: includes/features/interactions.php:297
 msgid "Vertical Shutters"
-msgstr ""
+msgstr "垂直百叶窗"
 
 #: includes/features/interactions.php:298
 msgid "Horizontal Shutters"
-msgstr ""
+msgstr "水平百叶窗"
 
 #: includes/features/interactions.php:299
 msgid "Diamond Grid"
-msgstr ""
+msgstr "菱形网格"
 
 #: includes/features/interactions.php:300
 msgid "Iris Circle"
-msgstr ""
+msgstr "虹膜圆形"
 
 #: includes/features/interactions.php:301
 msgid "Diagonal Slashes"
-msgstr ""
+msgstr "对角切割"
 
 #: includes/features/interactions.php:302
 msgid "Fade in and Fade out"
-msgstr ""
+msgstr "淡入淡出"
 
 #: includes/features/interactions.php:303
 msgid "Ink Spread (Rorschach)"
-msgstr ""
+msgstr "墨水扩散（罗夏）"
 
 #: includes/features/interactions.php:304
 msgid "Camera Aperture (Spiral)"
-msgstr ""
+msgstr "相机光圈（螺旋）"
 
 #: includes/features/interactions.php:305
 msgid "Broken Glass (Polygons)"
-msgstr ""
+msgstr "破碎玻璃（多边形）"
 
 #: includes/features/interactions.php:306
 msgid "Pixel Dither (Dissolve)"
-msgstr ""
+msgstr "像素抖动（溶解）"
 
 #: includes/features/interactions.php:307
 msgid "Radial Wipe (Clock Sweep)"
-msgstr ""
+msgstr "径向擦除（时钟扫描）"
 
 #: includes/features/interactions.php:308
 msgid "Hexagon Grid"
-msgstr ""
+msgstr "六边形网格"
 
 #: includes/features/interactions.php:309
 msgid "Zoom Out Scale"
-msgstr ""
+msgstr "缩小缩放"
 
 #: includes/features/interactions.php:310
 msgid "Zoom In Scale"
-msgstr ""
+msgstr "放大缩放"
 
 #: includes/features/interactions.php:311
 msgid "Slide Push (Carousel)"
-msgstr ""
+msgstr "滑动推移（轮播）"
 
 #: includes/features/interactions.php:312
 msgid "Slide Over Stack (iOS Style)"
-msgstr ""
+msgstr "滑动堆叠（iOS 风格）"
 
 #: includes/features/interactions.php:313
 msgid "Random Mosaic Peel (Staggered Tiles)"
-msgstr ""
+msgstr "随机马赛克剥离（错落瓷砖）"
 
 #: includes/features/interactions.php:316
 msgid "Select the type of transition effect to use when navigating between pages. Default: Wipe Down"
-msgstr ""
+msgstr "选择在页面之间导航时使用的过渡效果类型。默认：向下擦除"
 
 #: includes/features/interactions.php:320
 msgid "Transition Duration (seconds)"
-msgstr ""
+msgstr "过渡持续时间（秒）"
 
 #: includes/features/interactions.php:322
 msgid "Duration of the transition effect in seconds. Default: 0.5s"
-msgstr ""
+msgstr "过渡效果的持续时间（秒）。默认：0.5s"
 
 #: includes/features/interactions.php:328
 msgid "Page Structure Selectors"
-msgstr ""
+msgstr "页面结构选择器"
 
 #: includes/features/interactions.php:329
 msgid "Define CSS selectors to identify different parts of your page. This helps the transition system properly update content and preserve scripts/assets."
-msgstr ""
+msgstr "定义 CSS 选择器以识别页面的不同部分。这有助于过渡系统正确更新内容并保留脚本/资源。"
 
 #: includes/features/interactions.php:332
 msgid "Update Mode"
-msgstr ""
+msgstr "更新模式"
 
 #: includes/features/interactions.php:334
 msgid "Smart Update (Recommended)"
-msgstr ""
+msgstr "智能更新（推荐）"
 
 #: includes/features/interactions.php:335
 msgid "Full Page Replace"
-msgstr ""
+msgstr "整页替换"
 
 #: includes/features/interactions.php:337
 msgid "Smart Update: Only updates main content area while preserving header/footer and scripts. Full Page Replace: Replaces entire page content (may cause asset loading issues). Default: Smart Update"
-msgstr ""
+msgstr "智能更新：仅更新主内容区域，同时保留页眉/页脚和脚本。整页替换：替换整个页面内容（可能导致资源加载问题）。默认：智能更新"
 
 #: includes/features/interactions.php:341
 msgid "Header Selector"
-msgstr ""
+msgstr "页眉选择器"
 
 #: includes/features/interactions.php:343
 msgid "CSS selector for the global header element. Default: header"
-msgstr ""
+msgstr "全局页眉元素的 CSS 选择器。默认：header"
 
 #: includes/features/interactions.php:347
 msgid "Main Content Selector"
-msgstr ""
+msgstr "主内容选择器"
 
 #: includes/features/interactions.php:349
 msgid "CSS selector for the main content area. Supports multiple selectors separated by commas. Default: main, article, #brx-content"
-msgstr ""
+msgstr "主内容区域的 CSS 选择器。支持以逗号分隔的多个选择器。默认：main, article, #brx-content"
 
 #: includes/features/interactions.php:353
 msgid "Footer Selector"
-msgstr ""
+msgstr "页脚选择器"
 
 #: includes/features/interactions.php:355
 msgid "CSS selector for the global footer element. Default: footer"
-msgstr ""
+msgstr "全局页脚元素的 CSS 选择器。默认：footer"
 
 #: includes/features/limit-login-attempts.php:107
 #, php-format
 msgid "<strong>ERROR</strong>: Your IP address has been temporarily blocked due to too many failed login attempts. Please try again in %d hours."
-msgstr ""
+msgstr "<strong>错误</strong>：由于登录失败次数过多，您的 IP 地址已被临时阻止。请在 %d 小时后重试。"
 
 #: includes/features/limit-login-attempts.php:110
 msgid "Login Blocked"
-msgstr ""
+msgstr "登录已被阻止"
 
 #: includes/features/limit-login-attempts.php:129
 msgid "Your IP address has been temporarily blocked due to too many failed login attempts."
-msgstr ""
+msgstr "由于登录失败次数过多，您的 IP 地址已被临时阻止。"
 
 #: includes/features/limit-login-attempts.php:230
 msgid "All blocked IPs have been cleared successfully."
-msgstr ""
+msgstr "所有被阻止的 IP 已成功清除。"
 
 #: includes/features/login-logo-change-url-change.php:6
 msgid "Login Logo Image URL"
@@ -9428,29 +9428,29 @@ msgstr "输入徽标应链接到登录页面的 URL。"
 
 #: includes/features/login-math-captcha.php:42
 msgid "Verify you are human:"
-msgstr ""
+msgstr "验证您是人类："
 
 #: includes/features/login-math-captcha.php:43
 msgid "Click to refresh"
-msgstr ""
+msgstr "点击刷新"
 
 #: includes/features/login-math-captcha.php:45
 msgid "Verified!"
-msgstr ""
+msgstr "已验证！"
 
 #: includes/features/login-math-captcha.php:206
 #: includes/features/login-math-captcha.php:224
 #: includes/features/login-math-captcha.php:240
 #: includes/features/login-math-captcha.php:266
 msgid "ERROR"
-msgstr ""
+msgstr "错误"
 
 #: includes/features/login-math-captcha.php:206
 #: includes/features/login-math-captcha.php:224
 #: includes/features/login-math-captcha.php:240
 #: includes/features/login-math-captcha.php:266
 msgid "Verification failed. Please solve the math equation."
-msgstr ""
+msgstr "验证失败。请解答数学题。"
 
 #: includes/features/login-settings.php:155
 #: includes/features/login-settings.php:8
@@ -9518,124 +9518,124 @@ msgstr "保存的设置"
 
 #: includes/features/login-url-security.php:243
 msgid "Custom Login URL"
-msgstr ""
+msgstr "自定义登录 URL"
 
 #: includes/features/login-url-security.php:264
 msgid "Enable to serve the WordPress login page at a custom URL and block direct /wp-login.php access."
-msgstr ""
+msgstr "启用以在自定义 URL 提供 WordPress 登录页面，并阻止直接访问 /wp-login.php。"
 
 #: includes/features/login-url-security.php:268
 msgid "Login Slug:"
-msgstr ""
+msgstr "登录别名："
 
 #: includes/features/login-url-security.php:281
 msgid "Allowed: lowercase letters (a-z), numbers (0-9), dashes (-). No spaces or special characters. Default: snn"
-msgstr ""
+msgstr "允许：小写字母（a-z）、数字（0-9）、连字符（-）。不允许空格或特殊字符。默认：snn"
 
 #: includes/features/login-url-security.php:285
 msgid "Your current login URL:"
-msgstr ""
+msgstr "您当前的登录 URL："
 
 #: includes/features/login-url-security.php:288
 msgid "Emergency recovery:"
-msgstr ""
+msgstr "紧急恢复："
 
 #: includes/features/login-url-security.php:289
 msgid "If you get locked out, add this line to your wp-config.php to restore normal login access:"
-msgstr ""
+msgstr "如果您被锁定在外，请在 wp-config.php 中添加此行以恢复正常登录访问："
 
 #: includes/features/mail-customizer.php:41
 #: includes/features/mail-customizer.php:42
 msgid "Mail Customizer"
-msgstr ""
+msgstr "邮件自定义工具"
 
 #: includes/features/mail-customizer.php:170
 msgid "Enable Custom Email Templates"
-msgstr ""
+msgstr "启用自定义邮件模板"
 
 #: includes/features/mail-customizer.php:173
 msgid "Check this to apply custom email template to all WordPress emails."
-msgstr ""
+msgstr "选中此项以将自定义邮件模板应用到所有 WordPress 邮件。"
 
 #: includes/features/mail-customizer.php:179
 msgid "Email Body"
-msgstr ""
+msgstr "邮件正文"
 
 #: includes/features/mail-customizer.php:180
 msgid "Customize the complete email template. Use dynamic tags to insert content automatically."
-msgstr ""
+msgstr "自定义完整的邮件模板。使用动态标签自动插入内容。"
 
 #: includes/features/mail-customizer.php:185
 msgid "Sender Name"
-msgstr ""
+msgstr "发件人姓名"
 
 #: includes/features/mail-customizer.php:188
 msgid "The name that appears as the email sender."
-msgstr ""
+msgstr "作为邮件发件人显示的名称。"
 
 #: includes/features/mail-customizer.php:192
 msgid "Sender Email"
-msgstr ""
+msgstr "发件人邮箱"
 
 #: includes/features/mail-customizer.php:195
 msgid "The email address that appears as the sender."
-msgstr ""
+msgstr "作为发件人显示的电子邮件地址。"
 
 #: includes/features/mail-customizer.php:217
 msgid "Available Dynamic Tags:"
-msgstr ""
+msgstr "可用的动态标签："
 
 #: includes/features/mail-customizer.php:218
 msgid "Original email message content"
-msgstr ""
+msgstr "原始邮件消息内容"
 
 #: includes/features/mail-customizer.php:220
 msgid "Your site name"
-msgstr ""
+msgstr "您的网站名称"
 
 #: includes/features/mail-customizer.php:222
 msgid "Your site URL"
-msgstr ""
+msgstr "您的网站 URL"
 
 #: includes/features/mail-customizer.php:224
 msgid "Current year"
-msgstr ""
+msgstr "当前年份"
 
 #: includes/features/mail-customizer.php:231
 msgid "Colors"
-msgstr ""
+msgstr "颜色"
 
 #: includes/features/mail-customizer.php:234
 msgid "Body Background"
-msgstr ""
+msgstr "正文背景"
 
 #: includes/features/mail-customizer.php:243
 msgid "Content Background"
-msgstr ""
+msgstr "内容背景"
 
 #: includes/features/mail-customizer.php:279
 msgid "Test & Preview Emails"
-msgstr ""
+msgstr "测试与预览邮件"
 
 #: includes/features/mail-customizer.php:280
 msgid "Send test emails or preview how different WordPress email types will look with your template."
-msgstr ""
+msgstr "发送测试邮件或预览不同 WordPress 邮件类型使用您的模板时的显示效果。"
 
 #: includes/features/mail-customizer.php:285
 msgid "Custom Test Email"
-msgstr ""
+msgstr "自定义测试邮件"
 
 #: includes/features/mail-customizer.php:287
 msgid "recipient@example.com"
-msgstr ""
+msgstr "recipient@example.com"
 
 #: includes/features/mail-customizer.php:288
 msgid "Enter your test message..."
-msgstr ""
+msgstr "输入您的测试消息…"
 
 #: includes/features/mail-customizer.php:291
 msgid "Send Custom Test"
-msgstr ""
+msgstr "发送自定义测试"
 
 #: includes/features/mail-customizer.php:294
 #: includes/features/mail-customizer.php:309
@@ -9645,106 +9645,106 @@ msgstr ""
 #: includes/features/mail-customizer.php:350
 #: includes/features/mail-customizer.php:360
 msgid "Preview"
-msgstr ""
+msgstr "预览"
 
 #: includes/features/mail-customizer.php:302
 msgid "Password Reset Email"
-msgstr ""
+msgstr "密码重置邮件"
 
 #: includes/features/mail-customizer.php:304
 msgid "WordPress password reset email notification."
-msgstr ""
+msgstr "WordPress 密码重置邮件通知。"
 
 #: includes/features/mail-customizer.php:306
 msgid "Send to Current User"
-msgstr ""
+msgstr "发送给当前用户"
 
 #: includes/features/mail-customizer.php:315
 msgid "New User Notification"
-msgstr ""
+msgstr "新用户通知"
 
 #: includes/features/mail-customizer.php:317
 msgid "Email sent when a new user account is created."
-msgstr ""
+msgstr "创建新用户账户时发送的邮件。"
 
 #: includes/features/mail-customizer.php:321
 msgid "(Preview only - creates actual user account)"
-msgstr ""
+msgstr "（仅预览 - 会创建实际用户账户）"
 
 #: includes/features/mail-customizer.php:326
 msgid "Comment Notification"
-msgstr ""
+msgstr "评论通知"
 
 #: includes/features/mail-customizer.php:328
 msgid "Email sent to post author when someone comments."
-msgstr ""
+msgstr "有人评论时发送给文章作者的邮件。"
 
 #: includes/features/mail-customizer.php:336
 msgid "Auto Update Success"
-msgstr ""
+msgstr "自动更新成功"
 
 #: includes/features/mail-customizer.php:338
 msgid "Email sent when WordPress auto-updates successfully."
-msgstr ""
+msgstr "WordPress 自动更新成功时发送的邮件。"
 
 #: includes/features/mail-customizer.php:346
 msgid "Auto Update Failed"
-msgstr ""
+msgstr "自动更新失败"
 
 #: includes/features/mail-customizer.php:348
 msgid "Email sent when WordPress auto-update fails."
-msgstr ""
+msgstr "WordPress 自动更新失败时发送的邮件。"
 
 #: includes/features/mail-customizer.php:356
 msgid "Email Change Request"
-msgstr ""
+msgstr "邮箱变更请求"
 
 #: includes/features/mail-customizer.php:358
 msgid "Email sent when user requests to change their email address."
-msgstr ""
+msgstr "用户请求更改其电子邮件地址时发送的邮件。"
 
 #: includes/features/mail-customizer.php:372
 msgid "Email Preview"
-msgstr ""
+msgstr "邮件预览"
 
 #: includes/features/mail-customizer.php:394
 #: includes/features/smtp-settings.php:1148
 msgid "Sending..."
-msgstr ""
+msgstr "发送中…"
 
 #: includes/features/mail-customizer.php:415
 #: includes/features/mail-customizer.php:452
 msgid "Ajax error occurred"
-msgstr ""
+msgstr "发生 Ajax 错误"
 
 #: includes/features/mail-customizer.php:448
 msgid "Preview failed"
-msgstr ""
+msgstr "预览失败"
 
 #: includes/features/mail-customizer.php:606
 msgid "Invalid email address"
-msgstr ""
+msgstr "电子邮件地址无效"
 
 #: includes/features/mail-customizer.php:614
 #: includes/features/mail-customizer.php:718
 #, php-format
 msgid "[Test] Email from %s"
-msgstr ""
+msgstr "[测试] 来自 %s 的邮件"
 
 #: includes/features/mail-customizer.php:617
 #, php-format
 msgid "Test email sent successfully to %s"
-msgstr ""
+msgstr "测试邮件已成功发送至 %s"
 
 #: includes/features/mail-customizer.php:618
 msgid "Failed to send test email. Check your email server configuration."
-msgstr ""
+msgstr "测试邮件发送失败。请检查您的邮件服务器配置。"
 
 #: includes/features/mail-customizer.php:626
 #: includes/features/mail-customizer.php:725
 #, php-format
 msgid "[%s] Password Reset"
-msgstr ""
+msgstr "[%s] 密码重置"
 
 #: includes/features/mail-customizer.php:628
 #: includes/features/mail-customizer.php:726
@@ -9761,44 +9761,54 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"有人请求重置以下账户的密码：\n"
+"\n"
+"网站名称：%s\n"
+"用户名：%s\n"
+"\n"
+"如果这是一个错误，请忽略此邮件，不会发生任何事情。\n"
+"\n"
+"要重置您的密码，请访问以下地址：\n"
+"\n"
+"%s"
 
 #: includes/features/mail-customizer.php:641
 #, php-format
 msgid "Password reset email sent to %s"
-msgstr ""
+msgstr "密码重置邮件已发送至 %s"
 
 #: includes/features/mail-customizer.php:642
 msgid "Failed to send password reset email."
-msgstr ""
+msgstr "密码重置邮件发送失败。"
 
 #: includes/features/mail-customizer.php:644
 msgid "Failed to generate password reset key."
-msgstr ""
+msgstr "密码重置密钥生成失败。"
 
 #: includes/features/mail-customizer.php:649
 msgid "Invalid test type"
-msgstr ""
+msgstr "无效的测试类型"
 
 #: includes/features/mail-customizer.php:674
 msgid "Invalid preview type"
-msgstr ""
+msgstr "无效的预览类型"
 
 #: includes/features/mail-customizer.php:692
 msgid "Custom email templates are currently DISABLED. Enable them in settings to see the styled version."
-msgstr ""
+msgstr "自定义邮件模板当前已禁用。请在设置中启用以查看样式化版本。"
 
 #: includes/features/mail-customizer.php:700
 msgid "Subject:"
-msgstr ""
+msgstr "主题："
 
 #: includes/features/mail-customizer.php:719
 msgid "This is a test email to verify your custom email template."
-msgstr ""
+msgstr "这是一封用于验证您自定义邮件模板的测试邮件。"
 
 #: includes/features/mail-customizer.php:740
 #, php-format
 msgid "[%s] Your username and password info"
-msgstr ""
+msgstr "[%s] 您的用户名和密码信息"
 
 #: includes/features/mail-customizer.php:741
 #, php-format
@@ -9810,11 +9820,17 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"用户名：newuser123\n"
+"要设置您的密码，请访问以下地址：\n"
+"\n"
+"%s/wp-login.php?action=rp&key=SAMPLE_KEY&login=newuser123\n"
+"\n"
+"%s"
 
 #: includes/features/mail-customizer.php:751
 #, php-format
 msgid "[%s] Please moderate: \"Sample Post Title\""
-msgstr ""
+msgstr "[%s] 请审核：“Sample Post Title”"
 
 #: includes/features/mail-customizer.php:752
 #, php-format
@@ -9832,11 +9848,23 @@ msgid ""
 "Currently 1 comment is waiting for approval. Please visit the moderation panel:\n"
 "%s/wp-admin/edit-comments.php?comment_status=moderated"
 msgstr ""
+"文章 “Sample Post Title” 上的一条新评论正等待您的批准\n"
+"\n"
+"作者：John Doe（邮箱：john@example.com）\n"
+"评论内容：\n"
+"这是有人在您的博客文章上留下的示例评论。它包含一些关于您内容的反馈。\n"
+"\n"
+"批准：%s/wp-admin/comment.php?action=approve&c=123\n"
+"移入回收站：%s/wp-admin/comment.php?action=trash&c=123\n"
+"标记为垃圾：%s/wp-admin/comment.php?action=spam&c=123\n"
+"\n"
+"目前有 1 条评论正等待批准。请访问审核面板：\n"
+"%s/wp-admin/edit-comments.php?comment_status=moderated"
 
 #: includes/features/mail-customizer.php:768
 #, php-format
 msgid "[%s] Some plugins and themes have automatically updated"
-msgstr ""
+msgstr "[%s] 部分插件和主题已自动更新"
 
 #: includes/features/mail-customizer.php:769
 #, php-format
@@ -9871,11 +9899,40 @@ msgid ""
 "Visit your site: %s\n"
 "Visit your dashboard: %s/wp-admin/"
 msgstr ""
+"您好！\n"
+"\n"
+"好消息！您的网站已自动更新。\n"
+"\n"
+"######################################################\n"
+"# WordPress 更新详情\n"
+"######################################################\n"
+"\n"
+"已从 6.4.1 更新至 WordPress 6.4.2\n"
+"\n"
+"######################################################\n"
+"# 插件更新详情\n"
+"######################################################\n"
+"\n"
+"以下插件已成功更新：\n"
+"\n"
+"- Contact Form 7（5.8.4 更新至 5.8.5）\n"
+"- Yoast SEO（21.5 更新至 21.6）\n"
+"\n"
+"######################################################\n"
+"# 主题更新详情\n"
+"######################################################\n"
+"\n"
+"以下主题已成功更新：\n"
+"\n"
+"- Twenty Twenty-Four（1.0 更新至 1.1）\n"
+"\n"
+"访问您的网站：%s\n"
+"访问您的仪表盘：%s/wp-admin/"
 
 #: includes/features/mail-customizer.php:802
 #, php-format
 msgid "[%s] URGENT: Automatic update failed"
-msgstr ""
+msgstr "[%s] 紧急：自动更新失败"
 
 #: includes/features/mail-customizer.php:803
 #, php-format
@@ -9902,11 +9959,32 @@ msgid ""
 "If you need help, please contact your hosting provider or visit:\n"
 "https://wordpress.org/support/"
 msgstr ""
+"您好！\n"
+"\n"
+"我们尝试自动更新您的网站，但很遗憾出了点问题。\n"
+"\n"
+"######################################################\n"
+"# 更新尝试详情\n"
+"######################################################\n"
+"\n"
+"失败：WordPress 6.4.2\n"
+"\n"
+"错误消息：下载失败。未提供有效的 URL。\n"
+"\n"
+"######################################################\n"
+"# 后续步骤\n"
+"######################################################\n"
+"\n"
+"请手动更新您的网站：\n"
+"%s/wp-admin/update-core.php\n"
+"\n"
+"如果您需要帮助，请联系您的托管服务商或访问：\n"
+"https://wordpress.org/support/"
 
 #: includes/features/mail-customizer.php:828
 #, php-format
 msgid "[%s] Email Change Request"
-msgstr ""
+msgstr "[%s] 邮箱变更请求"
 
 #: includes/features/mail-customizer.php:829
 #, php-format
@@ -9926,6 +10004,20 @@ msgid ""
 "All at %s\n"
 "%s"
 msgstr ""
+"您好，\n"
+"\n"
+"您最近请求更改您账户上的电子邮件地址。\n"
+"\n"
+"如果这是您本人的操作，请点击以下链接确认此更改：\n"
+"%s/wp-login.php?action=confirmemail&key=SAMPLE_KEY\n"
+"\n"
+"如果您不想执行此操作，可以放心忽略并删除此邮件。\n"
+"\n"
+"此邮件已发送至 %s\n"
+"\n"
+"此致，\n"
+"%s 团队敬上\n"
+"%s"
 
 #: includes/features/mail-logging.php:13
 #: includes/features/mail-logging.php:14
@@ -9982,19 +10074,19 @@ msgstr "加载错误信息"
 #: includes/features/media-image-opt.php:17
 #: includes/features/media-image-opt.php:18
 msgid "Optimize Media"
-msgstr ""
+msgstr "优化媒体"
 
 #: includes/features/media-image-opt.php:34
 msgid "Upload Optimized Media"
-msgstr ""
+msgstr "上传已优化的媒体"
 
 #: includes/features/media-image-opt.php:37
 msgid "Optimize Existing Media"
-msgstr ""
+msgstr "优化现有媒体"
 
 #: includes/features/media-image-opt.php:40
 msgid "History & Settings"
-msgstr ""
+msgstr "历史记录与设置"
 
 #: includes/features/media-image-opt.php:55
 msgid "Optimize, convert, and resize images before adding them to your media library."
@@ -10003,227 +10095,227 @@ msgstr "在将图片添加到媒体库之前，对其进行优化、转换和调
 #: includes/features/media-image-opt.php:1082
 #: includes/features/media-image-opt.php:56
 msgid "Fast Client-Side Processing:"
-msgstr ""
+msgstr "快速客户端处理："
 
 #: includes/features/media-image-opt.php:56
 msgid "Images are optimized directly in your browser using your CPU. Keep this tab open during processing for best performance. Even thousands of images will be processed quickly!"
-msgstr ""
+msgstr "图片直接在您的浏览器中使用 CPU 进行优化。处理期间请保持此标签页打开以获得最佳性能。即使数千张图片也能快速处理！"
 
 #: includes/features/media-image-opt.php:1079
 msgid "Convert existing JPG and PNG images in your media library to WebP format. Original images are preserved and can be restored anytime."
-msgstr ""
+msgstr "将媒体库中现有的 JPG 和 PNG 图片转换为 WebP 格式。原始图片将被保留，可随时恢复。"
 
 #: includes/features/media-image-opt.php:1082
 msgid "Images are downloaded and optimized directly in your browser using WebAssembly (libwebp). Keep browser tab open until optimization completes."
-msgstr ""
+msgstr "图片使用 WebAssembly（libwebp）直接在您的浏览器中下载并优化。请保持浏览器标签页打开，直到优化完成。"
 
 #: includes/features/media-image-opt.php:1086
 msgid "Optimization Settings"
-msgstr ""
+msgstr "优化设置"
 
 #: includes/features/media-image-opt.php:1092
 msgid "Quality (0-100):"
-msgstr ""
+msgstr "质量（0-100）："
 
 #: includes/features/media-image-opt.php:1095
 msgid "75-85 for photos, 85-95 for graphics."
-msgstr ""
+msgstr "照片建议 75-85，图形建议 85-95。"
 
 #: includes/features/media-image-opt.php:1101
 msgid "Max Width (px):"
-msgstr ""
+msgstr "最大宽度（px）："
 
 #: includes/features/media-image-opt.php:1104
 msgid "0 = no resize. 2000 recommended."
-msgstr ""
+msgstr "0 = 不调整大小。建议 2000。"
 
 #: includes/features/media-image-opt.php:1110
 msgid "Method (0-6):"
-msgstr ""
+msgstr "方法（0-6）："
 
 #: includes/features/media-image-opt.php:1113
 msgid "0 - Fastest"
-msgstr ""
+msgstr "0 - 最快"
 
 #: includes/features/media-image-opt.php:1114
 msgid "2 - Fast"
-msgstr ""
+msgstr "2 - 快速"
 
 #: includes/features/media-image-opt.php:1115
 msgid "4 - Balanced"
-msgstr ""
+msgstr "4 - 平衡"
 
 #: includes/features/media-image-opt.php:1116
 msgid "6 - Best compression"
-msgstr ""
+msgstr "6 - 最佳压缩"
 
 #: includes/features/media-image-opt.php:1118
 msgid "Higher = smaller files, slower."
-msgstr ""
+msgstr "数值越高 = 文件越小，速度越慢。"
 
 #: includes/features/media-image-opt.php:1124
 msgid "Compression Type:"
-msgstr ""
+msgstr "压缩类型："
 
 #: includes/features/media-image-opt.php:1127
 msgid "Auto (smart)"
-msgstr ""
+msgstr "自动（智能）"
 
 #: includes/features/media-image-opt.php:1128
 msgid "Lossy (photos)"
-msgstr ""
+msgstr "有损（照片）"
 
 #: includes/features/media-image-opt.php:1129
 msgid "Lossless (perfect)"
-msgstr ""
+msgstr "无损（完美）"
 
 #: includes/features/media-image-opt.php:1130
 msgid "Near-Lossless"
-msgstr ""
+msgstr "接近无损"
 
 #: includes/features/media-image-opt.php:1132
 msgid "Auto: lossy for JPG, lossless for PNG."
-msgstr ""
+msgstr "自动：JPG 使用有损，PNG 使用无损。"
 
 #: includes/features/media-image-opt.php:1138
 msgid "Near-Lossless (0-100):"
-msgstr ""
+msgstr "接近无损（0-100）："
 
 #: includes/features/media-image-opt.php:1141
 msgid "60 typical. 0=max, 100=none."
-msgstr ""
+msgstr "典型值为 60。0=最大，100=无。"
 
 #: includes/features/media-image-opt.php:1147
 msgid "Alpha Quality (0-100):"
-msgstr ""
+msgstr "Alpha 质量（0-100）："
 
 #: includes/features/media-image-opt.php:1150
 msgid "For PNG transparency. 100=lossless."
-msgstr ""
+msgstr "用于 PNG 透明度。100=无损。"
 
 #: includes/features/media-image-opt.php:1158
 msgid "Skip if WebP would be larger than original"
-msgstr ""
+msgstr "如果 WebP 会比原图更大则跳过"
 
 #: includes/features/media-image-opt.php:1164
 msgid "Include already optimized images (for re-optimization)"
-msgstr ""
+msgstr "包含已优化的图片（用于重新优化）"
 
 #: includes/features/media-image-opt.php:1170
 #: includes/features/media-image-opt.php:1452
 msgid "Scan for Unoptimized Images"
-msgstr ""
+msgstr "扫描未优化的图片"
 
 #: includes/features/media-image-opt.php:1173
 msgid "Optimize All Unoptimized"
-msgstr ""
+msgstr "优化所有未优化图片"
 
 #: includes/features/media-image-opt.php:1176
 msgid "Optimize Only Selected Images"
-msgstr ""
+msgstr "仅优化选定图片"
 
 #: includes/features/media-image-opt.php:1193
 #: includes/features/media-image-opt.php:1997
 msgid "Select All on This Page"
-msgstr ""
+msgstr "选择此页上的全部"
 
 #: includes/features/media-image-opt.php:1213
 msgid "Thumb"
-msgstr ""
+msgstr "缩略图"
 
 #: includes/features/media-image-opt.php:1214
 #: includes/features/media-image-opt.php:2018
 msgid "File Name"
-msgstr ""
+msgstr "文件名"
 
 #: includes/features/media-image-opt.php:1215
 msgid "Dimensions"
-msgstr ""
+msgstr "尺寸"
 
 #: includes/features/media-image-opt.php:1217
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 #: includes/features/media-image-opt.php:1218
 msgid "New Size"
-msgstr ""
+msgstr "新大小"
 
 #: includes/features/media-image-opt.php:1219
 msgid "Saved"
-msgstr ""
+msgstr "已节省"
 
 #: includes/features/media-image-opt.php:1220
 msgid "Status"
-msgstr ""
+msgstr "状态"
 
 #: includes/features/media-image-opt.php:1334
 #: includes/features/media-image-opt.php:2104
 msgid "selected"
-msgstr ""
+msgstr "已选择"
 
 #: includes/features/media-image-opt.php:1345
 msgid "total"
-msgstr ""
+msgstr "总计"
 
 #: includes/features/media-image-opt.php:1447
 msgid "Scanning..."
-msgstr ""
+msgstr "扫描中…"
 
 #: includes/features/media-image-opt.php:1464
 msgid "Found"
-msgstr ""
+msgstr "已找到"
 
 #: includes/features/media-image-opt.php:1464
 msgid "images"
-msgstr ""
+msgstr "张图片"
 
 #: includes/features/media-image-opt.php:1468
 msgid "No unoptimized JPG or PNG images found."
-msgstr ""
+msgstr "未找到未优化的 JPG 或 PNG 图片。"
 
 #: includes/features/media-image-opt.php:1471
 msgid "Error scanning images."
-msgstr ""
+msgstr "扫描图片时出错。"
 
 #: includes/features/media-image-opt.php:1486
 #: includes/features/media-image-opt.php:1874
 msgid "Done"
-msgstr ""
+msgstr "已完成"
 
 #: includes/features/media-image-opt.php:1492
 #: includes/features/media-image-opt.php:1849
 msgid "Skipped"
-msgstr ""
+msgstr "已跳过"
 
 #: includes/features/media-image-opt.php:1505
 #: includes/features/media-image-opt.php:2559
 msgid "Optimized"
-msgstr ""
+msgstr "已优化"
 
 #: includes/features/media-image-opt.php:1758
 msgid "Please select at least one image."
-msgstr ""
+msgstr "请至少选择一张图片。"
 
 #: includes/features/media-image-opt.php:1764
 msgid "Optimize"
-msgstr ""
+msgstr "优化"
 
 #: includes/features/media-image-opt.php:1764
 msgid "image(s) using your browser?"
-msgstr ""
+msgstr "张图片，使用您的浏览器？"
 
 #: includes/features/media-image-opt.php:1799
 msgid "Processing"
-msgstr ""
+msgstr "处理中"
 
 #: includes/features/media-image-opt.php:1801
 msgid "Batch:"
-msgstr ""
+msgstr "批次："
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
 msgid "done"
-msgstr ""
+msgstr "完成"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
@@ -10231,88 +10323,88 @@ msgstr ""
 #: includes/features/media-image-opt.php:2461
 #: includes/features/media-image-opt.php:2510
 msgid "failed"
-msgstr ""
+msgstr "失败"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
 msgid "saved"
-msgstr ""
+msgstr "已节省"
 
 #: includes/features/media-image-opt.php:1803
 #: includes/features/media-image-opt.php:1916
 #: includes/features/media-image-opt.php:1923
 msgid "skipped"
-msgstr ""
+msgstr "已跳过"
 
 #: includes/features/media-image-opt.php:1808
 msgid "Est. time remaining:"
-msgstr ""
+msgstr "预计剩余时间："
 
 #: includes/features/media-image-opt.php:1816
 msgid "Processing..."
-msgstr ""
+msgstr "处理中…"
 
 #: includes/features/media-image-opt.php:1916
 #: includes/features/media-image-opt.php:2450
 #: includes/features/media-image-opt.php:2503
 msgid "Complete!"
-msgstr ""
+msgstr "完成！"
 
 #: includes/features/media-image-opt.php:1923
 msgid "Complete:"
-msgstr ""
+msgstr "完成："
 
 #: includes/features/media-image-opt.php:1923
 msgid "Saved:"
-msgstr ""
+msgstr "已节省："
 
 #: includes/features/media-image-opt.php:1923
 msgid "optimized"
-msgstr ""
+msgstr "已优化"
 
 #: includes/features/media-image-opt.php:1931
 msgid "No images to optimize. Please scan first."
-msgstr ""
+msgstr "没有可优化的图片。请先扫描。"
 
 #: includes/features/media-image-opt.php:1937
 msgid "Optimize ALL"
-msgstr ""
+msgstr "优化全部"
 
 #: includes/features/media-image-opt.php:1937
 msgid "unoptimized image(s) using your browser? This may take a while."
-msgstr ""
+msgstr "张未优化图片，使用您的浏览器？这可能需要一些时间。"
 
 #: includes/features/media-image-opt.php:1963
 msgid "Optimization History & Rollback"
-msgstr ""
+msgstr "优化历史与回滚"
 
 #: includes/features/media-image-opt.php:1964
 msgid "View all optimized images and restore originals if needed."
-msgstr ""
+msgstr "查看所有已优化的图片，并在需要时恢复原图。"
 
 #: includes/features/media-image-opt.php:1967
 msgid "Bulk Restore"
-msgstr ""
+msgstr "批量恢复"
 
 #: includes/features/media-image-opt.php:1968
 msgid "Restore selected or all images back to their original state."
-msgstr ""
+msgstr "将选定或全部图片恢复到其原始状态。"
 
 #: includes/features/media-image-opt.php:1972
 msgid "Restore Selected"
-msgstr ""
+msgstr "恢复选定项"
 
 #: includes/features/media-image-opt.php:1975
 msgid "Restore All Originals"
-msgstr ""
+msgstr "恢复全部原图"
 
 #: includes/features/media-image-opt.php:1980
 msgid "Delete Originals to Save Space"
-msgstr ""
+msgstr "删除原图以节省空间"
 
 #: includes/features/media-image-opt.php:2000
 msgid "Refresh List"
-msgstr ""
+msgstr "刷新列表"
 
 #: includes/features/media-image-opt.php:2017
 #: includes/features/other-settings.php:458
@@ -10323,298 +10415,298 @@ msgstr "缩略图"
 
 #: includes/features/media-image-opt.php:2019
 msgid "Original URL"
-msgstr ""
+msgstr "原始 URL"
 
 #: includes/features/media-image-opt.php:2020
 msgid "Current URL"
-msgstr ""
+msgstr "当前 URL"
 
 #: includes/features/media-image-opt.php:2029
 #: includes/features/media-image-opt.php:2373
 msgid "No optimized images found."
-msgstr ""
+msgstr "未找到已优化的图片。"
 
 #: includes/features/media-image-opt.php:2210
 msgid "Error loading history."
-msgstr ""
+msgstr "加载历史记录时出错。"
 
 #: includes/features/media-image-opt.php:2224
 msgid "Deleted (Space Saved)"
-msgstr ""
+msgstr "已删除（已节省空间）"
 
 #: includes/features/media-image-opt.php:2231
 msgid "Original was deleted"
-msgstr ""
+msgstr "原图已被删除"
 
 #: includes/features/media-image-opt.php:2232
 msgid "Cannot Restore"
-msgstr ""
+msgstr "无法恢复"
 
 #: includes/features/media-image-opt.php:2236
 #: includes/features/media-image-opt.php:2328
 #: includes/features/media-image-opt.php:2333
 msgid "Restore"
-msgstr ""
+msgstr "恢复"
 
 #: includes/features/media-image-opt.php:2301
 msgid "Are you sure you want to restore this image to its original?"
-msgstr ""
+msgstr "您确定要将此图片恢复为原图吗？"
 
 #: includes/features/media-image-opt.php:2305
 #: includes/features/media-image-opt.php:2685
 msgid "Restoring..."
-msgstr ""
+msgstr "恢复中…"
 
 #: includes/features/media-image-opt.php:2326
 #: includes/features/media-image-opt.php:3496
 msgid "Image restored successfully."
-msgstr ""
+msgstr "图片恢复成功。"
 
 #: includes/features/media-image-opt.php:2329
 #: includes/features/media-image-opt.php:2334
 msgid "Error restoring image."
-msgstr ""
+msgstr "恢复图片时出错。"
 
 #: includes/features/media-image-opt.php:2344
 msgid "Please select at least one image to restore."
-msgstr ""
+msgstr "请至少选择一张图片进行恢复。"
 
 #: includes/features/media-image-opt.php:2348
 msgid "Are you sure you want to restore"
-msgstr ""
+msgstr "您确定要恢复"
 
 #: includes/features/media-image-opt.php:2348
 msgid "image(s) to their originals?"
-msgstr ""
+msgstr "张图片为原图吗？"
 
 #: includes/features/media-image-opt.php:2358
 msgid "No images to restore."
-msgstr ""
+msgstr "没有可恢复的图片。"
 
 #: includes/features/media-image-opt.php:2362
 msgid "Are you sure you want to restore ALL"
-msgstr ""
+msgstr "您确定要恢复全部"
 
 #: includes/features/media-image-opt.php:2362
 msgid "image(s) to their originals? This cannot be undone."
-msgstr ""
+msgstr "张图片为原图吗？此操作无法撤销。"
 
 #: includes/features/media-image-opt.php:2381
 msgid "All originals have already been deleted."
-msgstr ""
+msgstr "所有原图已被删除。"
 
 #: includes/features/media-image-opt.php:2395
 #: includes/features/media-image-opt.php:2401
 msgid "Action cancelled. Original files were not deleted."
-msgstr ""
+msgstr "操作已取消。原始文件未被删除。"
 
 #: includes/features/media-image-opt.php:2400
 msgid "FINAL CONFIRMATION: Are you absolutely certain you want to delete all original files? This cannot be undone!"
-msgstr ""
+msgstr "最终确认：您绝对确定要删除所有原始文件吗？此操作无法撤销！"
 
 #: includes/features/media-image-opt.php:2421
 msgid "Deleting original"
-msgstr ""
+msgstr "正在删除原图"
 
 #: includes/features/media-image-opt.php:2459
 msgid "Deletion complete:"
-msgstr ""
+msgstr "删除完成："
 
 #: includes/features/media-image-opt.php:2459
 msgid "deleted"
-msgstr ""
+msgstr "已删除"
 
 #: includes/features/media-image-opt.php:2460
 msgid "already deleted"
-msgstr ""
+msgstr "已被删除"
 
 #: includes/features/media-image-opt.php:2462
 msgid "Optimization metadata preserved. Images cannot be restored to original format."
-msgstr ""
+msgstr "优化元数据已保留。图片无法恢复为原始格式。"
 
 #: includes/features/media-image-opt.php:2478
 msgid "Restoring"
-msgstr ""
+msgstr "恢复中"
 
 #: includes/features/media-image-opt.php:2510
 msgid "Restore complete:"
-msgstr ""
+msgstr "恢复完成："
 
 #: includes/features/media-image-opt.php:2510
 msgid "succeeded"
-msgstr ""
+msgstr "成功"
 
 #: includes/features/media-image-opt.php:2540
 msgid "Not an image file."
-msgstr ""
+msgstr "不是图片文件。"
 
 #: includes/features/media-image-opt.php:2564
 msgid "File Size Comparison:"
-msgstr ""
+msgstr "文件大小对比："
 
 #: includes/features/media-image-opt.php:2565
 msgid "Original:"
-msgstr ""
+msgstr "原始："
 
 #: includes/features/media-image-opt.php:2566
 msgid "Optimized:"
-msgstr ""
+msgstr "已优化："
 
 #: includes/features/media-image-opt.php:2574
 msgid "Original Status:"
-msgstr ""
+msgstr "原始状态："
 
 #: includes/features/media-image-opt.php:2575
 msgid "Original Deleted (Space Saved)"
-msgstr ""
+msgstr "原图已删除（已节省空间）"
 
 #: includes/features/media-image-opt.php:2576
 msgid "Cannot be restored"
-msgstr ""
+msgstr "无法恢复"
 
 #: includes/features/media-image-opt.php:2579
 #, php-format
 msgid "Freed: %s"
-msgstr ""
+msgstr "已节省：%s"
 
 #: includes/features/media-image-opt.php:2583
 msgid "Original URL:"
-msgstr ""
+msgstr "原始 URL："
 
 #: includes/features/media-image-opt.php:2588
 #: includes/features/media-image-opt.php:2702
 #: includes/features/media-image-opt.php:2707
 msgid "Restore Original"
-msgstr ""
+msgstr "恢复原图"
 
 #: includes/features/media-image-opt.php:2592
 msgid "Re-optimize"
-msgstr ""
+msgstr "重新优化"
 
 #: includes/features/media-image-opt.php:2594
 msgid "This image is not optimized."
-msgstr ""
+msgstr "此图片未被优化。"
 
 #: includes/features/media-image-opt.php:2597
 msgid "Current Size:"
-msgstr ""
+msgstr "当前大小："
 
 #: includes/features/media-image-opt.php:2600
 msgid "Go to Bulk Optimizer"
-msgstr ""
+msgstr "前往批量优化器"
 
 #: includes/features/media-image-opt.php:2608
 msgid "🔍 Debug: Raw Metadata"
-msgstr ""
+msgstr "🔍 调试：原始元数据"
 
 #: includes/features/media-image-opt.php:2681
 msgid "Restore this image to its original? The WebP version will be deleted."
-msgstr ""
+msgstr "将此图片恢复为原图？WebP 版本将被删除。"
 
 #: includes/features/media-image-opt.php:2697
 msgid "Image restored! Refreshing page..."
-msgstr ""
+msgstr "图片已恢复！正在刷新页面…"
 
 #: includes/features/media-image-opt.php:2703
 msgid "Restore failed."
-msgstr ""
+msgstr "恢复失败。"
 
 #: includes/features/media-image-opt.php:2708
 msgid "Error during restore."
-msgstr ""
+msgstr "恢复过程中出错。"
 
 #: includes/features/media-image-opt.php:2715
 msgid "Please use the Bulk Optimizer page for re-optimization."
-msgstr ""
+msgstr "请使用批量优化器页面进行重新优化。"
 
 #: includes/features/media-image-opt.php:2722
 msgid "DEBUG: Delete original files now? This will permanently delete the original image and all its thumbnails."
-msgstr ""
+msgstr "调试：现在删除原始文件？这将永久删除原始图片及其所有缩略图。"
 
 #: includes/features/media-image-opt.php:2739
 msgid "Refreshing page..."
-msgstr ""
+msgstr "正在刷新页面…"
 
 #: includes/features/media-image-opt.php:2739
 msgid "Success!"
-msgstr ""
+msgstr "成功！"
 
 #: includes/features/media-image-opt.php:2744
 #: includes/features/media-image-opt.php:2750
 msgid "Delete Original Files Now (Debug)"
-msgstr ""
+msgstr "立即删除原始文件（调试）"
 
 #: includes/features/media-image-opt.php:2745
 msgid "Unknown error"
-msgstr ""
+msgstr "未知错误"
 
 #: includes/features/media-image-opt.php:2751
 msgid "AJAX Error:"
-msgstr ""
+msgstr "AJAX 错误："
 
 #: includes/features/media-image-opt.php:2775
 #: includes/features/media-image-opt.php:2915
 msgid "No image uploaded or upload error."
-msgstr ""
+msgstr "未上传图片或上传出错。"
 
 #: includes/features/media-image-opt.php:2927
 msgid "Original file not found."
-msgstr ""
+msgstr "未找到原始文件。"
 
 #: includes/features/media-image-opt.php:2970
 msgid "Failed to rename original WebP file."
-msgstr ""
+msgstr "重命名原始 WebP 文件失败。"
 
 #: includes/features/media-image-opt.php:2984
 msgid "Failed to save WebP file."
-msgstr ""
+msgstr "保存 WebP 文件失败。"
 
 #: includes/features/media-image-opt.php:3016
 msgid "Image optimized successfully."
-msgstr ""
+msgstr "图片优化成功。"
 
 #: includes/features/media-image-opt.php:3108
 #: includes/features/media-image-opt.php:3367
 msgid "Original file path not found in metadata."
-msgstr ""
+msgstr "元数据中未找到原始文件路径。"
 
 #: includes/features/media-image-opt.php:3115
 msgid "Original files were already deleted previously."
-msgstr ""
+msgstr "原始文件之前已被删除。"
 
 #: includes/features/media-image-opt.php:3294
 msgid "Original file was already deleted or missing. Marked as deleted."
-msgstr ""
+msgstr "原始文件已被删除或丢失。已标记为已删除。"
 
 #: includes/features/media-image-opt.php:3321
 #, php-format
 msgid "Successfully deleted %d file(s) and freed %s of disk space."
-msgstr ""
+msgstr "已成功删除 %d 个文件，释放了 %s 磁盘空间。"
 
 #: includes/features/media-image-opt.php:3327
 #, php-format
 msgid "%d file(s) could not be deleted."
-msgstr ""
+msgstr "%d 个文件无法删除。"
 
 #: includes/features/media-image-opt.php:3341
 msgid "Failed to delete original files. Check file permissions."
-msgstr ""
+msgstr "删除原始文件失败。请检查文件权限。"
 
 #: includes/features/media-image-opt.php:3360
 msgid "Cannot restore: Original file was permanently deleted to save space."
-msgstr ""
+msgstr "无法恢复：为节省空间，原始文件已被永久删除。"
 
 #: includes/features/media-image-opt.php:3405
 msgid "It may have been deleted or moved."
-msgstr ""
+msgstr "它可能已被删除或移动。"
 
 #: includes/features/media-image-opt.php:3405
 msgid "Original file does not exist: "
-msgstr ""
+msgstr "原始文件不存在："
 
 #: includes/features/media-image-opt.php:3436
 msgid "Failed to update attachment: "
-msgstr ""
+msgstr "更新附件失败："
 
 #: includes/features/media-settings.php:10
 #: includes/features/media-settings.php:11
@@ -10737,7 +10829,7 @@ msgstr "无效媒体 ID 或术语 ID"
 #: includes/features/other-settings.php:8
 #: includes/features/settings-page.php:29
 msgid "Dashboard Settings"
-msgstr ""
+msgstr "仪表盘设置"
 
 #: includes/features/other-settings.php:20
 #: includes/features/other-settings.php:41
@@ -10754,11 +10846,11 @@ msgstr "将砖块菜单移至末尾"
 
 #: includes/features/other-settings.php:64
 msgid "Require Login to Comment"
-msgstr ""
+msgstr "要求登录才能评论"
 
 #: includes/features/other-settings.php:72
 msgid "Disable Comments Completely"
-msgstr ""
+msgstr "完全禁用评论"
 
 #: includes/features/other-settings.php:80
 msgid "Enable Thumbnail Column in Post Tables"
@@ -10766,19 +10858,19 @@ msgstr "在帖子表中启用缩略图列"
 
 #: includes/features/other-settings.php:95
 msgid "Enable Draft Revision System"
-msgstr ""
+msgstr "启用草稿修订系统"
 
 #: includes/features/other-settings.php:103
 msgid "Enable Admin Bar Toggle on Frontend"
-msgstr ""
+msgstr "在前端启用管理栏切换"
 
 #: includes/features/other-settings.php:111
 msgid "Disable Admin Bar for Selected User Roles"
-msgstr ""
+msgstr "为选定用户角色禁用管理栏"
 
 #: includes/features/other-settings.php:119
 msgid "Disable WP-Admin Dashboard for Selected User Roles"
-msgstr ""
+msgstr "为选定用户角色禁用 WP-Admin 仪表盘"
 
 #: includes/features/other-settings.php:127
 msgid "Disable Default Dashboard Widgets"
@@ -10790,11 +10882,11 @@ msgstr "仪表板自定义元组内容"
 
 #: includes/features/other-settings.php:143
 msgid "Enable Admin Mega Menu in Admin Bar"
-msgstr ""
+msgstr "在管理栏中启用管理员超级菜单"
 
 #: includes/features/other-settings.php:151
 msgid "Admin Mega Menu Position Priority"
-msgstr ""
+msgstr "管理员超级菜单位置优先级"
 
 #: includes/features/other-settings.php:201
 msgid "Configure additional settings for your site below."
@@ -10806,19 +10898,19 @@ msgstr "9999"
 
 #: includes/features/other-settings.php:226
 msgid "Require users to be registered and logged in to comment"
-msgstr ""
+msgstr "要求用户注册并登录才能评论"
 
 #: includes/features/other-settings.php:229
 msgid "Enabling this setting will allow only logged-in users to comment. Guest/public commenting will be disabled."
-msgstr ""
+msgstr "启用此设置后，只有已登录用户才能评论。访客/公开评论将被禁用。"
 
 #: includes/features/other-settings.php:239
 msgid "Disable all comments site-wide"
-msgstr ""
+msgstr "在整个网站范围内禁用所有评论"
 
 #: includes/features/other-settings.php:242
 msgid "Enabling this setting will completely disable all comments on the site. No one will be able to comment, even logged-in users."
-msgstr ""
+msgstr "启用此设置后，网站上的所有评论功能将被完全禁用。任何人都无法评论，包括已登录用户。"
 
 #: includes/features/other-settings.php:252
 msgid "Enabling this setting will add a \"Thumbnail\" column to your post tables in the admin dashboard."
@@ -10830,43 +10922,43 @@ msgstr "这样，您就可以直接在列表视图中看到每个帖子的特色
 
 #: includes/features/other-settings.php:264
 msgid "Enable draft revision system for all post types"
-msgstr ""
+msgstr "为所有文章类型启用草稿修订系统"
 
 #: includes/features/other-settings.php:267
 msgid "Enabling this will add \"Create Revision\" and \"Sync with Original\" quick links to your posts."
-msgstr ""
+msgstr "启用此项将为您的文章添加“创建修订版本”和“与原始文章同步”快捷链接。"
 
 #: includes/features/other-settings.php:268
 msgid "This allows you to create draft revisions of posts, edit them, and sync them back to the original when ready."
-msgstr ""
+msgstr "这允许您创建文章的草稿修订版本，进行编辑，并在准备好后将其同步回原始文章。"
 
 #: includes/features/other-settings.php:278
 msgid "Enable admin bar toggle functionality on frontend"
-msgstr ""
+msgstr "在前端启用管理栏切换功能"
 
 #: includes/features/other-settings.php:281
 msgid "Enabling this adds a toggle button to the admin bar and keyboard shortcut (Ctrl+I) to show/hide the admin bar on the frontend."
-msgstr ""
+msgstr "启用此项会在管理栏中添加一个切换按钮，并添加键盘快捷键（Ctrl+I），用于在前端显示/隐藏管理栏。"
 
 #: includes/features/other-settings.php:282
 msgid "The visibility state is saved in your browser and persists across page loads. Useful for taking screenshots or viewing the site without the admin bar."
-msgstr ""
+msgstr "可见性状态保存在您的浏览器中，并在页面加载间保持不变。适用于截图或在没有管理栏的情况下查看网站。"
 
 #: includes/features/other-settings.php:283
 msgid "<strong>Important:</strong> Once hidden, you can only show it again using the Ctrl+I keyboard shortcut, so make sure to remember it!"
-msgstr ""
+msgstr "<strong>重要：</strong>一旦隐藏，您只能使用 Ctrl+I 键盘快捷键重新显示它，请务必记住！"
 
 #: includes/features/other-settings.php:306
 msgid "Select the user roles for which the admin bar should be disabled on the frontend."
-msgstr ""
+msgstr "选择应在前端禁用管理栏的用户角色。"
 
 #: includes/features/other-settings.php:332
 msgid "Select the user roles that should be completely blocked from accessing wp-admin. Blocked users will be redirected to the homepage automatically."
-msgstr ""
+msgstr "选择应完全禁止访问 wp-admin 的用户角色。被阻止的用户将自动被重定向到首页。"
 
 #: includes/features/other-settings.php:333
 msgid "<strong>Note:</strong> Administrators are always excluded and cannot be blocked."
-msgstr ""
+msgstr "<strong>注意：</strong>管理员始终被排除在外，无法被阻止。"
 
 #: includes/features/other-settings.php:343
 msgid "Enabling this setting will remove several default dashboard widgets from the WordPress admin dashboard."
@@ -10894,15 +10986,15 @@ msgstr "欢迎光临"
 
 #: includes/features/other-settings.php:729
 msgid "Add a mega menu icon as the first item in the admin bar (admins only)"
-msgstr ""
+msgstr "在管理栏的第一项添加超级菜单图标（仅限管理员）"
 
 #: includes/features/other-settings.php:732
 msgid "When enabled, a menu icon appears as the very first item in the admin bar on both frontend and backend. Hovering it reveals all WordPress admin menus and submenus dynamically."
-msgstr ""
+msgstr "启用后，一个菜单图标将作为管理栏中前端和后端的第一项出现。悬停时会动态显示所有 WordPress 管理菜单和子菜单。"
 
 #: includes/features/other-settings.php:746
 msgid "Controls the position of the mega menu in the admin bar. Lower numbers appear earlier (e.g. 1 = first), higher numbers appear later (e.g. 99 = near end). Default: 35."
-msgstr ""
+msgstr "控制超级菜单在管理栏中的位置。数字越小越靠前显示（例如 1 = 第一位），数字越大越靠后显示（例如 99 = 接近末尾）。默认：35。"
 
 #: includes/features/post-types-settings.php:11
 msgid "Register Post Types"
@@ -10916,7 +11008,7 @@ msgstr "编辑"
 #: includes/features/post-types-settings.php:181
 #: includes/features/post-types-settings.php:27
 msgid "Notes"
-msgstr ""
+msgstr "备注"
 
 #: includes/features/post-types-settings.php:185
 #: includes/features/post-types-settings.php:31
@@ -10946,17 +11038,17 @@ msgstr "在导航菜单中显示"
 #: includes/features/post-types-settings.php:195
 #: includes/features/post-types-settings.php:41
 msgid "Show Order"
-msgstr ""
+msgstr "显示顺序"
 
 #: includes/features/post-types-settings.php:196
 #: includes/features/post-types-settings.php:42
 msgid "Has Archive"
-msgstr ""
+msgstr "有归档"
 
 #: includes/features/post-types-settings.php:197
 #: includes/features/post-types-settings.php:43
 msgid "Show in REST"
-msgstr ""
+msgstr "在 REST 中显示"
 
 #: includes/features/post-types-settings.php:198
 #: includes/features/post-types-settings.php:44
@@ -11017,7 +11109,7 @@ msgstr "Dashicon"
 #: includes/features/post-types-settings.php:136
 #: includes/features/post-types-settings.php:289
 msgid "Click to pick icon"
-msgstr ""
+msgstr "点击选择图标"
 
 #: includes/features/post-types-settings.php:168
 msgid "Add New Post Type"
@@ -11033,7 +11125,7 @@ msgstr "您确定要删除此帖子类型吗？"
 
 #: includes/features/post-types-settings.php:346
 msgid "Search icons…"
-msgstr ""
+msgstr "搜索图标…"
 
 #: includes/features/remove-rss.php:21
 msgid "Disable Remove RSS"
@@ -11432,20 +11524,20 @@ msgstr "安全设置"
 
 #: includes/features/security-page.php:51
 msgid "Blocked IPs Management"
-msgstr ""
+msgstr "被阻止 IP 管理"
 
 #: includes/features/security-page.php:52
 #, php-format
 msgid "Currently blocked IPs: %d"
-msgstr ""
+msgstr "当前被阻止的 IP：%d"
 
 #: includes/features/security-page.php:53
 msgid "Are you sure you want to clear all blocked IPs?"
-msgstr ""
+msgstr "您确定要清除所有被阻止的 IP 吗？"
 
 #: includes/features/security-page.php:55
 msgid "Clear All Blocked IPs"
-msgstr ""
+msgstr "清除所有被阻止的 IP"
 
 #: includes/features/security-page.php:95
 msgid "Main Settings"
@@ -11453,35 +11545,35 @@ msgstr "主要设置"
 
 #: includes/features/security-page.php:102
 msgid "Captcha Protection"
-msgstr ""
+msgstr "验证码保护"
 
 #: includes/features/security-page.php:110
 msgid "Turnstile Site Key"
-msgstr ""
+msgstr "Turnstile 站点密钥"
 
 #: includes/features/security-page.php:118
 msgid "Turnstile Secret Key"
-msgstr ""
+msgstr "Turnstile 私密密钥"
 
 #: includes/features/security-page.php:126
 msgid "Turnstile Theme"
-msgstr ""
+msgstr "Turnstile 主题"
 
 #: includes/features/security-page.php:134
 msgid "Turnstile Widget Size"
-msgstr ""
+msgstr "Turnstile 小组件大小"
 
 #: includes/features/security-page.php:143
 msgid "Enable Limit Login Attempts"
-msgstr ""
+msgstr "启用登录尝试限制"
 
 #: includes/features/security-page.php:151
 msgid "Maximum Login Attempts"
-msgstr ""
+msgstr "最大登录尝试次数"
 
 #: includes/features/security-page.php:159
 msgid "Reset Failed Attempts After (hours)"
-msgstr ""
+msgstr "重置失败尝试次数（小时）"
 
 #: includes/features/security-page.php:168
 msgid "Configure your security settings below:"
@@ -11489,410 +11581,410 @@ msgstr "在下面配置您的安全设置："
 
 #: includes/features/security-page.php:190
 msgid "None (Disabled)"
-msgstr ""
+msgstr "无（已禁用）"
 
 #: includes/features/security-page.php:191
 msgid "Simple Math Captcha"
-msgstr ""
+msgstr "简单数学验证码"
 
 #: includes/features/security-page.php:192
 msgid "Cloudflare Turnstile"
-msgstr ""
+msgstr "Cloudflare Turnstile"
 
 #: includes/features/security-page.php:194
 msgid "Choose the type of captcha protection for login, registration, lost password, and comment forms. Default: None."
-msgstr ""
+msgstr "为登录、注册、忘记密码和评论表单选择验证码保护类型。默认：无。"
 
 #: includes/features/security-page.php:204
 msgid "Your Turnstile site key from the Cloudflare dashboard. Used for the front-end widget."
-msgstr ""
+msgstr "来自 Cloudflare 仪表盘的 Turnstile 站点密钥。用于前端小组件。"
 
 #: includes/features/security-page.php:215
 msgid "Your Turnstile secret key. Keep this private — it is used for server-side validation."
-msgstr ""
+msgstr "您的 Turnstile 私密密钥。请保密 — 它用于服务端验证。"
 
 #: includes/features/security-page.php:228
 msgid "Auto"
-msgstr ""
+msgstr "自动"
 
 #: includes/features/security-page.php:232
 msgid "Light"
-msgstr ""
+msgstr "浅色"
 
 #: includes/features/security-page.php:236
 msgid "Dark"
-msgstr ""
+msgstr "深色"
 
 #: includes/features/security-page.php:239
 msgid "Visual color theme for the Turnstile widget. Auto follows the user's system preference."
-msgstr ""
+msgstr "Turnstile 小组件的视觉配色主题。自动会跟随用户的系统偏好设置。"
 
 #: includes/features/security-page.php:252
 msgid "Normal (300px)"
-msgstr ""
+msgstr "标准（300px）"
 
 #: includes/features/security-page.php:256
 msgid "Compact (130px)"
-msgstr ""
+msgstr "紧凑（130px）"
 
 #: includes/features/security-page.php:259
 msgid "Widget size. Use Compact if the widget overflows narrow form containers."
-msgstr ""
+msgstr "小组件大小。如果小组件超出了较窄的表单容器，请使用紧凑模式。"
 
 #: includes/features/security-page.php:268
 msgid "Enable this setting to limit login attempts and automatically block IPs with too many failed logins."
-msgstr ""
+msgstr "启用此设置以限制登录尝试次数，并自动阻止登录失败次数过多的 IP。"
 
 #: includes/features/security-page.php:278
 msgid "Specify the number of failed login attempts before an IP address is blocked. Default: 5"
-msgstr ""
+msgstr "指定 IP 地址被阻止前允许的登录失败次数。默认：5"
 
 #: includes/features/security-page.php:289
 msgid "Time in hours after which failed login attempts count is reset to 0 and blocked IPs are unblocked. Default: 24 hours (1 day)"
-msgstr ""
+msgstr "登录失败次数重置为 0 且被阻止的 IP 解除阻止所需的小时数。默认：24 小时（1 天）"
 
 #: includes/features/seo.php:1703 includes/features/seo.php:1910
 #: includes/features/seo.php:276 includes/features/seo.php:84
 #: includes/features/seo.php:85 includes/features/settings-page.php:35
 msgid "SEO Settings"
-msgstr ""
+msgstr "SEO 设置"
 
 #: includes/features/seo.php:197
 msgid "SEO settings have been reset to defaults. All custom configurations have been cleared."
-msgstr ""
+msgstr "SEO 设置已重置为默认值。所有自定义配置已被清除。"
 
 #: includes/features/seo.php:1447 includes/features/seo.php:227
 msgid "Author archive for {author_name}"
-msgstr ""
+msgstr "{author_name} 的作者归档"
 
 #: includes/features/seo.php:295
 msgid "After changing sitemap settings, please go to Settings > Permalinks and click \"Save Changes\" to refresh your sitemap rules."
-msgstr ""
+msgstr "更改站点地图设置后，请前往设置 > 固定链接，点击“保存更改”以刷新您的站点地图规则。"
 
 #: includes/features/seo.php:307
 msgid "Enable all SEO features"
-msgstr ""
+msgstr "启用所有 SEO 功能"
 
 #: includes/features/seo.php:310
 msgid "When enabled, this will activate meta titles, descriptions, sitemap, and Open Graph features."
-msgstr ""
+msgstr "启用后，将激活 Meta 标题、描述、站点地图和 Open Graph 功能。"
 
 #: includes/features/seo.php:318
 msgid "Enable AI SEO Features"
-msgstr ""
+msgstr "启用 AI SEO 功能"
 
 #: includes/features/seo.php:321
 msgid "Enable AI-powered SEO generation. Adds AI generation buttons to post edit screens and bulk actions. Requires AI settings to be properly configured in AI Settings page."
-msgstr ""
+msgstr "启用 AI 驱动的 SEO 生成功能。在文章编辑屏幕和批量操作中添加 AI 生成按钮。需要在 AI 设置页面正确配置 AI 设置。"
 
 #: includes/features/seo.php:329
 msgid "Content Types"
-msgstr ""
+msgstr "内容类型"
 
 #: includes/features/seo.php:330
 msgid "Select which content types should have SEO features enabled."
-msgstr ""
+msgstr "选择应为哪些内容类型启用 SEO 功能。"
 
 #: includes/features/seo.php:363
 msgid "Authors"
-msgstr ""
+msgstr "作者"
 
 #: includes/features/seo.php:366
 msgid "Author Archives"
-msgstr ""
+msgstr "作者归档"
 
 #: includes/features/seo.php:374
 msgid "Post Type Templates"
-msgstr ""
+msgstr "文章类型模板"
 
 #: includes/features/seo.php:385 includes/features/seo.php:432
 #: includes/features/seo.php:466 includes/features/seo.php:498
 msgid "Meta Title Template:"
-msgstr ""
+msgstr "Meta 标题模板："
 
 #: includes/features/seo.php:386 includes/features/seo.php:395
 #: includes/features/seo.php:433 includes/features/seo.php:442
 #: includes/features/seo.php:467 includes/features/seo.php:476
 #: includes/features/seo.php:499 includes/features/seo.php:508
 msgid "Available tags:"
-msgstr ""
+msgstr "可用标签："
 
 #: includes/features/seo.php:394 includes/features/seo.php:441
 #: includes/features/seo.php:475 includes/features/seo.php:507
 msgid "Meta Description Template:"
-msgstr ""
+msgstr "Meta 描述模板："
 
 #: includes/features/seo.php:403
 msgid "Noindex (prevent search engines from indexing this post type)"
-msgstr ""
+msgstr "Noindex（阻止搜索引擎索引此文章类型）"
 
 #: includes/features/seo.php:412
 msgid "Archive Templates"
-msgstr ""
+msgstr "归档模板"
 
 #: includes/features/seo.php:413
 msgid "Configure SEO templates for post type archive pages. Note: Some post types may not have archives enabled."
-msgstr ""
+msgstr "为文章类型归档页面配置 SEO 模板。注意：某些文章类型可能未启用归档。"
 
 #: includes/features/seo.php:423
 msgid "Archive"
-msgstr ""
+msgstr "归档"
 
 #: includes/features/seo.php:425
 msgid "may not have archive"
-msgstr ""
+msgstr "可能没有归档"
 
 #: includes/features/seo.php:1374 includes/features/seo.php:1542
 #: includes/features/seo.php:445
 msgid "Browse all"
-msgstr ""
+msgstr "浏览全部"
 
 #: includes/features/seo.php:455
 msgid "Taxonomy Archive Templates"
-msgstr ""
+msgstr "分类法归档模板"
 
 #: includes/features/seo.php:484
 msgid "Noindex (prevent search engines from indexing this taxonomy)"
-msgstr ""
+msgstr "Noindex（阻止搜索引擎索引此分类法）"
 
 #: includes/features/seo.php:494
 msgid "Author Archive Templates"
-msgstr ""
+msgstr "作者归档模板"
 
 #: includes/features/seo.php:520
 msgid "XML Sitemap"
-msgstr ""
+msgstr "XML 站点地图"
 
 #: includes/features/seo.php:524
 msgid "Enable XML Sitemap"
-msgstr ""
+msgstr "启用 XML 站点地图"
 
 #: includes/features/seo.php:527
 msgid "Sitemap URL:"
-msgstr ""
+msgstr "站点地图 URL："
 
 #: includes/features/seo.php:528
 msgid "Paginated with max 100 links per page. Each post type and taxonomy gets its own sitemap. After enabling sitemap.xml please re-save your permalink settings."
-msgstr ""
+msgstr "分页显示，每页最多 100 个链接。每种文章类型和分类法都有自己的站点地图。启用 sitemap.xml 后，请重新保存您的固定链接设置。"
 
 #: includes/features/seo.php:564
 msgid "Open Graph"
-msgstr ""
+msgstr "Open Graph"
 
 #: includes/features/seo.php:567
 msgid "Enable Open Graph meta tags"
-msgstr ""
+msgstr "启用 Open Graph meta 标签"
 
 #: includes/features/seo.php:570
 msgid "Adds Open Graph meta tags for better social media sharing (Facebook, Twitter, LinkedIn, etc.)"
-msgstr ""
+msgstr "添加 Open Graph meta 标签以获得更好的社交媒体分享效果（Facebook, Twitter, LinkedIn 等）"
 
 #: includes/features/seo.php:577
 msgid "Default Social Media Image"
-msgstr ""
+msgstr "默认社交媒体图片"
 
 #: includes/features/seo.php:579
 msgid "This image will be used as a fallback when posts/pages don't have a featured image. Recommended size: 1200x630px (Facebook/LinkedIn) or larger."
-msgstr ""
+msgstr "当文章/页面没有特色图片时，此图片将作为后备使用。建议尺寸：1200x630px（Facebook/LinkedIn）或更大。"
 
 #: includes/features/seo.php:599
 #, php-format
 msgid "Dimensions: %dx%d pixels"
-msgstr ""
+msgstr "尺寸：%d x %d 像素"
 
 #: includes/features/seo.php:608 includes/features/seo.php:866
 msgid "Change Image"
-msgstr ""
+msgstr "更改图片"
 
 #: includes/features/seo.php:608 includes/features/seo.php:878
 msgid "Select/Upload Image"
-msgstr ""
+msgstr "选择/上传图片"
 
 #: includes/features/seo.php:613
 msgid "Social Media Preview Examples"
-msgstr ""
+msgstr "社交媒体预览示例"
 
 #: includes/features/seo.php:633
 msgid "Example Post Title - Site Name"
-msgstr ""
+msgstr "示例文章标题 - 网站名称"
 
 #: includes/features/seo.php:634
 msgid "This is an example of how your post will appear when shared on social media platforms..."
-msgstr ""
+msgstr "这是您的文章在社交媒体平台上分享时的显示示例…"
 
 #: includes/features/seo.php:645
 msgid "Category Name - Site Name"
-msgstr ""
+msgstr "分类名称 - 网站名称"
 
 #: includes/features/seo.php:646
 msgid "Browse all posts in this category and discover related content..."
-msgstr ""
+msgstr "浏览此分类下的所有文章，发现相关内容…"
 
 #: includes/features/seo.php:657
 msgid "Author Name - Site Name"
-msgstr ""
+msgstr "作者姓名 - 网站名称"
 
 #: includes/features/seo.php:658
 msgid "View all posts by this author and learn more about their work..."
-msgstr ""
+msgstr "查看此作者的所有文章，了解更多关于其作品的信息…"
 
 #: includes/features/seo.php:671
 msgid "oEmbed Author Privacy"
-msgstr ""
+msgstr "oEmbed 作者隐私"
 
 #: includes/features/seo.php:674
 msgid "Show site name instead of author name in oEmbed responses"
-msgstr ""
+msgstr "在 oEmbed 响应中显示网站名称而非作者姓名"
 
 #: includes/features/seo.php:677
 msgid "When enabled, the WordPress oEmbed API will use your site name instead of individual author usernames. This prevents platforms like Discord, Slack, and Telegram from displaying author usernames in link previews. When disabled (default), WordPress behaves natively — author names are included in oEmbed responses."
-msgstr ""
+msgstr "启用后，WordPress oEmbed API 将使用您的网站名称，而不是各个作者的用户名。这可以防止 Discord、Slack 和 Telegram 等平台在链接预览中显示作者用户名。禁用时（默认），WordPress 表现为原生行为 — 作者姓名会包含在 oEmbed 响应中。"
 
 #: includes/features/seo.php:683
 msgid "Robots.txt"
-msgstr ""
+msgstr "Robots.txt"
 
 #: includes/features/seo.php:686
 msgid "Enable Custom Robots.txt"
-msgstr ""
+msgstr "启用自定义 Robots.txt"
 
 #: includes/features/seo.php:689
 msgid "Override the default WordPress robots.txt with custom content. Leave the textarea empty to use the recommended default shown as placeholder."
-msgstr ""
+msgstr "使用自定义内容覆盖默认的 WordPress robots.txt。将文本区域留空以使用作为占位符显示的推荐默认值。"
 
 #: includes/features/seo.php:690
 msgid "Learn about robots.txt"
-msgstr ""
+msgstr "了解 robots.txt"
 
 #: includes/features/seo.php:698
 msgid "Current robots.txt URL:"
-msgstr ""
+msgstr "当前 robots.txt URL："
 
 #: includes/features/seo.php:705
 msgid "llms.txt"
-msgstr ""
+msgstr "llms.txt"
 
 #: includes/features/seo.php:708
 msgid "Enable llms.txt"
-msgstr ""
+msgstr "启用 llms.txt"
 
 #: includes/features/seo.php:711
 msgid "llms.txt is a proposed standard for websites to provide information to LLMs (Large Language Models) in a structured markdown format. The textarea is pre-filled with an auto-generated listing of all your published pages and posts. You can edit it freely."
-msgstr ""
+msgstr "llms.txt 是一项拟议标准，用于让网站以结构化的 markdown 格式向 LLM（大语言模型）提供信息。文本区域已预填充了您所有已发布页面和文章的自动生成列表。您可以自由编辑它。"
 
 #: includes/features/seo.php:712
 msgid "Learn about llms.txt"
-msgstr ""
+msgstr "了解 llms.txt"
 
 #: includes/features/seo.php:725
 msgid "llms.txt URL:"
-msgstr ""
+msgstr "llms.txt URL："
 
 #: includes/features/seo.php:728
 msgid "Clear the textarea and save to restore auto-generation from your live content."
-msgstr ""
+msgstr "清空文本区域并保存，以从您的实时内容恢复自动生成。"
 
 #: includes/features/seo.php:731
 msgid "Regenerate Default"
-msgstr ""
+msgstr "重新生成默认值"
 
 #: includes/features/seo.php:737
 msgid "Save SEO Settings"
-msgstr ""
+msgstr "保存 SEO 设置"
 
 #: includes/features/seo.php:744
 msgid "Reset All SEO Settings"
-msgstr ""
+msgstr "重置所有 SEO 设置"
 
 #: includes/features/seo.php:749
 msgid "This will permanently delete all SEO settings from the database. All your custom titles, descriptions, templates, and configurations will be lost. This action cannot be undone."
-msgstr ""
+msgstr "这将永久删除数据库中的所有 SEO 设置。您所有的自定义标题、描述、模板和配置都将丢失。此操作无法撤销。"
 
 #: includes/features/seo.php:751
 msgid "Are you absolutely sure you want to reset ALL SEO settings? This cannot be undone!"
-msgstr ""
+msgstr "您绝对确定要重置所有 SEO 设置吗？此操作无法撤销！"
 
 #: includes/features/seo.php:757
 msgid "Reset All SEO Settings to Default"
-msgstr ""
+msgstr "将所有 SEO 设置重置为默认值"
 
 #: includes/features/seo.php:837
 msgid "Select Default Social Media Image"
-msgstr ""
+msgstr "选择默认社交媒体图片"
 
 #: includes/features/seo.php:839
 msgid "Use This Image"
-msgstr ""
+msgstr "使用此图片"
 
 #: includes/features/seo.php:861
 msgid "Dimensions:"
-msgstr ""
+msgstr "尺寸："
 
 #: includes/features/seo.php:861
 msgid "pixels"
-msgstr ""
+msgstr "像素"
 
 #: includes/features/seo.php:1532
 msgid "Blog"
-msgstr ""
+msgstr "博客"
 
 #: includes/features/seo.php:1742 includes/features/seo.php:1918
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta 标题"
 
 #: includes/features/seo.php:1752 includes/features/seo.php:1929
 msgid "Recommended max length: 60 characters"
-msgstr ""
+msgstr "建议最大长度：60 个字符"
 
 #: includes/features/seo.php:1753 includes/features/seo.php:1770
 #: includes/features/seo.php:1930 includes/features/seo.php:1953
 msgid "characters"
-msgstr ""
+msgstr "字符"
 
 #: includes/features/seo.php:1759 includes/features/seo.php:1940
 msgid "Meta Description"
-msgstr ""
+msgstr "Meta 描述"
 
 #: includes/features/seo.php:1769 includes/features/seo.php:1952
 msgid "Recommended max length: 155 characters"
-msgstr ""
+msgstr "建议最大长度：155 个字符"
 
 #: includes/features/seo.php:1786 includes/features/seo.php:2264
 msgid "No Index"
-msgstr ""
+msgstr "不索引"
 
 #: includes/features/seo.php:1790
 msgid "Check this to prevent search engines from indexing this page (adds noindex meta tag)."
-msgstr ""
+msgstr "选中此项以阻止搜索引擎索引此页面（添加 noindex meta 标签）。"
 
 #: includes/features/seo.php:1932
 msgid "Leave empty to use the template default from SEO Settings."
-msgstr ""
+msgstr "留空以使用 SEO 设置中的模板默认值。"
 
 #: includes/features/seo.php:1955
 msgid "Leave empty to use the template default or term description from SEO Settings."
-msgstr ""
+msgstr "留空以使用 SEO 设置中的模板默认值或术语描述。"
 
 #: includes/features/seo.php:1963
 msgid "Search Engine Visibility"
-msgstr ""
+msgstr "搜索引擎可见性"
 
 #: includes/features/seo.php:1973
 msgid "No Index (prevent search engines from indexing this term archive)"
-msgstr ""
+msgstr "不索引（阻止搜索引擎索引此术语归档）"
 
 #: includes/features/seo.php:2150
 msgid "Meta Title & Desc"
-msgstr ""
+msgstr "Meta 标题和描述"
 
 #: includes/features/seo.php:2177 includes/features/seo.php:2195
 #, php-format
 msgid "%d chars"
-msgstr ""
+msgstr "%d 个字符"
 
 #: includes/features/seo.php:2256
 msgid "SEO Desc"
-msgstr ""
+msgstr "SEO 描述"
 
 #: includes/features/settings-page.php:186
 #: includes/features/settings-page.php:19
@@ -11921,7 +12013,7 @@ msgstr "角色经理"
 
 #: includes/features/settings-page.php:45
 msgid "AI Agent and Chat"
-msgstr ""
+msgstr "AI 智能体与聊天"
 
 #: includes/features/settings-page.php:69
 msgid "This theme is designed to give you the tools and solutions for"
@@ -12003,11 +12095,11 @@ msgstr "SMTP 用户名"
 
 #: includes/features/smtp-settings.php:70
 msgid "SMTP Password / API Key"
-msgstr ""
+msgstr "SMTP 密码 / API 密钥"
 
 #: includes/features/smtp-settings.php:78
 msgid "Custom From Email"
-msgstr ""
+msgstr "自定义发件邮箱"
 
 #: includes/features/smtp-settings.php:106
 msgid "Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues."
@@ -12015,11 +12107,11 @@ msgstr "简单的 SMTP 设置，可绕过 PHP mailler 或消除垃圾邮件问�
 
 #: includes/features/smtp-settings.php:122
 msgid "Your SMTP username differs from the WordPress Site Setting email. This may cause delivery issues if SPF/DKIM records don't match."
-msgstr ""
+msgstr "您的 SMTP 用户名与 WordPress 网站设置中的邮箱不同。如果 SPF/DKIM 记录不匹配，可能会导致投递问题。"
 
 #: includes/features/smtp-settings.php:141
 msgid "Your mail server address. mail.yourdomain.com"
-msgstr ""
+msgstr "您的邮件服务器地址。mail.yourdomain.com"
 
 #: includes/features/smtp-settings.php:151
 msgid "SSL"
@@ -12031,27 +12123,27 @@ msgstr "TLS"
 
 #: includes/features/smtp-settings.php:154
 msgid "Use SSL (port 465) or TLS (port 587). Most modern providers require TLS."
-msgstr ""
+msgstr "使用 SSL（端口 465）或 TLS（端口 587）。大多数现代服务商要求使用 TLS。"
 
 #: includes/features/smtp-settings.php:181
 msgid "Default: 465 for SSL, 587 for TLS, 25 for None"
-msgstr ""
+msgstr "默认：SSL 为 465，TLS 为 587，无加密为 25"
 
 #: includes/features/smtp-settings.php:192
 msgid "Your SMTP username. Usually a full email address (you@yourdomain.com), but some API-based providers use a plain username (e.g. \"emailit\" or \"apiuser\")."
-msgstr ""
+msgstr "您的 SMTP 用户名。通常是完整的电子邮件地址（you@yourdomain.com），但某些基于 API 的服务商使用简单的用户名（例如 “emailit” 或 “apiuser”）。"
 
 #: includes/features/smtp-settings.php:203
 msgid "Your email account password or API key (some providers use an API key here instead of a regular password)."
-msgstr ""
+msgstr "您的邮件账户密码或 API 密钥（某些服务商在此处使用 API 密钥而非常规密码）。"
 
 #: includes/features/smtp-settings.php:217
 msgid "Use a custom From email address"
-msgstr ""
+msgstr "使用自定义发件邮箱地址"
 
 #: includes/features/smtp-settings.php:223
 msgid "Required when your SMTP username is not an email address (API-based providers). This address appears in the From header of sent emails."
-msgstr ""
+msgstr "当您的 SMTP 用户名不是电子邮件地址时（基于 API 的服务商）为必填项。此地址将出现在已发送邮件的发件人标头中。"
 
 #: includes/features/smtp-settings.php:503
 #: includes/features/smtp-settings.php:924
@@ -12065,86 +12157,86 @@ msgstr "这是通过 SMTP 设置发送的测试电子邮件。"
 
 #: includes/features/smtp-settings.php:558
 msgid "SMTP host is required. Please configure your SMTP settings."
-msgstr ""
+msgstr "需要 SMTP 主机。请配置您的 SMTP 设置。"
 
 #: includes/features/smtp-settings.php:565
 msgid "Valid SMTP port is required. Please configure your SMTP settings."
-msgstr ""
+msgstr "需要有效的 SMTP 端口。请配置您的 SMTP 设置。"
 
 #: includes/features/smtp-settings.php:587
 #, php-format
 msgid "DNS Resolution Failed: Could not resolve hostname \"%s\". Please verify the SMTP host is correct."
-msgstr ""
+msgstr "DNS 解析失败：无法解析主机名 “%s”。请验证 SMTP 主机是否正确。"
 
 #: includes/features/smtp-settings.php:616
 #, php-format
 msgid "Connection Exception: %s"
-msgstr ""
+msgstr "连接异常：%s"
 
 #: includes/features/smtp-settings.php:632
 #, php-format
 msgid "Connection Timeout: Could not connect to %s on port %d. The port may be blocked by your hosting firewall or the server is not responding."
-msgstr ""
+msgstr "连接超时：无法连接到 %s 的 %d 端口。该端口可能被您的托管防火墙阻止，或服务器未响应。"
 
 #: includes/features/smtp-settings.php:638
 #, php-format
 msgid "Connection Refused: Server %s refused connection on port %d. Verify the port number is correct and the SMTP service is running."
-msgstr ""
+msgstr "连接被拒绝：服务器 %s 拒绝了在 %d 端口上的连接。请验证端口号是否正确，以及 SMTP 服务是否正在运行。"
 
 #: includes/features/smtp-settings.php:644
 #, php-format
 msgid "Connection Failed: Could not connect to %s on port %d. Error: %s"
-msgstr ""
+msgstr "连接失败：无法连接到 %s 的 %d 端口。错误：%s"
 
 #: includes/features/smtp-settings.php:653
 msgid "Additional PHP Errors:"
-msgstr ""
+msgstr "额外的 PHP 错误："
 
 #: includes/features/smtp-settings.php:685
 #, php-format
 msgid "SMTP Protocol Error: Server did not send proper greeting. Response: %s"
-msgstr ""
+msgstr "SMTP 协议错误：服务器未发送正确的问候。响应：%s"
 
 #: includes/features/smtp-settings.php:706
 #, php-format
 msgid "SMTP Protocol Error: Server rejected EHLO command. Response: %s"
-msgstr ""
+msgstr "SMTP 协议错误：服务器拒绝了 EHLO 命令。响应：%s"
 
 #: includes/features/smtp-settings.php:734
 #, php-format
 msgid "TLS Error: Server does not support STARTTLS or rejected the request. Response: %s"
-msgstr ""
+msgstr "TLS 错误：服务器不支持 STARTTLS 或拒绝了该请求。响应：%s"
 
 #: includes/features/smtp-settings.php:747
 msgid "TLS Encryption Failed: Could not establish secure TLS connection. The server's SSL certificate may be invalid or expired."
-msgstr ""
+msgstr "TLS 加密失败：无法建立安全的 TLS 连接。服务器的 SSL 证书可能无效或已过期。"
 
 #: includes/features/smtp-settings.php:773
 #, php-format
 msgid "Authentication Error: Server does not support LOGIN authentication method. Response: %s"
-msgstr ""
+msgstr "身份验证错误：服务器不支持 LOGIN 身份验证方法。响应：%s"
 
 #: includes/features/smtp-settings.php:790
 #, php-format
 msgid "Authentication Error: Server rejected username. Response: %s"
-msgstr ""
+msgstr "身份验证错误：服务器拒绝了用户名。响应：%s"
 
 #: includes/features/smtp-settings.php:809
 msgid "Authentication Failed: Invalid username or password. Please verify your SMTP credentials are correct."
-msgstr ""
+msgstr "身份验证失败：用户名或密码无效。请验证您的 SMTP 凭据是否正确。"
 
 #: includes/features/smtp-settings.php:815
 #, php-format
 msgid "Authentication Error: Server rejected credentials. Response: %s"
-msgstr ""
+msgstr "身份验证错误：服务器拒绝了凭据。响应：%s"
 
 #: includes/features/smtp-settings.php:835
 msgid "Connection test successful! All checks passed."
-msgstr ""
+msgstr "连接测试成功！所有检查均已通过。"
 
 #: includes/features/smtp-settings.php:837
 msgid "Note - PHP Warnings encountered:"
-msgstr ""
+msgstr "注意 - 检测到 PHP 警告："
 
 #: includes/features/smtp-settings.php:859
 msgid "Security check failed. Please refresh the page and try again."
@@ -12157,19 +12249,19 @@ msgstr "测试电子邮件已成功发送至 %s！检查收件箱。"
 
 #: includes/features/smtp-settings.php:952
 msgid "WordPress Error:"
-msgstr ""
+msgstr "WordPress 错误："
 
 #: includes/features/smtp-settings.php:972
 msgid "PHPMailer Error:"
-msgstr ""
+msgstr "PHPMailer 错误："
 
 #: includes/features/smtp-settings.php:978
 msgid "Failed to send test email. Details:"
-msgstr ""
+msgstr "测试邮件发送失败。详情："
 
 #: includes/features/smtp-settings.php:980
 msgid "Failed to send test email. No specific error details were captured. Check your SMTP settings or server error logs."
-msgstr ""
+msgstr "测试邮件发送失败。未捕获到具体的错误详情。请检查您的 SMTP 设置或服务器错误日志。"
 
 #: includes/features/smtp-settings.php:1008
 #: includes/features/smtp-settings.php:1025
@@ -12179,7 +12271,7 @@ msgstr "发送测试电子邮件"
 
 #: includes/features/smtp-settings.php:1009
 msgid "Send a test email using the saved SMTP settings. The log below will show every step in real time."
-msgstr ""
+msgstr "使用已保存的 SMTP 设置发送一封测试邮件。下方日志将实时显示每个步骤。"
 
 #: includes/features/smtp-settings.php:1013
 msgid "Recipient Email"
@@ -12191,7 +12283,7 @@ msgstr "you@example.com"
 
 #: includes/features/smtp-settings.php:1060
 msgid "Settings used:"
-msgstr ""
+msgstr "使用的设置："
 
 #: includes/features/taxonomy-settings.php:12
 msgid "Register Taxonomies"
