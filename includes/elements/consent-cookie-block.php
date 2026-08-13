@@ -54,7 +54,7 @@ class Snn_Consent_Cookie_Block extends Element {
             'description' => "
                 <p data-control='info'>
                     Blocks sharing the same key unlock together: on the same page, on every other page, and in other open tabs.<br>
-                    Leave empty to keep this block on its own (nothing is remembered).
+                    Leave empty and this block simply remembers its own choice.
                 </p>
             ",
         ];
@@ -228,6 +228,13 @@ class Snn_Consent_Cookie_Block extends Element {
         $button_label = $this->settings['button_label'] ?? esc_html__( 'Accept & Load', 'snn' );
         $consent_key  = strtolower( trim( (string) ( $this->settings['consent_key'] ?? '' ) ) );
         $session_only = ! empty( $this->settings['session_only'] );
+
+        // With no key of its own a block still has to remember the visitor's choice,
+        // so it falls back to its own element id. The key field is only needed when
+        // several blocks should share one decision.
+        if ( $consent_key === '' ) {
+            $consent_key = 'el-' . $this->id;
+        }
 
         $is_builder = function_exists( 'bricks_is_builder' ) && bricks_is_builder();
 
