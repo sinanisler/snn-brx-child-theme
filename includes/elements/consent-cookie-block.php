@@ -66,16 +66,31 @@ class Snn_Consent_Cookie_Block extends Element {
             'description' => esc_html__( 'The choice is kept for the current page view only and never stored.', 'snn' ),
         ];
 
-        $this->controls['min_height'] = [
+        $this->controls['prompt_width'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Reserved Height', 'snn' ),
+            'label'   => esc_html__( 'Width', 'snn' ),
             'type'    => 'number',
-            'units'   => [ 'px', 'vh', 'rem' ],
-            'default' => '',
+            'units'   => [ 'px', '%', 'vw', 'rem' ],
+            'default' => '100%',
             'inline'  => true,
             'css'     => [
                 [
-                    'property' => 'min-height',
+                    'property' => 'width',
+                    'selector' => '.snn-consent__prompt',
+                ],
+            ],
+        ];
+
+        $this->controls['prompt_height'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Height', 'snn' ),
+            'type'    => 'number',
+            'units'   => [ 'px', 'vh', 'rem', '%' ],
+            'default' => '300px',
+            'inline'  => true,
+            'css'     => [
+                [
+                    'property' => 'height',
                     'selector' => '.snn-consent__prompt',
                 ],
             ],
@@ -290,7 +305,7 @@ class Snn_Consent_Cookie_Block extends Element {
     public static function css() {
         return '
             .snn-consent{display:block;width:100%}
-            .snn-consent__prompt{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;padding:24px;background:#f3f4f6;border:1px solid #e2e5ea;border-radius:6px;visibility:hidden}
+            .snn-consent__prompt{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;width:100%;height:300px;box-sizing:border-box;padding:24px;background:#f3f4f6;border:1px solid #e2e5ea;border-radius:6px;visibility:hidden}
             .snn-consent--ready .snn-consent__prompt,.snn-consent__prompt.snn-consent--ready{visibility:visible}
             .snn-consent__text{max-width:60ch}
             .snn-consent__btn{cursor:pointer;font:inherit;line-height:1.2;padding:11px 20px;border:0;border-radius:4px;background:#1b1f24;color:#fff}
