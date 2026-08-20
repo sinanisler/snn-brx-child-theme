@@ -168,6 +168,7 @@ function snn_get_log_severity_info() {
         'custom_field_updated'    => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track post meta / custom field value changes (e.g. Bricks builder, ACF)', 'snn' ) ),
         'custom_field_added'      => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track new post meta / custom field additions', 'snn' ) ),
         'custom_field_deleted'    => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track post meta / custom field deletions', 'snn' ) ),
+        'bricks_content_updated'  => array( 'level' => 'important', 'desc' => __( 'Important: Track when Bricks Builder page content is saved', 'snn' ) ),
         'option_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track all WordPress options and settings changes', 'snn' ) ),
     );
 }
@@ -211,6 +212,7 @@ function snn_get_logging_options() {
             'custom_field_updated'  => __( 'Custom Field Updates', 'snn' ),
             'custom_field_added'    => __( 'Custom Field Added', 'snn' ),
             'custom_field_deleted'  => __( 'Custom Field Deleted', 'snn' ),
+            'bricks_content_updated'=> __( 'Bricks Builder Content Updates', 'snn' ),
         ),
         'comment_activities' => array(
             'comment_posted'        => __( 'Comment Posted', 'snn' ),
@@ -821,9 +823,120 @@ function snn_flush_meta_change_buffer() {
     snn_meta_change_buffer( 'reset' );
 }
 
+// =============================================================================
+// Bricks Builder Content Tracking
+// Bricks stores its page structure in a few serialized post meta keys. Those
+// blobs can be megabytes, so their values are never read, unserialized or
+// compared here — we only record THAT they were written. Every area touched
+// during a request collapses into one log entry per post on shutdown.
+// =============================================================================
+
+/**
+ * Bricks Builder post meta keys that hold builder data, mapped to an area label.
+ * '_bricks_page_content_2' is the  key 
+ *
+ * @return array Meta key => human readable area label.
+ */
+function snn_get_bricks_meta_keys() {
+    return array(
+        '_bricks_page_content_2'    => 'Content',
+        '_bricks_page_header_2'     => 'Header',
+        '_bricks_page_footer_2'     => 'Footer',
+        '_bricks_page_settings'     => 'Page Settings',
+        '_bricks_template_settings' => 'Template Settings',
+    );
+}
+
+/**
+ * Whether a meta key belongs to Bricks Builder.
+ *
+ * @param string $meta_key The meta key to check.
+ * @return bool
+ */
+function snn_is_bricks_meta_key( $meta_key ) {
+    $keys = snn_get_bricks_meta_keys();
+    return isset( $keys[ $meta_key ] );
+}
+
+/**
+ * Buffer of the Bricks areas touched during this request.
+ * Structure: [ post_id => [ area label => true ] ]
+ * Meta values are deliberately not stored.
+ *
+ * @param string   $action   'get', 'reset' or 'change'.
+ * @param int|null $post_id  Post ID.
+ * @param string   $meta_key Bricks meta key that was written.
+ * @return array|void
+ */
+function snn_bricks_change_buffer( $action = 'get', $post_id = null, $meta_key = '' ) {
+    static $buffer = array();
+
+    if ( $action === 'reset' ) {
+        $buffer = array();
+        return;
+    }
+
+    if ( $action === 'get' ) {
+        return $buffer;
+    }
+
+    if ( $post_id === null || ! snn_is_bricks_meta_key( $meta_key ) ) {
+        return;
+    }
+
+    $labels = snn_get_bricks_meta_keys();
+    $buffer[ $post_id ][ $labels[ $meta_key ] ] = true;
+}
+
+/**
+ * Flush the Bricks change buffer and write one log entry per post.
+ * Called on WordPress shutdown.
+ */
+function snn_flush_bricks_change_buffer() {
+    $buffer = snn_bricks_change_buffer( 'get' );
+
+    if ( empty( $buffer ) ) {
+        return;
+    }
+
+    if ( ! snn_is_log_type_enabled( 'bricks_content_updated' ) ) {
+        snn_bricks_change_buffer( 'reset' );
+        return;
+    }
+
+    foreach ( $buffer as $post_id => $areas ) {
+        $post = get_post( $post_id );
+        if ( ! $post || $post->post_type === 'snn_activity_log' ) {
+            continue;
+        }
+
+        $post_type_obj = get_post_type_object( $post->post_type );
+        $post_label    = $post_type_obj ? $post_type_obj->labels->singular_name : 'Item';
+        $post_title    = $post->post_title ?: '(no title)';
+        $areas_str     = implode( ', ', array_keys( $areas ) );
+
+        $details  = "Post: {$post_title} (ID: {$post_id})\n";
+        $details .= "Edited with: Bricks Builder\n";
+        $details .= "Areas Changed: {$areas_str}";
+
+        snn_log_user_activity(
+            "{$post_label} Bricks Content Updated ({$areas_str})",
+            $details,
+            $post_id,
+            'bricks_content_updated'
+        );
+    }
+
+    snn_bricks_change_buffer( 'reset' );
+}
+
 // Hook: Snapshot old value BEFORE meta is updated (while old value still in DB)
 add_action( 'update_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
     if ( snn_should_skip_meta_key( $meta_key ) ) {
+        return;
+    }
+    // Never snapshot Bricks blobs - we only care that the key was written
+    if ( snn_is_bricks_meta_key( $meta_key ) ) {
         return;
     }
     // get_post_meta() still returns the old value at this point (before DB write)
@@ -833,6 +946,12 @@ add_action( 'update_post_meta', function( $meta_id, $post_id, $meta_key, $meta_v
 // Hook: Custom field updated (AFTER DB write)
 add_action( 'updated_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
     if ( snn_should_skip_meta_key( $meta_key ) ) {
+        return;
+    }
+
+    // Bricks Builder data: record the change only, never touch the value
+    if ( snn_is_bricks_meta_key( $meta_key ) ) {
+        snn_bricks_change_buffer( 'change', $post_id, $meta_key );
         return;
     }
 
@@ -861,6 +980,12 @@ add_action( 'added_post_meta', function( $meta_id, $post_id, $meta_key, $meta_va
         return;
     }
 
+    // Bricks Builder data: record the change only, never touch the value
+    if ( snn_is_bricks_meta_key( $meta_key ) ) {
+        snn_bricks_change_buffer( 'change', $post_id, $meta_key );
+        return;
+    }
+
     // Preserve existing featured image logging
     if ( $meta_key === '_thumbnail_id' ) {
         $post = get_post( $post_id );
@@ -878,6 +1003,12 @@ add_action( 'deleted_post_meta', function( $meta_ids, $post_id, $meta_key, $meta
         return;
     }
 
+    // Bricks Builder data: record the change only, never touch the value
+    if ( snn_is_bricks_meta_key( $meta_key ) ) {
+        snn_bricks_change_buffer( 'change', $post_id, $meta_key );
+        return;
+    }
+
     // Preserve existing featured image logging
     if ( $meta_key === '_thumbnail_id' ) {
         $post = get_post( $post_id );
@@ -891,6 +1022,9 @@ add_action( 'deleted_post_meta', function( $meta_ids, $post_id, $meta_key, $meta
 
 // Flush the meta change buffer on shutdown (after all meta operations in the request)
 add_action( 'shutdown', 'snn_flush_meta_change_buffer', 100 );
+
+// Flush the Bricks Builder change buffer on shutdown
+add_action( 'shutdown', 'snn_flush_bricks_change_buffer', 100 );
 
 // Reusable block (wp_block) created or updated
 add_action( 'save_post_wp_block', function( $post_id, $post, $update ) {
