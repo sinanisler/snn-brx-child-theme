@@ -1209,6 +1209,44 @@ add_action( 'wp_update_nav_menu', function( $menu_id ) {
     }
 });
 
+/**
+ * Options that are rewritten constantly by WordPress itself and carry no audit value.
+ * The 'cron' option in particular is re-serialized on almost every request as events are
+ * rescheduled, which floods the log with huge, unreadable serialized blobs.
+ *
+ * @param string $option_name The option being updated.
+ * @return bool True when the option should never produce an 'Option Updated' entry.
+ */
+function snn_should_skip_option_name( $option_name ) {
+    // Transients and site transients are cache data, not settings
+    if ( strpos( $option_name, '_transient_' ) === 0
+        || strpos( $option_name, '_site_transient_' ) === 0 ) {
+        return true;
+    }
+
+    $skip_options = array(
+        'cron',                       // WP cron schedule array - rewritten constantly
+        'doing_cron',
+        'auto_updater.lock',
+        'core_updater.lock',
+        'db_upgraded',
+        'recovery_mode_email_last_sent',
+        'can_compress_scripts',
+        'nonce_key',
+        'nonce_salt',
+    );
+
+    /**
+     * Filter the list of option names excluded from activity logging.
+     *
+     * @param array  $skip_options Option names to ignore.
+     * @param string $option_name  The option currently being evaluated.
+     */
+    $skip_options = apply_filters( 'snn_activity_log_skip_options', $skip_options, $option_name );
+
+    return in_array( $option_name, $skip_options, true );
+}
+
 // Dynamic Settings/Options updated tracking - LOG EVERYTHING when enabled!
 add_action( 'updated_option', function( $option_name, $old_value, $value ) {
     // Only skip our own activity log settings to prevent infinite recursive logging
@@ -1227,6 +1265,11 @@ add_action( 'updated_option', function( $option_name, $old_value, $value ) {
             
             snn_log_user_activity( $log_message, $log_details, 0, 'transient_doing_cron_updated' );
         }
+        return;
+    }
+
+    // Skip machine-generated, high-churn options (cron, transients, locks, ...)
+    if ( snn_should_skip_option_name( $option_name ) ) {
         return;
     }
 
@@ -1571,12 +1614,39 @@ function snn_format_option_value( $value ) {
     }
     
     if ( is_array( $value ) || is_object( $value ) ) {
-        // Output exact raw serialized content
-        return serialize( $value );
+        return snn_truncate_option_value( serialize( $value ) );
     }
-    
-    // Return the exact string value without truncation
-    return (string) $value;
+
+    return snn_truncate_option_value( (string) $value );
+}
+
+/**
+ * Caps an option value at a sane length so a single log row cannot store tens of
+ * kilobytes (e.g. 'rewrite_rules', which serializes every rule on the site).
+ * The original length is kept in the suffix so the entry stays meaningful.
+ *
+ * @param string $value The already stringified option value.
+ * @return string Value, truncated if it exceeded the limit.
+ */
+function snn_truncate_option_value( $value ) {
+    /**
+     * Filter the maximum stored length of a single option value in the activity log.
+     *
+     * @param int $max_length Maximum number of characters. Use 0 to disable truncation.
+     */
+    $max_length = (int) apply_filters( 'snn_activity_log_option_value_max_length', 5000 );
+
+    if ( $max_length <= 0 ) {
+        return $value;
+    }
+
+    $length = strlen( $value );
+    if ( $length <= $max_length ) {
+        return $value;
+    }
+
+    return substr( $value, 0, $max_length ) . "
+...[truncated, {$length} characters total]";
 }
 
 /**
