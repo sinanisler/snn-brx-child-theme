@@ -274,6 +274,21 @@ Fitness</button>
 
                 </div>
 
+                <!-- Context chip + scope selector -->
+                <div class="snn-bricks-context-bar">
+                    <div class="snn-bricks-context-chip" id="snn-bricks-context-chip" style="display:none;">
+                        <span class="snn-ctx-icon">&#127919;</span>
+                        <span class="snn-ctx-label"></span>
+                        <span class="snn-ctx-detail"></span>
+                        <button class="snn-ctx-clear" title="<?php echo esc_attr__( 'Clear selection', 'snn' ); ?>">&times;</button>
+                    </div>
+                    <select id="snn-bricks-scope-select" class="snn-bricks-scope-select" title="<?php echo esc_attr__( 'What the agent may change', 'snn' ); ?>">
+                        <option value="page"><?php echo esc_html__( 'Whole page', 'snn' ); ?></option>
+                        <option value="section"><?php echo esc_html__( 'This section', 'snn' ); ?></option>
+                        <option value="selection"><?php echo esc_html__( 'Selection', 'snn' ); ?></option>
+                    </select>
+                </div>
+
                 <!-- Input -->
                 <div class="snn-bricks-chat-input-container">
                     <input type="file" id="snn-bricks-chat-file-input" accept="image/*" style="display: none;" />
@@ -327,7 +342,14 @@ Fitness</button>
                 // Theming state — populated by theming agent, carried forward for add_section
                 currentTheme: null,
                 // Accumulated global classes across all sections in a compilation session
-                accumulatedGlobalClasses: []
+                accumulatedGlobalClasses: [],
+                // ── Content awareness ──
+                selectionId: null,          // element the user pointed at on the canvas
+                scope: 'page',              // 'page' | 'section' | 'selection'
+                autoApply: false,           // skip the confirm step for structural edits
+                pendingOps: null,           // ops waiting on the Apply button
+                pendingAmbiguous: null,     // ops waiting on an element choice
+                defaultQuickActions: null   // starter prompts, restored on an empty page
             };
 
             // ================================================================
@@ -356,101 +378,43 @@ Fitness</button>
                     if (!s) return null;
                     return { elements: s.content, elementCount: s.content ? s.content.length : 0 };
                 },
-                replaceAllContent(data) {
+                /**
+                 * Single canonical re-render path. Reassigns the array reference so Vue's
+                 * reactivity fires, then forces Bricks to rebuild the canvas and re-attach
+                 * its drag/edit listeners.
+                 */
+                rerender() {
                     const s = this.getState();
-                    if (!s) return { success: false, error: 'Bricks state not available' };
-                    try {
-                        const d    = typeof data === 'string' ? JSON.parse(data) : data;
-                        const els  = d.content || d;
-                        if (!Array.isArray(els)) throw new Error('Invalid content format');
-                        // Reassign the array reference so Vue's reactivity system picks up the
-                        // change correctly and Bricks re-initialises all canvas event listeners.
-                        s.content = [...els];
-                        debugLog('Replaced with', els.length, 'elements');
-                        // Force Bricks to re-render the canvas and re-attach drag/edit listeners
-                        setTimeout(() => {
-                            if (window.bricksCore?.builder?.canvas?.render) {
-                                window.bricksCore.builder.canvas.render();
-                                // Second render after an additional tick to catch late reactive updates
-                                requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
-                            }
-                        }, 200); // bump from 150 → 200ms
-                        return { success: true, message: `Replaced page with ${els.length} elements` };
-                    } catch(e) { return { success: false, error: e.message }; }
-                },
-                addSection(data, position = 'append') {
-                    const s = this.getState();
-                    if (!s) return { success: false, error: 'Bricks state not available' };
-                    try {
-                        const d   = typeof data === 'string' ? JSON.parse(data) : data;
-                        const els = d.content || d;
-                        if (!Array.isArray(els)) throw new Error('Invalid content format');
-                        // Reassign the array reference (not mutate in place) so Vue reactivity
-                        // fires fully and Bricks re-initialises all canvas event listeners.
-                        if (position === 'prepend') {
-                            s.content = [...els, ...s.content];
-                        } else {
-                            s.content = [...s.content, ...els];
+                    if (!s) return;
+                    if (Array.isArray(s.content)) s.content = [...s.content];
+                    this.pushBricksHistory();
+                    setTimeout(() => {
+                        if (window.bricksCore?.builder?.canvas?.render) {
+                            window.bricksCore.builder.canvas.render();
+                            requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
                         }
-                        debugLog('Added', els.length, 'elements', position);
-                        // Force Bricks to re-render the canvas and re-attach drag/edit listeners
-                        setTimeout(() => {
-                            if (window.bricksCore?.builder?.canvas?.render) {
-                                window.bricksCore.builder.canvas.render();
-                                // Second render after an additional tick to catch late reactive updates
-                                requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
-                            }
-                        }, 200); // bump from 150 → 200ms
-                        return { success: true, message: `Added ${els.length} elements (${position})` };
-                    } catch(e) { return { success: false, error: e.message }; }
+                    }, 200);
                 },
-                patchElement(cmd) {
-                    const s = this.getState();
-                    if (!s || !s.content) return { success: false, error: 'Bricks state not available' };
-                    const { element_id, find_by, updates } = cmd;
-                    let typeCounter = 0, target = null;
-                    for (const el of s.content) {
-                        if (element_id && el.id === element_id) { target = el; break; }
-                        if (find_by) {
-                            if (find_by.type === 'text_content') {
-                                const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
-                                if (raw.replace(/<[^>]*>/g, '').trim().toLowerCase().includes(find_by.value.toLowerCase())) { target = el; break; }
-                            } else if (find_by.type === 'element_type' && el.name === find_by.value) {
-                                if (typeCounter === (find_by.index || 0)) { target = el; break; }
-                                typeCounter++;
-                            }
+
+                /**
+                 * Best-effort: register the write with Bricks' own undo stack so the
+                 * builder's native Ctrl+Z sees agent edits too. Bricks does not expose
+                 * a documented history API, so we probe the shapes it has used and stay
+                 * silent if none is present — the agent's own revert always works.
+                 */
+                pushBricksHistory() {
+                    try {
+                        const candidates = [
+                            window.bricksCore?.history?.add,
+                            window.bricksCore?.builder?.history?.add,
+                            window.bricks?.history?.add,
+                            this.getState()?.history?.add
+                        ];
+                        for (const fn of candidates) {
+                            if (typeof fn === 'function') { fn.call(null, 'snn-ai-edit'); return true; }
                         }
-                    }
-                    if (!target) return { success: false, error: 'Element not found' };
-                    if (updates.text        != null) target.settings.text = updates.text;
-                    if (updates.image_url   != null) { if (!target.settings.image) target.settings.image = {}; target.settings.image.url = updates.image_url; }
-                    if (updates.bricks_settings) Object.assign(target.settings, updates.bricks_settings);
-                    return { success: true, message: `Patched [${target.id}]` };
-                },
-                applyPatch(patchData) {
-                    const s = this.getState();
-                    if (!s || !s.content) return { success: false, error: 'Bricks state not available' };
-                    const patches = Array.isArray(patchData.patches) ? patchData.patches : [patchData];
-                    let patched = 0;
-                    const errors = [];
-                    patches.forEach(patch => {
-                        const result = this.patchElement(patch);
-                        if (result.success) patched++;
-                        else errors.push(result.error);
-                    });
-                    if (patched > 0) {
-                        s.content = [...s.content]; // Trigger Vue reactivity
-                        setTimeout(() => {
-                            if (window.bricksCore?.builder?.canvas?.render) {
-                                window.bricksCore.builder.canvas.render();
-                                // Second render after an additional tick to catch late reactive updates
-                                requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
-                            }
-                        }, 200); // bump from 150 → 200ms
-                    }
-                    return patched > 0
-                        ? { success: true, message: `Patched ${patched} element(s)` }
-                        : { success: false, error: 'No elements matched: ' + errors.join('; ') };
+                    } catch(e) { debugLog('Bricks history push unavailable:', e.message); }
+                    return false;
                 },
                 getDesignTokens() {
                     const s = this.getState();
@@ -659,6 +623,1522 @@ Fitness</button>
             };
 
             // ================================================================
+            // PageContext — single source of truth for page awareness.
+            // Every prompt (classifier, planner, designer, patcher, answerer,
+            // tool loop) is fed from here so they never disagree about the page.
+            // ================================================================
+
+            const PageContext = {
+                MAX_ELEMENTS: 140,
+
+                /** Index the live Bricks content array: id map + root list. */
+                index() {
+                    const s       = BricksHelper.getState();
+                    const content = (s && Array.isArray(s.content)) ? s.content : [];
+                    const byId    = {};
+                    content.forEach(el => { if (el && el.id) byId[el.id] = el; });
+                    const roots = content
+                        .filter(el => el && (el.parent === 0 || el.parent === '0' || !byId[el.parent]))
+                        .map(el => el.id);
+                    return { content, byId, roots };
+                },
+
+                /** Children of an element in document order (children array wins, parent scan fallback). */
+                childrenOf(id, idx) {
+                    const el = idx.byId[id];
+                    if (!el) return [];
+                    if (Array.isArray(el.children) && el.children.length) {
+                        const known = el.children.filter(cid => idx.byId[cid]);
+                        if (known.length) return known;
+                    }
+                    return idx.content.filter(e => e.parent === id).map(e => e.id);
+                },
+
+                /** All descendant ids of an element, depth-first. */
+                descendantsOf(id, idx) {
+                    const out = [];
+                    const walk = (cur) => {
+                        this.childrenOf(cur, idx).forEach(cid => { out.push(cid); walk(cid); });
+                    };
+                    walk(id);
+                    return out;
+                },
+
+                /** Nearest ancestor (or self) that is a top-level section. */
+                sectionOf(id, idx) {
+                    let cur = idx.byId[id];
+                    const seen = new Set();
+                    while (cur && !seen.has(cur.id)) {
+                        seen.add(cur.id);
+                        if (cur.parent === 0 || cur.parent === '0' || !idx.byId[cur.parent]) return cur.id;
+                        cur = idx.byId[cur.parent];
+                    }
+                    return null;
+                },
+
+                /** Global class names applied to an element. */
+                classNamesOf(el) {
+                    const s   = BricksHelper.getState();
+                    const ids = (el && el.settings && el.settings._cssGlobalClasses) || [];
+                    if (!Array.isArray(ids) || !s || !Array.isArray(s.globalClasses)) return [];
+                    return ids.map(cid => {
+                        const gc = s.globalClasses.find(g => g.id === cid);
+                        return gc ? gc.name : null;
+                    }).filter(Boolean);
+                },
+
+                /** Visible text of an element, trimmed for prompt use. */
+                textOf(el, max = 70) {
+                    const raw = (el && el.settings && (el.settings.text || el.settings.content || el.settings.title)) || '';
+                    if (typeof raw !== 'string') return '';
+                    const txt = raw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    return txt.length > max ? txt.slice(0, max) + '…' : txt;
+                },
+
+                /** The element id the user last selected on the canvas (or Bricks' own active element). */
+                getSelectionId() {
+                    if (ChatState.selectionId) {
+                        const idx = this.index();
+                        if (idx.byId[ChatState.selectionId]) return ChatState.selectionId;
+                        ChatState.selectionId = null; // stale — element was deleted
+                    }
+                    const s = BricksHelper.getState();
+                    if (!s) return null;
+                    const candidates = [s.activeElement, s.activeId, s.selectedElement, s.activeElementId];
+                    for (const c of candidates) {
+                        if (!c) continue;
+                        if (typeof c === 'string') return c;
+                        if (typeof c === 'object' && c.id) return c.id;
+                    }
+                    return null;
+                },
+
+                /** Resolve the current scope to the set of root ids to serialize. */
+                scopeRoots(idx) {
+                    const scope = ChatState.scope || 'page';
+                    const sel   = this.getSelectionId();
+                    if (scope === 'selection' && sel && idx.byId[sel]) return [sel];
+                    if (scope === 'section'   && sel) {
+                        const sec = this.sectionOf(sel, idx);
+                        if (sec) return [sec];
+                    }
+                    return idx.roots;
+                },
+
+                /** Human-readable label for the current scope — used by the UI chip. */
+                describeScope() {
+                    const idx   = this.index();
+                    const sel   = this.getSelectionId();
+                    const scope = ChatState.scope || 'page';
+                    if (scope === 'selection' && sel && idx.byId[sel]) {
+                        const el = idx.byId[sel];
+                        return { label: el.name + ' [' + sel + ']', detail: this.textOf(el, 30), id: sel };
+                    }
+                    if (scope === 'section' && sel) {
+                        const sid = this.sectionOf(sel, idx);
+                        if (sid && idx.byId[sid]) {
+                            const m = SectionManifest.find(sid);
+                            return {
+                                label:  m ? m.label : (idx.byId[sid].name + ' [' + sid + ']'),
+                                detail: (1 + this.descendantsOf(sid, idx).length) + ' elements',
+                                id:     sid
+                            };
+                        }
+                    }
+                    return { label: 'Whole page', detail: idx.content.length + ' elements', id: null };
+                },
+
+                /** Render the element tree for the given roots as an indented outline. */
+                renderTree(roots, idx, opts = {}) {
+                    const maxElements = opts.maxElements || this.MAX_ELEMENTS;
+                    const selId       = opts.selectionId || null;
+                    const lines       = [];
+                    let   emitted     = 0;
+                    let   truncated   = false;
+
+                    const walk = (id, depth) => {
+                        const el = idx.byId[id];
+                        if (!el) return;
+                        if (emitted >= maxElements) { truncated = true; return; }
+                        emitted++;
+
+                        const pad     = '  '.repeat(depth);
+                        const classes = this.classNamesOf(el).map(c => '.' + c).join(' ');
+                        const txt     = this.textOf(el);
+                        let   line    = pad + '[' + el.id + '] ' + (el.name || 'block');
+                        if (classes) line += '  ' + classes;
+                        if (txt)     line += '  "' + txt + '"';
+                        if (el.id === selId) line += '   <-- SELECTED';
+                        lines.push(line);
+
+                        const kids  = this.childrenOf(id, idx);
+                        // Long repeating lists (cards, grid items) collapse after 6 siblings.
+                        const shown = kids.length > 8 ? kids.slice(0, 6) : kids;
+                        shown.forEach(cid => walk(cid, depth + 1));
+                        if (shown.length < kids.length) {
+                            lines.push('  '.repeat(depth + 1) + '... ' + (kids.length - shown.length) + ' more sibling element(s)');
+                            truncated = true;
+                        }
+                    };
+
+                    roots.forEach(r => walk(r, 0));
+                    if (truncated) lines.push('(tree truncated - call get_element on any id for full detail)');
+                    return lines.join('\n');
+                },
+
+                /** CSS rules for every global class used inside the given roots. */
+                renderClassRules(roots, idx, limit = 40) {
+                    const s = BricksHelper.getState();
+                    if (!s || !Array.isArray(s.globalClasses) || !s.globalClasses.length) return '';
+                    const used = new Set();
+                    const collect = (id) => {
+                        const el = idx.byId[id];
+                        if (!el) return;
+                        this.classNamesOf(el).forEach(n => used.add(n));
+                        this.childrenOf(id, idx).forEach(collect);
+                    };
+                    roots.forEach(collect);
+                    if (!used.size) return '';
+
+                    const rules = [];
+                    s.globalClasses.forEach(gc => {
+                        if (!used.has(gc.name) || rules.length >= limit) return;
+                        let css = (gc.settings && gc.settings._cssCustom) || '';
+                        css = css.replace(/\s+/g, ' ').trim();
+                        if (css.length > 400) css = css.slice(0, 400) + ' ...}';
+                        rules.push(css || '.' + gc.name + ' { }');
+                    });
+                    return rules.join('\n');
+                },
+
+                /**
+                 * The full context block injected into prompts.
+                 * @param {object} opts - { roots, maxElements, includeClasses, includeManifest }
+                 */
+                serialize(opts = {}) {
+                    const idx = this.index();
+                    if (!idx.content.length) {
+                        return 'PAGE STATE: empty - this page has no elements yet.';
+                    }
+
+                    const selId  = this.getSelectionId();
+                    const roots  = opts.roots || this.scopeRoots(idx);
+                    const scope  = ChatState.scope || 'page';
+                    const title  = (snnBricksChatConfig.pageContext && snnBricksChatConfig.pageContext.details && snnBricksChatConfig.pageContext.details.post_title) || 'Untitled';
+                    const postId = (snnBricksChatConfig.pageContext && snnBricksChatConfig.pageContext.details && snnBricksChatConfig.pageContext.details.post_id) || '';
+
+                    const parts = [];
+                    parts.push('PAGE STATE: "' + title + '"' + (postId ? ' (post ' + postId + ')' : '') +
+                               ' - ' + idx.content.length + ' elements, ' + idx.roots.length + ' top-level section(s).');
+
+                    if (selId && idx.byId[selId]) {
+                        const el = idx.byId[selId];
+                        parts.push('USER SELECTION: [' + selId + '] ' + el.name +
+                                   (this.textOf(el, 40) ? ' "' + this.textOf(el, 40) + '"' : '') +
+                                   ' - resolve "this" / "here" / "it" to this element.');
+                    } else {
+                        parts.push('USER SELECTION: none - if the request says "this" and is ambiguous, ask which element the user means.');
+                    }
+
+                    parts.push('REQUEST SCOPE: ' + (
+                        scope === 'selection' ? 'the selected element and its children only'
+                      : scope === 'section'   ? 'the selected section only'
+                      : 'the whole page'
+                    ) + '. Do not modify elements outside this scope unless the user explicitly asks.');
+
+                    parts.push('\nSTRUCTURE (indentation = containment):\n' +
+                               this.renderTree(roots, idx, { maxElements: opts.maxElements, selectionId: selId }));
+
+                    if (opts.includeClasses !== false) {
+                        const rules = this.renderClassRules(roots, idx);
+                        if (rules) {
+                            parts.push('\nGLOBAL CSS CLASSES IN SCOPE (change style by editing these, NOT by inlining settings):\n' + rules);
+                        }
+                    }
+
+                    if (opts.includeManifest !== false) {
+                        const man = SectionManifest.describe(idx);
+                        if (man) parts.push('\nAI-BUILT SECTIONS (original source HTML retained - these can be regenerated wholesale):\n' + man);
+                    }
+
+                    return parts.join('\n');
+                },
+
+                /** Compact one-liner for the cheap classifier call. */
+                brief() {
+                    const idx = this.index();
+                    if (!idx.content.length) return 'Page is empty.';
+                    const sel  = this.getSelectionId();
+                    const secs = idx.roots.map(r => {
+                        const m = SectionManifest.find(r);
+                        return m ? m.label : (idx.byId[r] ? idx.byId[r].name : r);
+                    }).slice(0, 12).join(', ');
+                    return 'Page has ' + idx.content.length + ' elements in ' + idx.roots.length +
+                           ' section(s): ' + secs + '.' +
+                           (sel ? ' User has element [' + sel + '] selected.' : ' Nothing is selected.');
+                }
+            };
+
+            // ================================================================
+            // History — snapshots, rollback, per-message checkpoints.
+            // Every write runs inside a transaction so a failed multi-op edit
+            // can never half-apply, and any chat message can be reverted.
+            // ================================================================
+
+            const History = {
+                MAX: 25,
+                stack: [],
+
+                _clone(v) {
+                    try { return structuredClone(v); } catch(e) { return JSON.parse(JSON.stringify(v)); }
+                },
+
+                /** Capture the full editable Bricks state. */
+                capture() {
+                    const s = BricksHelper.getState();
+                    if (!s) return null;
+                    return {
+                        content:         this._clone(Array.isArray(s.content) ? s.content : []),
+                        globalClasses:   this._clone(Array.isArray(s.globalClasses) ? s.globalClasses : []),
+                        colorPalette:    this._clone(Array.isArray(s.colorPalette) ? s.colorPalette : []),
+                        globalVariables: this._clone(Array.isArray(s.globalVariables) ? s.globalVariables : [])
+                    };
+                },
+
+                /** Push a named checkpoint, returning its id. */
+                checkpoint(label) {
+                    const snap = this.capture();
+                    if (!snap) return null;
+                    const id = 'cp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+                    this.stack.push({ id, label, snapshot: snap, at: Date.now() });
+                    if (this.stack.length > this.MAX) this.stack.shift();
+                    debugLog('Checkpoint saved:', label, id);
+                    return id;
+                },
+
+                /** Write a snapshot back into Bricks state. */
+                _apply(snap) {
+                    const s = BricksHelper.getState();
+                    if (!s || !snap) return false;
+                    s.content         = this._clone(snap.content);
+                    s.globalClasses   = this._clone(snap.globalClasses);
+                    s.colorPalette    = this._clone(snap.colorPalette);
+                    s.globalVariables = this._clone(snap.globalVariables);
+                    BricksHelper.rerender();
+                    return true;
+                },
+
+                /** Roll back to a checkpoint by id. */
+                restore(id) {
+                    const cp = this.stack.find(c => c.id === id);
+                    if (!cp) return { success: false, error: 'That restore point is no longer available.' };
+                    return this._apply(cp.snapshot)
+                        ? { success: true, message: 'Reverted to "' + cp.label + '"' }
+                        : { success: false, error: 'Could not restore Bricks state.' };
+                },
+
+                /**
+                 * Run a write atomically. On throw, or on a {success:false} result,
+                 * the pre-write state is restored so nothing is left half-applied.
+                 */
+                transaction(label, fn) {
+                    const before = this.capture();
+                    try {
+                        const result = fn();
+                        if (result && result.success === false) {
+                            this._apply(before);
+                            return result;
+                        }
+                        return result;
+                    } catch(e) {
+                        this._apply(before);
+                        debugLog('Transaction rolled back:', label, e);
+                        return { success: false, error: e.message, rolledBack: true };
+                    }
+                },
+
+                clear() { this.stack = []; }
+            };
+
+            // ================================================================
+            // SectionManifest — remembers what the agent built, so a section can
+            // later be edited or regenerated from its own source HTML + theme.
+            // Persisted to post meta so it survives a builder reload.
+            // ================================================================
+
+            const SectionManifest = {
+                entries: [],
+
+                /** Record a section the agent just compiled and injected. */
+                record(entry) {
+                    if (!entry || !entry.rootId) return;
+                    const row = {
+                        rootId:  entry.rootId,
+                        label:   entry.label || 'Section',
+                        html:    entry.html  || '',
+                        prompt:  entry.prompt || '',
+                        theme:   entry.theme || null,
+                        classes: entry.classes || [],
+                        builtAt: Date.now()
+                    };
+                    const at = this.entries.findIndex(e => e.rootId === entry.rootId);
+                    if (at >= 0) this.entries[at] = row; else this.entries.push(row);
+                    this.persist();
+                },
+
+                find(rootId) { return this.entries.find(e => e.rootId === rootId) || null; },
+
+                /** Drop entries whose root element no longer exists on the page. */
+                prune(idx) {
+                    const before = this.entries.length;
+                    this.entries = this.entries.filter(e => idx.byId[e.rootId]);
+                    if (this.entries.length !== before) this.persist();
+                },
+
+                /** Prompt-facing summary of agent-built sections. */
+                describe(idx) {
+                    this.prune(idx);
+                    if (!this.entries.length) return '';
+                    return this.entries.map(e =>
+                        '  [' + e.rootId + '] "' + e.label + '"' +
+                        (e.html ? ' - ' + Math.max(1, Math.round(e.html.length / 1024)) + 'KB source HTML retained' : '')
+                    ).join('\n');
+                },
+
+                persist() {
+                    const details = snnBricksChatConfig.pageContext && snnBricksChatConfig.pageContext.details;
+                    const postId  = details && details.post_id;
+                    if (!postId) return;
+                    // Source HTML can be large - keep it, but cap each entry so post meta stays sane.
+                    const payload = this.entries.map(e => Object.assign({}, e, { html: (e.html || '').slice(0, 60000) }));
+                    $.ajax({
+                        url: snnBricksChatConfig.ajaxUrl, type: 'POST',
+                        data: {
+                            action:   'snn_bricks_manifest_save',
+                            nonce:    snnBricksChatConfig.agentNonce,
+                            post_id:  postId,
+                            manifest: JSON.stringify(payload)
+                        }
+                    }).fail(() => debugLog('Manifest persist failed'));
+                },
+
+                async load() {
+                    const details = snnBricksChatConfig.pageContext && snnBricksChatConfig.pageContext.details;
+                    const postId  = details && details.post_id;
+                    if (!postId) return;
+                    try {
+                        const res = await $.ajax({
+                            url: snnBricksChatConfig.ajaxUrl, type: 'POST',
+                            data: { action: 'snn_bricks_manifest_get', nonce: snnBricksChatConfig.agentNonce, post_id: postId }
+                        });
+                        if (res && res.success && res.data && Array.isArray(res.data.manifest)) {
+                            this.entries = res.data.manifest;
+                            debugLog('Section manifest loaded:', this.entries.length, 'entries');
+                        }
+                    } catch(e) { debugLog('Manifest load error:', e); }
+                }
+            };
+
+
+            // ================================================================
+            // EditOps — the full edit vocabulary.
+            // Text, images, settings, global-class CSS, delete, move,
+            // duplicate, insert, wrap, unwrap. Every op resolves its target
+            // first and reports ambiguity instead of guessing.
+            // ================================================================
+
+            const EditOps = {
+                LETTERS: 'abcdefghijklmnopqrstuvwxyz',
+
+                /** Bricks-native id: exactly 6 lowercase letters, unique on the page. */
+                genId(idx) {
+                    let id;
+                    do {
+                        id = Array.from({ length: 6 }, () => this.LETTERS[Math.floor(Math.random() * 26)]).join('');
+                    } while (idx.byId[id] || ChatState.globalUsedIds.has(id));
+                    ChatState.globalUsedIds.add(id);
+                    return id;
+                },
+
+                /**
+                 * Resolve a target spec to a single element id.
+                 * Returns { ok:true, id } or { ok:false, error, candidates }.
+                 * Ambiguity is surfaced, never silently resolved to the first match.
+                 */
+                resolveTarget(spec, idx) {
+                    if (!spec) return { ok: false, error: 'No target given' };
+
+                    // Plain id string, or { id: "..." }
+                    const directId = (typeof spec === 'string') ? spec : spec.id;
+                    if (directId) {
+                        return idx.byId[directId]
+                            ? { ok: true, id: directId }
+                            : { ok: false, error: 'No element with id [' + directId + '] exists on this page' };
+                    }
+
+                    if (spec.selection) {
+                        const sel = PageContext.getSelectionId();
+                        return sel && idx.byId[sel]
+                            ? { ok: true, id: sel }
+                            : { ok: false, error: 'Nothing is selected on the canvas' };
+                    }
+
+                    let matches = idx.content.slice();
+
+                    if (spec.text) {
+                        const needle = String(spec.text).toLowerCase();
+                        matches = matches.filter(el => PageContext.textOf(el, 400).toLowerCase().includes(needle));
+                    }
+                    if (spec.class) {
+                        const want = String(spec.class).replace(/^\./, '');
+                        matches = matches.filter(el => PageContext.classNamesOf(el).includes(want));
+                    }
+                    if (spec.type) {
+                        matches = matches.filter(el => el.name === spec.type);
+                    }
+                    if (spec.within) {
+                        const parentRes = this.resolveTarget(spec.within, idx);
+                        if (parentRes.ok) {
+                            const allowed = new Set(PageContext.descendantsOf(parentRes.id, idx));
+                            matches = matches.filter(el => allowed.has(el.id));
+                        }
+                    }
+
+                    if (!matches.length) {
+                        return { ok: false, error: 'No element matched ' + JSON.stringify(spec) };
+                    }
+                    if (typeof spec.index === 'number') {
+                        return matches[spec.index]
+                            ? { ok: true, id: matches[spec.index].id }
+                            : { ok: false, error: 'Only ' + matches.length + ' element(s) matched; index ' + spec.index + ' is out of range' };
+                    }
+                    if (matches.length > 1) {
+                        return {
+                            ok: false,
+                            error: matches.length + ' elements matched — specify an id or an index',
+                            candidates: matches.slice(0, 8).map(el => ({
+                                id:      el.id,
+                                name:    el.name,
+                                text:    PageContext.textOf(el, 45),
+                                classes: PageContext.classNamesOf(el)
+                            }))
+                        };
+                    }
+                    return { ok: true, id: matches[0].id };
+                },
+
+                /** Deep-merge settings so a partial update never drops sibling keys. */
+                mergeSettings(target, patch) {
+                    Object.keys(patch || {}).forEach(k => {
+                        const v = patch[k];
+                        if (v && typeof v === 'object' && !Array.isArray(v) &&
+                            target[k] && typeof target[k] === 'object' && !Array.isArray(target[k])) {
+                            this.mergeSettings(target[k], v);
+                        } else {
+                            target[k] = v;
+                        }
+                    });
+                },
+
+                /**
+                 * Merge CSS declarations into a global class rule.
+                 * Existing declarations for the same property are replaced; the rest
+                 * of the rule (and any :hover / media blocks) is preserved.
+                 */
+                mergeClassCSS(existingCSS, className, decls) {
+                    const sel     = '.' + className;
+                    const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    // Match the base rule only — not .cls:hover, not .cls .child
+                    const baseRe  = new RegExp('(^|\\})\\s*\\.' + escaped + '\\s*\\{([^}]*)\\}');
+                    const m       = existingCSS.match(baseRe);
+
+                    const declMap = {};
+                    if (m) {
+                        m[2].split(';').forEach(d => {
+                            const i = d.indexOf(':');
+                            if (i > 0) declMap[d.slice(0, i).trim()] = d.slice(i + 1).trim();
+                        });
+                    }
+                    Object.keys(decls).forEach(prop => {
+                        const val = decls[prop];
+                        if (val === null || val === '') delete declMap[prop];
+                        else declMap[prop] = String(val);
+                    });
+
+                    const body = Object.keys(declMap).map(p => '  ' + p + ': ' + declMap[p] + ';').join('\n');
+                    const rule = sel + ' {\n' + body + '\n}';
+                    if (m) return existingCSS.replace(baseRe, (full, lead) => (lead || '') + '\n' + rule);
+                    return (existingCSS ? existingCSS.trimEnd() + '\n\n' : '') + rule;
+                },
+
+                // ── Individual operations ───────────────────────────────────
+                // Each returns { success, message } or { success:false, error, candidates }.
+
+                set_text(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const el = idx.byId[r.id];
+                    if (!el.settings) el.settings = {};
+                    // Preserve whichever key this element type actually uses.
+                    if (el.settings.content != null && el.settings.text == null) el.settings.content = op.text;
+                    else el.settings.text = op.text;
+                    return { success: true, message: 'Text updated on [' + r.id + ']', touched: [r.id] };
+                },
+
+                set_image(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const el = idx.byId[r.id];
+                    if (!el.settings) el.settings = {};
+                    if (op.background) {
+                        if (!el.settings._background) el.settings._background = {};
+                        if (!el.settings._background.image) el.settings._background.image = {};
+                        el.settings._background.image.url = op.url;
+                    } else {
+                        if (!el.settings.image) el.settings.image = {};
+                        el.settings.image.url = op.url;
+                    }
+                    return { success: true, message: 'Image updated on [' + r.id + ']', touched: [r.id] };
+                },
+
+                set_settings(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const el = idx.byId[r.id];
+                    if (!el.settings) el.settings = {};
+                    this.mergeSettings(el.settings, op.settings || {});
+                    return { success: true, message: 'Settings updated on [' + r.id + ']', touched: [r.id] };
+                },
+
+                update_class(op, idx) {
+                    const s = BricksHelper.getState();
+                    if (!s || !Array.isArray(s.globalClasses)) return { success: false, error: 'No global classes registered' };
+                    const name = String(op.class || op.name || '').replace(/^\./, '');
+                    const gc   = s.globalClasses.find(g => g.name === name);
+                    if (!gc) {
+                        const near = s.globalClasses.map(g => g.name).filter(n => n.includes(name.split('__')[0])).slice(0, 8);
+                        return { success: false, error: 'No global class ".' + name + '" exists' + (near.length ? '. Similar: ' + near.join(', ') : '') };
+                    }
+                    if (!gc.settings) gc.settings = {};
+                    const current = gc.settings._cssCustom || '';
+                    gc.settings._cssCustom = op.css
+                        ? op.css                                        // full rule replacement
+                        : this.mergeClassCSS(current, name, op.declarations || {});
+                    gc.modified = Math.floor(Date.now() / 1000);
+                    s.globalClasses = [...s.globalClasses];
+                    return { success: true, message: 'Class .' + name + ' updated', classChanged: name };
+                },
+
+                delete(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const doomed = new Set([r.id, ...PageContext.descendantsOf(r.id, idx)]);
+                    const s = BricksHelper.getState();
+                    s.content = s.content.filter(el => !doomed.has(el.id));
+                    // Detach from the former parent's children array.
+                    s.content.forEach(el => {
+                        if (Array.isArray(el.children)) el.children = el.children.filter(c => !doomed.has(c));
+                    });
+                    if (ChatState.selectionId && doomed.has(ChatState.selectionId)) ChatState.selectionId = null;
+                    return { success: true, message: 'Deleted [' + r.id + '] and ' + (doomed.size - 1) + ' descendant(s)' };
+                },
+
+                move(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const s  = BricksHelper.getState();
+                    const el = idx.byId[r.id];
+
+                    // Reparent, if a new parent was named.
+                    let newParent = el.parent;
+                    if (op.parent !== undefined) {
+                        if (op.parent === 0 || op.parent === '0' || op.parent === null) {
+                            newParent = 0;
+                        } else {
+                            const pr = this.resolveTarget(op.parent, idx);
+                            if (!pr.ok) return { success: false, error: 'Target parent: ' + pr.error, candidates: pr.candidates };
+                            if (pr.id === r.id || PageContext.descendantsOf(r.id, idx).includes(pr.id)) {
+                                return { success: false, error: 'Cannot move an element inside itself' };
+                            }
+                            newParent = pr.id;
+                        }
+                    }
+
+                    // Position within the new parent, resolved from index / before / after.
+                    let position = (typeof op.index === 'number') ? op.index : null;
+                    if (op.before || op.after) {
+                        const ref = this.resolveTarget(op.before || op.after, idx);
+                        if (!ref.ok) return { success: false, error: 'Reference element: ' + ref.error, candidates: ref.candidates };
+                        newParent = idx.byId[ref.id].parent;
+                        const sibs = PageContext.childrenOf(newParent, idx).filter(c => c !== r.id);
+                        const at   = sibs.indexOf(ref.id);
+                        position   = op.before ? at : at + 1;
+                    }
+
+                    // Detach from the old parent.
+                    const oldParent = idx.byId[el.parent];
+                    if (oldParent && Array.isArray(oldParent.children)) {
+                        oldParent.children = oldParent.children.filter(c => c !== r.id);
+                    }
+                    el.parent = newParent;
+
+                    if (newParent === 0) {
+                        // Top level: order is the content array order for root elements.
+                        const without = s.content.filter(e => e.id !== r.id);
+                        const roots   = without.filter(e => e.parent === 0 || e.parent === '0');
+                        const anchor  = (position === null || position >= roots.length)
+                            ? null : roots[position];
+                        const at = anchor ? without.findIndex(e => e.id === anchor.id) : without.length;
+                        without.splice(at, 0, el);
+                        s.content = without;
+                    } else {
+                        const np = idx.byId[newParent];
+                        if (!Array.isArray(np.children)) np.children = [];
+                        np.children = np.children.filter(c => c !== r.id);
+                        if (position === null || position > np.children.length) np.children.push(r.id);
+                        else np.children.splice(position, 0, r.id);
+                    }
+                    return { success: true, message: 'Moved [' + r.id + ']', touched: [r.id] };
+                },
+
+                duplicate(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const s     = BricksHelper.getState();
+                    const subtree = [r.id, ...PageContext.descendantsOf(r.id, idx)];
+                    const idMap = {};
+                    subtree.forEach(oldId => { idMap[oldId] = this.genId(idx); });
+
+                    const clones = subtree.map(oldId => {
+                        const src   = idx.byId[oldId];
+                        const clone = JSON.parse(JSON.stringify(src));
+                        clone.id       = idMap[oldId];
+                        clone.parent   = (oldId === r.id) ? src.parent : idMap[src.parent];
+                        clone.children = (src.children || []).filter(c => idMap[c]).map(c => idMap[c]);
+                        return clone;
+                    });
+
+                    // Insert immediately after the original subtree in the content array.
+                    const lastIdx = Math.max(...subtree.map(id => s.content.findIndex(e => e.id === id)));
+                    s.content.splice(lastIdx + 1, 0, ...clones);
+
+                    // Register the copy with its parent so it renders as a sibling.
+                    const rootClone = clones[0];
+                    if (rootClone.parent !== 0 && idx.byId[rootClone.parent]) {
+                        const p = idx.byId[rootClone.parent];
+                        if (!Array.isArray(p.children)) p.children = [];
+                        const at = p.children.indexOf(r.id);
+                        if (at >= 0) p.children.splice(at + 1, 0, rootClone.id);
+                        else p.children.push(rootClone.id);
+                    }
+                    return { success: true, message: 'Duplicated [' + r.id + '] as [' + rootClone.id + ']', touched: [rootClone.id] };
+                },
+
+                /** Resolve class names to global-class ids, creating empty classes when needed. */
+                _classIds(names) {
+                    const s = BricksHelper.getState();
+                    if (!s || !Array.isArray(names) || !names.length) return [];
+                    if (!Array.isArray(s.globalClasses)) s.globalClasses = [];
+                    const ids = [];
+                    names.forEach(raw => {
+                        const name = String(raw).replace(/^\./, '');
+                        let gc = s.globalClasses.find(g => g.name === name);
+                        if (!gc) {
+                            gc = {
+                                id: Array.from({ length: 6 }, () => this.LETTERS[Math.floor(Math.random() * 26)]).join(''),
+                                name, user_id: '1', modified: Math.floor(Date.now() / 1000),
+                                settings: { _cssCustom: '.' + name + ' {\n}' }
+                            };
+                            s.globalClasses.push(gc);
+                        }
+                        ids.push(gc.id);
+                    });
+                    s.globalClasses = [...s.globalClasses];
+                    return ids;
+                },
+
+                insert(op, idx) {
+                    const s = BricksHelper.getState();
+                    let parentId = 0;
+                    if (op.parent !== undefined && op.parent !== 0 && op.parent !== null) {
+                        const pr = this.resolveTarget(op.parent, idx);
+                        if (!pr.ok) return { success: false, error: 'Parent: ' + pr.error, candidates: pr.candidates };
+                        parentId = pr.id;
+                    }
+
+                    const newId    = this.genId(idx);
+                    const settings = Object.assign({}, op.settings || {});
+                    if (op.text != null) settings.text = op.text;
+                    const classIds = this._classIds(op.classes);
+                    if (classIds.length) settings._cssGlobalClasses = classIds;
+
+                    const el = {
+                        id: newId,
+                        name: op.name || 'block',
+                        parent: parentId,
+                        children: [],
+                        settings,
+                        themeStyles: []
+                    };
+
+                    if (parentId === 0) {
+                        s.content.push(el);
+                    } else {
+                        const p = idx.byId[parentId];
+                        if (!Array.isArray(p.children)) p.children = [];
+                        if (typeof op.index === 'number' && op.index <= p.children.length) p.children.splice(op.index, 0, newId);
+                        else p.children.push(newId);
+                        // Keep the flat array roughly in document order for readability.
+                        const pAt = s.content.findIndex(e => e.id === parentId);
+                        s.content.splice(pAt + 1, 0, el);
+                    }
+                    return { success: true, message: 'Inserted ' + el.name + ' [' + newId + ']', touched: [newId] };
+                },
+
+                wrap(op, idx) {
+                    const specs = Array.isArray(op.targets) ? op.targets : [op.target];
+                    const ids   = [];
+                    for (const sp of specs) {
+                        const r = this.resolveTarget(sp, idx);
+                        if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                        ids.push(r.id);
+                    }
+                    if (!ids.length) return { success: false, error: 'Nothing to wrap' };
+
+                    const s        = BricksHelper.getState();
+                    const first    = idx.byId[ids[0]];
+                    const parentId = first.parent;
+                    if (ids.some(id => idx.byId[id].parent !== parentId)) {
+                        return { success: false, error: 'All wrapped elements must share the same parent' };
+                    }
+
+                    const wrapperId = this.genId(idx);
+                    const classIds  = this._classIds(op.classes);
+                    const wrapper = {
+                        id: wrapperId,
+                        name: op.name || 'block',
+                        parent: parentId,
+                        children: ids.slice(),
+                        settings: classIds.length ? { _cssGlobalClasses: classIds } : {},
+                        themeStyles: []
+                    };
+
+                    const parent = idx.byId[parentId];
+                    if (parent && Array.isArray(parent.children)) {
+                        const at = parent.children.indexOf(ids[0]);
+                        parent.children = parent.children.filter(c => !ids.includes(c));
+                        parent.children.splice(at < 0 ? parent.children.length : at, 0, wrapperId);
+                    }
+                    ids.forEach(id => { idx.byId[id].parent = wrapperId; });
+
+                    const firstAt = s.content.findIndex(e => e.id === ids[0]);
+                    s.content.splice(firstAt, 0, wrapper);
+                    return { success: true, message: 'Wrapped ' + ids.length + ' element(s) in [' + wrapperId + ']', touched: [wrapperId] };
+                },
+
+                unwrap(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const s   = BricksHelper.getState();
+                    const el  = idx.byId[r.id];
+                    const kids = PageContext.childrenOf(r.id, idx);
+                    if (!kids.length) return { success: false, error: 'Element [' + r.id + '] has no children to unwrap' };
+
+                    const parentId = el.parent;
+                    kids.forEach(cid => { idx.byId[cid].parent = parentId; });
+                    if (parentId !== 0 && idx.byId[parentId]) {
+                        const p = idx.byId[parentId];
+                        if (!Array.isArray(p.children)) p.children = [];
+                        const at = p.children.indexOf(r.id);
+                        p.children.splice(at < 0 ? p.children.length : at, at < 0 ? 0 : 1, ...kids);
+                    }
+                    s.content = s.content.filter(e => e.id !== r.id);
+                    return { success: true, message: 'Unwrapped [' + r.id + '], promoted ' + kids.length + ' child element(s)' };
+                },
+
+                OPS: ['set_text','set_image','set_settings','update_class','delete','move','duplicate','insert','wrap','unwrap'],
+
+                /**
+                 * Dry-run: describe what a set of ops would do, without mutating.
+                 * Powers the change-preview card and surfaces ambiguity before any write.
+                 */
+                preview(ops) {
+                    const idx   = PageContext.index();
+                    const rows  = [];
+                    const problems = [];
+                    (ops || []).forEach(op => {
+                        const kind = op.op || op.type;
+                        if (!this.OPS.includes(kind)) {
+                            problems.push({ op: kind, error: 'Unknown operation "' + kind + '"' });
+                            return;
+                        }
+                        if (kind === 'update_class') {
+                            const decls = op.declarations || {};
+                            rows.push({
+                                kind, sign: '~',
+                                label: '.' + String(op.class || op.name || '').replace(/^\./, ''),
+                                detail: op.css ? 'rule replaced'
+                                    : Object.keys(decls).map(k => k + ': ' + decls[k]).join('; ')
+                            });
+                            return;
+                        }
+                        if (kind === 'insert') {
+                            rows.push({ kind, sign: '+', label: (op.name || 'block'), detail: op.text || (op.classes || []).join(' ') || '' });
+                            return;
+                        }
+                        const r = this.resolveTarget(op.target, idx);
+                        if (!r.ok) {
+                            problems.push({ op: kind, error: r.error, candidates: r.candidates });
+                            return;
+                        }
+                        const el   = idx.byId[r.id];
+                        const name = el.name + ' [' + r.id + ']';
+                        if (kind === 'set_text') {
+                            rows.push({ kind, sign: '~', label: name, id: r.id,
+                                        detail: '"' + PageContext.textOf(el, 32) + '" -> "' + String(op.text).replace(/<[^>]*>/g, '').slice(0, 32) + '"' });
+                        } else if (kind === 'delete') {
+                            rows.push({ kind, sign: '-', label: name, id: r.id, detail: PageContext.textOf(el, 32) });
+                        } else if (kind === 'set_image') {
+                            rows.push({ kind, sign: '~', label: name, id: r.id, detail: 'image -> ' + String(op.url).slice(0, 40) });
+                        } else if (kind === 'set_settings') {
+                            rows.push({ kind, sign: '~', label: name, id: r.id, detail: Object.keys(op.settings || {}).join(', ') });
+                        } else {
+                            rows.push({ kind, sign: '~', label: name, id: r.id, detail: kind });
+                        }
+                    });
+                    return { rows, problems, ok: problems.length === 0 };
+                },
+
+                /** Structural integrity check run after every write. */
+                verify() {
+                    const idx  = PageContext.index();
+                    const bad  = [];
+                    idx.content.forEach(el => {
+                        if (!el.id) bad.push('element with no id');
+                        if (el.parent !== 0 && el.parent !== '0' && !idx.byId[el.parent]) {
+                            bad.push('[' + el.id + '] points at missing parent ' + el.parent);
+                        }
+                        (el.children || []).forEach(c => {
+                            if (!idx.byId[c]) bad.push('[' + el.id + '] lists missing child ' + c);
+                        });
+                    });
+                    return { ok: !bad.length, problems: bad.slice(0, 10) };
+                },
+
+                /**
+                 * Apply a list of ops atomically. All-or-nothing: any failure
+                 * rolls the page back to exactly where it was.
+                 */
+                apply(ops, label = 'AI edit') {
+                    if (!Array.isArray(ops) || !ops.length) return { success: false, error: 'No operations given' };
+                    const checkpointId = History.checkpoint(label);
+
+                    const result = History.transaction(label, () => {
+                        const applied = [];
+                        const touched = [];
+                        for (const op of ops) {
+                            const kind = op.op || op.type;
+                            if (!this.OPS.includes(kind)) {
+                                return { success: false, error: 'Unknown operation "' + kind + '"' };
+                            }
+                            // Re-index between ops: earlier ops change the tree.
+                            const idx = PageContext.index();
+                            const res = this[kind](op, idx);
+                            if (!res.success) {
+                                return { success: false, error: res.error, candidates: res.candidates, failedOp: kind };
+                            }
+                            applied.push(res.message);
+                            (res.touched || []).forEach(t => touched.push(t));
+                        }
+                        const check = this.verify();
+                        if (!check.ok) {
+                            return { success: false, error: 'Edit produced an inconsistent tree: ' + check.problems.join('; ') };
+                        }
+                        return { success: true, applied, touched };
+                    });
+
+                    if (result.success) {
+                        BricksHelper.rerender();
+                        result.checkpointId = checkpointId;
+                        result.message = result.applied.join('; ');
+                    }
+                    return result;
+                }
+            };
+
+
+            // ================================================================
+            // AgentTools — read + write tools for the editing loop.
+            // The agent reads the page, decides, writes, then re-reads to
+            // verify, instead of taking one blind shot at a patch.
+            // ================================================================
+
+            const AgentTools = {
+                MAX_STEPS: 8,
+
+                spec() {
+                    return [
+                        'get_page_tree   {"scope":"page|section|selection"}  - re-read the page structure',
+                        'get_element     {"id":"abcdef"}                     - full settings + classes for one element',
+                        'find_elements   {"text":"...","class":"...","type":"heading"} - locate candidates',
+                        'get_global_classes {"filter":"hero"}                - CSS rules for matching global classes',
+                        'edit            {"ops":[ ... ]}                     - apply edit operations (see below)',
+                        'regenerate_section {"section_id":"abcdef","instruction":"..."} - rebuild a whole AI-built section from its source',
+                        'answer          {"text":"..."}                      - finish and reply to the user'
+                    ].join('\n');
+                },
+
+                opsSpec() {
+                    return [
+                        '{"op":"set_text","target":{"id":"abcdef"},"text":"New heading"}',
+                        '{"op":"set_image","target":{"id":"abcdef"},"url":"https://...","background":false}',
+                        '{"op":"set_settings","target":{"id":"abcdef"},"settings":{"_padding":{"top":"40"}}}',
+                        '{"op":"update_class","class":"snn-hero__title","declarations":{"font-size":"3.5rem","color":"#111"}}',
+                        '{"op":"delete","target":{"id":"abcdef"}}',
+                        '{"op":"move","target":{"id":"abcdef"},"before":{"id":"ghijkl"}}',
+                        '{"op":"duplicate","target":{"id":"abcdef"}}',
+                        '{"op":"insert","parent":{"id":"abcdef"},"index":1,"name":"heading","text":"Hello","classes":["snn-hero__title"]}',
+                        '{"op":"wrap","targets":[{"id":"a"},{"id":"b"}],"name":"block","classes":["row"]}',
+                        '{"op":"unwrap","target":{"id":"abcdef"}}'
+                    ].join('\n');
+                },
+
+                /** Targets can be {"id":"abcdef"}, {"text":"partial"}, {"class":"x"}, {"type":"heading","index":0}, or {"selection":true}. */
+                async run(name, args) {
+                    const idx = PageContext.index();
+                    switch (name) {
+                        case 'get_page_tree': {
+                            const prev = ChatState.scope;
+                            if (args.scope) ChatState.scope = args.scope;
+                            const out = PageContext.serialize();
+                            ChatState.scope = prev;
+                            return out;
+                        }
+                        case 'get_element': {
+                            const el = idx.byId[args.id];
+                            if (!el) return 'No element with id [' + args.id + '].';
+                            return JSON.stringify({
+                                id: el.id, name: el.name, parent: el.parent,
+                                children: PageContext.childrenOf(el.id, idx),
+                                classes: PageContext.classNamesOf(el),
+                                settings: el.settings
+                            }, null, 1).slice(0, 4000);
+                        }
+                        case 'find_elements': {
+                            const matches = idx.content.filter(el => {
+                                if (args.text  && !PageContext.textOf(el, 400).toLowerCase().includes(String(args.text).toLowerCase())) return false;
+                                if (args.class && !PageContext.classNamesOf(el).includes(String(args.class).replace(/^\./, ''))) return false;
+                                if (args.type  && el.name !== args.type) return false;
+                                return true;
+                            });
+                            if (!matches.length) return 'No elements matched.';
+                            return matches.slice(0, 20).map((el, i) =>
+                                i + '. [' + el.id + '] ' + el.name + ' ' +
+                                PageContext.classNamesOf(el).map(c => '.' + c).join(' ') +
+                                ' "' + PageContext.textOf(el, 50) + '"'
+                            ).join('\n');
+                        }
+                        case 'get_global_classes': {
+                            const s = BricksHelper.getState();
+                            if (!s || !Array.isArray(s.globalClasses)) return 'No global classes registered.';
+                            const f = (args.filter || '').replace(/^\./, '').toLowerCase();
+                            const hits = s.globalClasses.filter(gc => !f || gc.name.toLowerCase().includes(f));
+                            if (!hits.length) return 'No global classes matched "' + f + '".';
+                            return hits.slice(0, 25).map(gc =>
+                                ((gc.settings && gc.settings._cssCustom) || '.' + gc.name + ' { }').replace(/\s+/g, ' ').slice(0, 400)
+                            ).join('\n');
+                        }
+                        case 'edit': {
+                            const ops = args.ops || args.operations || [];
+                            return this.applyEdit(ops);
+                        }
+                        case 'regenerate_section':
+                            return await regenerateSection(args.section_id, args.instruction || '');
+                        default:
+                            return 'Unknown tool "' + name + '". Available: get_page_tree, get_element, find_elements, get_global_classes, edit, regenerate_section, answer.';
+                    }
+                },
+
+                /**
+                 * Route an edit through the change-preview gate.
+                 * Small edits auto-apply when the user has allowed it; anything
+                 * structural waits for an explicit Apply.
+                 */
+                applyEdit(ops) {
+                    const pv = EditOps.preview(ops);
+                    if (!pv.ok) {
+                        // Ambiguity is a recoverable outcome, not a dead end: show
+                        // the candidates so the user (or the next loop step) can pick.
+                        const p = pv.problems[0];
+                        if (p.candidates && p.candidates.length) {
+                            renderDisambiguation(p.candidates, ops);
+                            return 'AMBIGUOUS: ' + p.error + '\nCandidates:\n' +
+                                   p.candidates.map(c => '  [' + c.id + '] ' + c.name + ' "' + c.text + '"').join('\n') +
+                                   '\nRe-issue the edit using one of these ids.';
+                        }
+                        return 'FAILED: ' + pv.problems.map(x => x.error).join('; ');
+                    }
+
+                    const structural = ops.some(o => ['delete','move','insert','wrap','unwrap','duplicate'].includes(o.op || o.type));
+                    if (structural && !ChatState.autoApply) {
+                        ChatState.pendingOps = ops;
+                        renderChangePreview(pv, ops);
+                        return 'PENDING USER APPROVAL: the change preview is shown in the chat. ' +
+                               'Do not repeat this edit — finish by calling answer and telling the user to press Apply.';
+                    }
+
+                    const res = EditOps.apply(ops, describeOpsShort(ops));
+                    if (!res.success) return 'FAILED: ' + res.error;
+                    renderAppliedChange(pv, res.checkpointId);
+                    return 'APPLIED: ' + res.message;
+                },
+
+                /** Parse a ```tool block out of a model response. */
+                parseCall(text) {
+                    const m = text.match(/```tool\s*\n?([\s\S]*?)\n?```/);
+                    if (!m) return null;
+                    try {
+                        const parsed = JSON.parse(m[1].trim());
+                        if (parsed && parsed.name) return parsed;
+                    } catch(e) {
+                        debugLog('Tool block parse error:', e.message, m[1].slice(0, 200));
+                    }
+                    return null;
+                },
+
+                systemPrompt() {
+                    return `You are the SNN design agent, running INSIDE the Bricks Builder canvas with live write access to the page.
+You are NOT a text-only assistant: you can read the element tree and directly change it. When the user asks whether you can edit the page, the answer is yes — then do it.
+
+${PageContext.serialize()}
+
+HOW YOU WORK
+Respond with exactly ONE tool call per turn, as a \`\`\`tool block, and nothing else:
+
+\`\`\`tool
+{"name":"get_element","args":{"id":"abcdef"}}
+\`\`\`
+
+TOOLS
+${this.spec()}
+
+EDIT OPERATIONS (for the "edit" tool's "ops" array)
+${this.opsSpec()}
+
+RULES
+1. The structure above is already current — only call get_page_tree again after an edit, or if you need a different scope.
+2. STYLE CHANGES GO TO GLOBAL CLASSES. This page is class-based: use update_class with declarations. Only use set_settings for a genuinely one-off element tweak.
+3. Never invent element ids. Use ids from the structure, or call find_elements first.
+4. If a target is ambiguous, call find_elements and pick by id — do not guess.
+5. For a big restructure of an AI-built section, prefer regenerate_section over many small ops.
+6. Respect the REQUEST SCOPE stated above.
+7. When the work is done (or if the request needs no edit at all), call answer with a short, concrete reply — say what you changed, referencing ids like [abcdef].
+8. You have at most ${this.MAX_STEPS} steps. Don't waste them re-reading unchanged state.`;
+                }
+            };
+
+            /** Short human label for a batch of ops — used as the checkpoint name. */
+            function describeOpsShort(ops) {
+                if (!ops || !ops.length) return 'AI edit';
+                const kinds = [...new Set(ops.map(o => (o.op || o.type || 'edit').replace(/_/g, ' ')))];
+                return kinds.join(' + ') + (ops.length > 1 ? ' (' + ops.length + ' ops)' : '');
+            }
+
+            /**
+             * The editing loop: read -> decide -> write -> verify.
+             * Replaces the old one-shot classify-then-patch with an agent that
+             * can look things up and correct itself before answering.
+             */
+            async function runAgentLoop(userMessage, images = []) {
+                const convo = [
+                    { role: 'system', content: AgentTools.systemPrompt() },
+                    ...buildConversationContext(),
+                    { role: 'user', content: buildUserContent(userMessage, images) }
+                ];
+
+                Checklist.start();
+                let finalText = null;
+
+                for (let step = 0; step < AgentTools.MAX_STEPS; step++) {
+                    if (!ChatState.isProcessing) { Checklist.finish(); return; }
+
+                    setAgentState('thinking', step === 0 ? 'Reading the page...' : 'Working (step ' + (step + 1) + ')...');
+                    const response = await callAI(convo, 0, { maxTokens: 2000 });
+                    if (!response || !response.trim()) throw new Error('AI returned an empty response.');
+
+                    const call = AgentTools.parseCall(response);
+
+                    // No tool block — treat the prose as the final answer.
+                    if (!call) {
+                        finalText = response.replace(/```tool[\s\S]*?```/g, '').trim();
+                        break;
+                    }
+                    if (call.name === 'answer') {
+                        finalText = (call.args && (call.args.text || call.args.message)) || 'Done.';
+                        break;
+                    }
+
+                    Checklist.step(call.name, call.args || {});
+                    let result;
+                    try {
+                        result = await AgentTools.run(call.name, call.args || {});
+                    } catch(e) {
+                        result = 'ERROR: ' + e.message;
+                    }
+                    Checklist.done(result);
+                    debugLog('Tool', call.name, '->', String(result).slice(0, 200));
+
+                    convo.push({ role: 'assistant', content: response });
+                    convo.push({ role: 'user', content: 'TOOL RESULT (' + call.name + '):\n' + String(result).slice(0, 6000) });
+
+                    if (step === AgentTools.MAX_STEPS - 1) {
+                        convo.push({ role: 'user', content: 'Step limit reached. Call answer now with a summary of what you did.' });
+                    }
+                }
+
+                Checklist.finish();
+                hideTyping();
+                addMessage('assistant', finalText || 'Done.');
+            }
+
+            /**
+             * Rebuild an AI-built section from its retained source HTML + theme.
+             * This is what makes a large edit ("make the hero split-layout") work:
+             * the section is regenerated through the same design pipeline that
+             * created it, then swapped in place instead of patched op-by-op.
+             */
+            async function regenerateSection(sectionId, instruction) {
+                const idx   = PageContext.index();
+                const entry = SectionManifest.find(sectionId);
+                if (!entry)          return 'Section [' + sectionId + '] was not built by the agent, so there is no source HTML to regenerate. Edit it with ops instead.';
+                if (!idx.byId[sectionId]) return 'Section [' + sectionId + '] no longer exists on the page.';
+                if (!entry.html)     return 'No source HTML retained for [' + sectionId + ']. Edit it with ops instead.';
+
+                setAgentState('designing', 'Rebuilding "' + entry.label + '"...');
+                const themeNote = entry.theme
+                    ? '\nKeep this design language: ' + JSON.stringify(entry.theme).slice(0, 800)
+                    : '';
+
+                const response = await callAI([
+                    { role: 'system', content: buildDesigningPrompt('add_section') },
+                    { role: 'user', content:
+                        'Here is an existing section. Rewrite it applying this change: "' + instruction + '"' +
+                        themeNote +
+                        '\nKeep the same CSS class names wherever the element still exists, so existing styles stay attached. ' +
+                        'Return the complete revised section as one ```html block.\n\n```html\n' + entry.html + '\n```' }
+                ], 0, { maxTokens: snnBricksChatConfig.ai.maxTokens || 4000 });
+
+                const newHtml = extractHTMLFromResponse(response);
+                if (!newHtml) return 'Regeneration failed — the model did not return usable HTML.';
+
+                const checkpointId = History.checkpoint('Regenerate "' + entry.label + '"');
+                const result = History.transaction('regenerate', () => {
+                    // Drop the old subtree, then compile and inject the replacement in its place.
+                    const doomed = new Set([sectionId, ...PageContext.descendantsOf(sectionId, idx)]);
+                    const s = BricksHelper.getState();
+                    const insertAt = s.content.findIndex(e => e.id === sectionId);
+                    s.content = s.content.filter(e => !doomed.has(e.id));
+
+                    const compiled = compileHtmlToBricksJson(newHtml, buildClassMapFromState());
+                    if (!compiled || !compiled.content || !compiled.content.length) {
+                        return { success: false, error: 'Compiler returned no elements' };
+                    }
+                    const { data } = validateAndFixBricksJSON(compiled);
+                    s.content.splice(Math.max(0, insertAt), 0, ...data.content);
+
+                    const newRoot = data.content.find(e => e.parent === 0 || e.parent === '0');
+                    return { success: true, newRootId: newRoot ? newRoot.id : null, count: data.content.length };
+                });
+
+                if (!result.success) return 'Regeneration failed: ' + result.error;
+
+                BricksHelper.rerender();
+                if (result.newRootId) {
+                    SectionManifest.record({
+                        rootId: result.newRootId, label: entry.label, html: newHtml,
+                        prompt: instruction, theme: entry.theme, classes: entry.classes
+                    });
+                }
+                renderAppliedChange(
+                    { rows: [{ sign: '~', label: entry.label, detail: 'section rebuilt - ' + result.count + ' elements' }] },
+                    checkpointId
+                );
+                return 'APPLIED: rebuilt "' + entry.label + '" as ' + result.count + ' elements' +
+                       (result.newRootId ? ' (new root [' + result.newRootId + '])' : '') + '.';
+            }
+
+            /** Reuse already-registered global classes when compiling regenerated HTML. */
+            function buildClassMapFromState() {
+                const s = BricksHelper.getState();
+                const map = {};
+                if (s && Array.isArray(s.globalClasses)) {
+                    s.globalClasses.forEach(gc => { map[gc.name] = gc.id; });
+                }
+                return map;
+            }
+
+
+            // ================================================================
+            // Selection tracking — the chat needs to know what the user is
+            // pointing at, so "make this bigger" has a referent.
+            // ================================================================
+
+            const SelectionWatcher = {
+                init() {
+                    // Bricks tags every element in the canvas with a brxe-{id} class.
+                    document.addEventListener('click', (e) => {
+                        const node = e.target.closest && e.target.closest('[class*="brxe-"]');
+                        if (!node) return;
+                        const m = (node.className || '').toString().match(/brxe-([a-z0-9]{4,12})\b/);
+                        if (!m) return;
+                        const id  = m[1];
+                        const idx = PageContext.index();
+                        if (!idx.byId[id]) return;
+                        ChatState.selectionId = id;
+                        if (ChatState.scope === 'page') ChatState.scope = 'section';
+                        renderContextChip();
+                        renderQuickActions();
+                    }, true);
+
+                    // Re-sync when Bricks changes the active element on its own.
+                    setInterval(() => {
+                        if (ChatState.isProcessing) return;
+                        const before = ChatState.selectionId;
+                        const now    = PageContext.getSelectionId();
+                        if (now !== before) renderContextChip();
+                    }, 1200);
+                },
+
+                clear() {
+                    ChatState.selectionId = null;
+                    ChatState.scope = 'page';
+                    renderContextChip();
+                    renderQuickActions();
+                }
+            };
+
+            /** Briefly outline an element in the Bricks canvas. */
+            function highlightElement(id, persist = false) {
+                document.querySelectorAll('.snn-ai-hl').forEach(n => n.classList.remove('snn-ai-hl'));
+                const node = document.querySelector('.brxe-' + id);
+                if (!node) return;
+                node.classList.add('snn-ai-hl');
+                node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!persist) setTimeout(() => node.classList.remove('snn-ai-hl'), 1600);
+            }
+
+            // ================================================================
+            // Context chip + scope selector
+            // ================================================================
+
+            function renderContextChip() {
+                const $chip = $('#snn-bricks-context-chip');
+                if (!$chip.length) return;
+                const idx = PageContext.index();
+                if (!idx.content.length) { $chip.hide(); return; }
+
+                const info = PageContext.describeScope();
+                $chip.show();
+                $chip.find('.snn-ctx-label').text(info.label);
+                $chip.find('.snn-ctx-detail').text(info.detail || '');
+                $chip.find('.snn-ctx-clear').toggle(!!ChatState.selectionId);
+                $chip.attr('data-target-id', info.id || '');
+                $('#snn-bricks-scope-select').val(ChatState.scope || 'page');
+            }
+
+            // ================================================================
+            // Execution checklist — real tool steps, not a scripted animation
+            // ================================================================
+
+            const Checklist = {
+                steps: [],
+                start() { this.steps = []; $('#snn-bricks-execution-checklist').empty().show(); },
+                step(name, args) {
+                    const label = this.label(name, args);
+                    this.steps.push({ label, state: 'running' });
+                    this.render();
+                },
+                done(result) {
+                    const last = this.steps[this.steps.length - 1];
+                    if (!last) return;
+                    const txt = String(result || '');
+                    last.state = /^(FAILED|ERROR|AMBIGUOUS)/.test(txt) ? 'fail' : 'ok';
+                    if (txt.startsWith('APPLIED:'))  last.note = txt.slice(8).trim().slice(0, 60);
+                    if (last.state === 'fail')       last.note = txt.split('\n')[0].slice(0, 70);
+                    this.render();
+                },
+                finish() {
+                    setTimeout(() => $('#snn-bricks-execution-checklist').fadeOut(400, function() { $(this).empty(); }), 1400);
+                },
+                label(name, args) {
+                    switch (name) {
+                        case 'get_page_tree':      return 'Reading page structure';
+                        case 'get_element':        return 'Inspecting [' + (args.id || '?') + ']';
+                        case 'find_elements':      return 'Locating "' + (args.text || args.class || args.type || '?') + '"';
+                        case 'get_global_classes': return 'Reading CSS classes';
+                        case 'edit':               return 'Applying ' + ((args.ops || []).length || 1) + ' change(s)';
+                        case 'regenerate_section': return 'Rebuilding section';
+                        default:                   return name;
+                    }
+                },
+                render() {
+                    const icons = { running: '<span class="snn-cl-spin"></span>', ok: '✓', fail: '✗' };
+                    const html = this.steps.map(s =>
+                        '<div class="snn-cl-row snn-cl-' + s.state + '">' +
+                        '<span class="snn-cl-icon">' + icons[s.state] + '</span>' +
+                        '<span class="snn-cl-label">' + escapeHtml(s.label) + '</span>' +
+                        (s.note ? '<span class="snn-cl-note">' + escapeHtml(s.note) + '</span>' : '') +
+                        '</div>'
+                    ).join('');
+                    $('#snn-bricks-execution-checklist').html(html).show();
+                }
+            };
+
+            function escapeHtml(s) {
+                return String(s == null ? '' : s)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            // ================================================================
+            // Change preview / applied-change cards / disambiguation
+            // ================================================================
+
+            function opRowsHtml(rows) {
+                return rows.map(r =>
+                    '<div class="snn-chg-row snn-chg-' + (r.sign === '-' ? 'del' : r.sign === '+' ? 'add' : 'mod') + '"' +
+                    (r.id ? ' data-el-id="' + escapeHtml(r.id) + '"' : '') + '>' +
+                    '<span class="snn-chg-sign">' + r.sign + '</span>' +
+                    '<span class="snn-chg-label">' + escapeHtml(r.label) + '</span>' +
+                    (r.detail ? '<span class="snn-chg-detail">' + escapeHtml(r.detail) + '</span>' : '') +
+                    '</div>'
+                ).join('');
+            }
+
+            /** Structural edits wait here for an explicit Apply. */
+            function renderChangePreview(pv, ops) {
+                const $msgs = $('#snn-bricks-chat-messages');
+                $('.snn-change-card.is-pending').remove();
+                const html =
+                    '<div class="snn-change-card is-pending">' +
+                        '<div class="snn-chg-head">Proposed changes</div>' +
+                        opRowsHtml(pv.rows) +
+                        '<div class="snn-chg-actions">' +
+                            '<button class="snn-chg-apply">Apply</button>' +
+                            '<button class="snn-chg-discard">Discard</button>' +
+                            '<label class="snn-chg-auto"><input type="checkbox" id="snn-chg-auto-toggle"> auto-apply</label>' +
+                        '</div>' +
+                    '</div>';
+                $msgs.append(html);
+                scrollToBottom();
+            }
+
+            /** An edit that already landed — offers a one-click revert. */
+            function renderAppliedChange(pv, checkpointId) {
+                const $msgs = $('#snn-bricks-chat-messages');
+                const html =
+                    '<div class="snn-change-card is-applied"' + (checkpointId ? ' data-cp="' + escapeHtml(checkpointId) + '"' : '') + '>' +
+                        '<div class="snn-chg-head">✓ Applied</div>' +
+                        opRowsHtml(pv.rows || []) +
+                        (checkpointId ? '<div class="snn-chg-actions"><button class="snn-chg-revert">Revert this change</button></div>' : '') +
+                    '</div>';
+                $msgs.append(html);
+                scrollToBottom();
+            }
+
+            /** Ambiguous target — let the user point at the right element. */
+            function renderDisambiguation(candidates, ops) {
+                ChatState.pendingAmbiguous = { candidates, ops };
+                const $msgs = $('#snn-bricks-chat-messages');
+                const html =
+                    '<div class="snn-change-card is-ambiguous">' +
+                        '<div class="snn-chg-head">Which element did you mean?</div>' +
+                        candidates.map(c =>
+                            '<button class="snn-amb-pick" data-el-id="' + escapeHtml(c.id) + '">' +
+                                '<span class="snn-amb-name">' + escapeHtml(c.name) + '</span> ' +
+                                '<code>[' + escapeHtml(c.id) + ']</code> ' +
+                                '<span class="snn-amb-text">' + escapeHtml(c.text || '') + '</span>' +
+                            '</button>'
+                        ).join('') +
+                    '</div>';
+                $msgs.append(html);
+                scrollToBottom();
+            }
+
+            /** Re-run the pending ops against a user-chosen element id. */
+            function resolveAmbiguity(elId) {
+                const pending = ChatState.pendingAmbiguous;
+                if (!pending) return;
+                const ops = pending.ops.map(op => (op.target ? Object.assign({}, op, { target: { id: elId } }) : op));
+                ChatState.pendingAmbiguous = null;
+                $('.snn-change-card.is-ambiguous').remove();
+                const pv  = EditOps.preview(ops);
+                const res = EditOps.apply(ops, describeOpsShort(ops));
+                if (res.success) {
+                    renderAppliedChange(pv, res.checkpointId);
+                    addMessage('assistant', '✓ ' + res.message);
+                } else {
+                    addMessage('error', '✗ ' + res.error);
+                }
+            }
+
+            /** Turn [abcdef] references in chat text into canvas-linked pills. */
+            function linkifyElementIds(html) {
+                return html.replace(/\[([a-z]{6})\]/g, (full, id) =>
+                    '<span class="snn-el-pill" data-el-id="' + id + '">' + id + '</span>');
+            }
+
+            // ================================================================
+            // Contextual quick actions — the buttons change with page state
+            // ================================================================
+
+            const QUICK_ACTIONS = {
+                selection: [
+                    ['Restyle this',      'Restyle the selected element to look more refined — adjust its spacing, size and colour via its global class.'],
+                    ['Rewrite this text', 'Rewrite the copy in the selected element to be sharper and more compelling. Keep it roughly the same length.'],
+                    ['Duplicate',         'Duplicate the selected element and place the copy directly after it.'],
+                    ['Delete',            'Delete the selected element.']
+                ],
+                content: [
+                    ['Add a section',     'Add a new section to the bottom of this page that fits the existing design language.'],
+                    ['Change colours',    'Change the colour scheme of this page. Update the global classes so every section stays consistent.'],
+                    ['Improve the copy',  'Improve the headline and body copy across this page — sharper, more specific, same structure.'],
+                    ['Tighten spacing',   'Review the vertical rhythm of this page and tighten the section padding so it feels more balanced.']
+                ]
+            };
+
+            function renderQuickActions() {
+                const $qa = $('.snn-bricks-chat-quick-actions');
+                if (!$qa.length) return;
+                const idx = PageContext.index();
+
+                // Empty page keeps the full-design starter prompts from the markup.
+                if (!idx.content.length) {
+                    $qa.html(ChatState.defaultQuickActions || '');
+                    if (!ChatState.messages.length) $qa.show();
+                    return;
+                }
+                const set = PageContext.getSelectionId() ? QUICK_ACTIONS.selection : QUICK_ACTIONS.content;
+                $qa.html(set.map(([label, msg]) =>
+                    '<button class="snn-bricks-quick-action-btn" data-message="' + escapeHtml(msg) + '">' + escapeHtml(label) + '</button>'
+                ).join(''));
+                $qa.show();
+            }
+
+            /** Welcome copy that reflects whether there is anything to edit. */
+            function renderWelcomeState() {
+                const $w = $('.snn-bricks-chat-welcome');
+                if (!$w.length) return;
+                const idx = PageContext.index();
+                if (!idx.content.length) return;
+                $w.find('p').first().text(
+                    'This page has ' + idx.content.length + ' elements across ' + idx.roots.length + ' section(s). ' +
+                    'Ask me to change, add to, or restyle any of it — click an element on the canvas to point at it.'
+                );
+            }
+
+
+            // ================================================================
             // Init
             // ================================================================
 
@@ -670,6 +2150,12 @@ Fitness</button>
                         initChat();
                         addToolbarButton();
                         loadAbilities();
+                        // Content awareness: remember what we built, watch what the user picks.
+                        SectionManifest.load().then(() => renderContextChip());
+                        SelectionWatcher.init();
+                        renderContextChip();
+                        renderQuickActions();
+                        renderWelcomeState();
                     }
                 }, 500);
                 setTimeout(() => clearInterval(iv), 10000);
@@ -754,8 +2240,16 @@ Fitness</button>
 
                     } else if (intent === 'edit_patch') {
                         // ── STATE: patching ──────────────────────────────────────
+                        // The agent loop reads the page, edits, then verifies. If it
+                        // fails outright we fall back to the single-shot patcher.
                         setAgentState('patching');
-                        await runPatching(userMessage, images);
+                        try {
+                            await runAgentLoop(userMessage, images);
+                        } catch(loopErr) {
+                            if (loopErr.name === 'AbortError') throw loopErr;
+                            debugLog('Agent loop failed, falling back to single-shot patch:', loopErr);
+                            await runPatching(userMessage, images);
+                        }
 
                     } else {
                         // ── STATE: answering ─────────────────────────────────────
@@ -784,9 +2278,7 @@ Fitness</button>
                 const hasExistingContent = cc && cc.elementCount > 0;
                 const hasPreview = !!ChatState.currentHTMLPreview;
                 const hasAbilities = ChatState.abilities.length > 0;
-                const pageSnap = hasExistingContent
-                    ? 'Page has ' + cc.elementCount + ' existing elements.'
-                    : 'Page is empty.';
+                const pageSnap = PageContext.brief();
 
                 const systemPrompt = `You are an intent classifier for a Bricks Builder AI assistant.
 Classify the user message into exactly one intent:
@@ -975,26 +2467,73 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
             async function runPatching(userMessage, images) {
                 const context        = buildConversationContext();
                 const userMsgContent = buildUserContent(userMessage, images);
-                const response = await callAI([
-                    { role: 'system', content: buildPatchingPrompt() },
-                    ...context,
-                    { role: 'user', content: userMsgContent }
-                ], 0, { maxTokens: 1500 });
+
+                const attempt = async (extraNote) => {
+                    const msgs = [
+                        { role: 'system', content: buildPatchingPrompt() },
+                        ...context,
+                        { role: 'user', content: userMsgContent }
+                    ];
+                    if (extraNote) msgs.push({ role: 'user', content: extraNote });
+                    return await callAI(msgs, 0, { maxTokens: 1500 });
+                };
+
+                let response = await attempt(null);
                 hideTyping();
                 if (!response || !response.trim()) throw new Error('AI returned empty response.');
 
-                const patchData = extractPatchFromResponse(response);
-                if (patchData) {
-                    const result   = BricksHelper.applyPatch(patchData);
-                    const textPart = response.replace(/```patch[\s\S]*?```/g, '').trim();
-                    if (textPart) addMessage('assistant', textPart);
-                    result.success
-                        ? addMessage('assistant', '✓ ' + result.message)
-                        : addMessage('error', '✗ Patch failed: ' + result.error);
-                } else {
-                    // AI answered in prose instead of a patch block — show it
-                    addMessage('assistant', response);
+                let patchData = extractPatchFromResponse(response);
+                if (!patchData) { addMessage('assistant', response); return; }
+
+                let previewRows = EditOps.preview(patchData.ops || []);
+                let result = applyOpsFromPatch(patchData);
+
+                // Verify-and-retry: a miss means the model guessed at a target.
+                // Re-serialize the page and give it exactly one more shot.
+                if (!result.success) {
+                    debugLog('Patch failed, retrying with fresh page state:', result.error);
+                    setAgentState('patching', 'Re-reading the page and retrying...');
+                    response = await attempt(
+                        'That edit failed: ' + result.error +
+                        String.fromCharCode(10) + 'Here is the current page state again — reissue the patch using real ids from it.' + String.fromCharCode(10) + String.fromCharCode(10) +
+                        PageContext.serialize()
+                    );
+                    hideTyping();
+                    const retryData = extractPatchFromResponse(response);
+                    if (retryData) result = applyOpsFromPatch(retryData);
                 }
+
+                const textPart = response.replace(/```patch[\s\S]*?```/g, '').trim();
+                if (textPart) addMessage('assistant', textPart);
+                if (result.success) {
+                    renderAppliedChange(previewRows, result.checkpointId);
+                    addMessage('assistant', '✓ ' + result.message);
+                } else {
+                    addMessage('error', '✗ Patch failed: ' + result.error);
+                }
+            }
+
+            /** Accept both the new {ops:[...]} shape and the legacy {patches:[...]} shape. */
+            function applyOpsFromPatch(patchData) {
+                if (Array.isArray(patchData.ops)) {
+                    return EditOps.apply(patchData.ops, describeOpsShort(patchData.ops));
+                }
+                // Legacy: {patches:[{element_id, find_by, updates:{...}}]}
+                const legacy = Array.isArray(patchData.patches) ? patchData.patches : [patchData];
+                const ops = [];
+                legacy.forEach(p => {
+                    const target = p.element_id ? { id: p.element_id }
+                        : p.find_by ? (p.find_by.type === 'text_content' ? { text: p.find_by.value }
+                                     : { type: p.find_by.value, index: p.find_by.index || 0 })
+                        : null;
+                    if (!target || !p.updates) return;
+                    if (p.updates.text != null)            ops.push({ op: 'set_text', target, text: p.updates.text });
+                    if (p.updates.image_url != null)       ops.push({ op: 'set_image', target, url: p.updates.image_url });
+                    if (p.updates.bricks_settings)         ops.push({ op: 'set_settings', target, settings: p.updates.bricks_settings });
+                });
+                return ops.length
+                    ? EditOps.apply(ops, describeOpsShort(ops))
+                    : { success: false, error: 'Patch block contained no usable operations' };
             }
 
             // ── Answering (answering state) ───────────────────────────────────
@@ -1241,7 +2780,7 @@ Output as a \`\`\`html block.`;
              * Main orchestrator: parses HTML into sections, compiles each
              * one individually with JavaScript (instant!), and injects them into Bricks.
              */
-            async function compileSectionBySection(actionType) {
+            async function compileSectionBySection(actionType, sectionFilter = null) {
                 if (!ChatState.currentHTMLPreview) return;
                 ChatState.isProcessing = true;
                 updateSendButton();
@@ -1252,8 +2791,18 @@ Output as a \`\`\`html block.`;
                 ChatState.accumulatedGlobalClasses = [];
 
                 const fullHTML = ChatState.currentHTMLPreview;
-                const sections = parseHTMLIntoSections(fullHTML);
-                const total    = sections.length;
+                // Honour a per-section selection from the approve bar; CSS classes and
+                // :root variables are still extracted from the FULL html below so the
+                // kept sections keep their styling.
+                const allSections = parseHTMLIntoSections(fullHTML);
+                const sections    = Array.isArray(sectionFilter) && sectionFilter.length
+                    ? allSections.filter((_, i) => sectionFilter.includes(i))
+                    : allSections;
+                const total       = sections.length;
+                // One checkpoint for the whole build, so the user can undo a
+                // generation the same way they undo a single edit.
+                const buildCheckpoint = History.checkpoint(
+                    (actionType === 'replace' ? 'Rebuild page' : 'Add') + ' — ' + total + ' section(s)');
                 addMessage('assistant', '⚡ Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with class-based compiler...');
 
                 // ── PHASE 0: Extract CSS, fonts, and variables from FULL HTML <style> blocks ──
@@ -1441,6 +2990,20 @@ Output as a \`\`\`html block.`;
                     );
                     if (success) {
                         builtCount++;
+                        // Remember what we built here: root id + source HTML + theme.
+                        // This is what lets the agent later edit or regenerate this
+                        // exact section instead of reverse-engineering it from JSON.
+                        const rootEl = (data.content || []).find(e => e.parent === 0 || e.parent === '0');
+                        if (rootEl) {
+                            SectionManifest.record({
+                                rootId:  rootEl.id,
+                                label:   label,
+                                html:    (sections[index] && sections[index].html) || '',
+                                prompt:  ChatState.messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '',
+                                theme:   ChatState.currentTheme,
+                                classes: Object.keys(classNameToId)
+                            });
+                        }
                         addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + allCompiledData.length + ')');
                     } else {
                         addMessage('error', '✗ "' + label + '" inject failed');
@@ -1453,6 +3016,12 @@ Output as a \`\`\`html block.`;
 
                 if (builtCount > 0) {
                     addMessage('assistant', '🎉 Done! ' + builtCount + '/' + allCompiledData.length + ' sections built in Bricks.');
+                    renderAppliedChange(
+                        { rows: allCompiledData.map(c => ({ sign: '+', label: c.label, detail: c.data.content.length + ' elements' })) },
+                        buildCheckpoint
+                    );
+                    renderContextChip();
+                    renderQuickActions();
                     removeApproveBar();
                     ChatState.previewMode = null;
                     if (builtImageUrls.length) saveImagesToWPLibrary(builtImageUrls);
@@ -1462,8 +3031,8 @@ Output as a \`\`\`html block.`;
             }
 
             // Thin wrapper kept for backward compatibility (preview pane button, etc.)
-            async function compileAndBuild(actionType) {
-                await compileSectionBySection(actionType);
+            async function compileAndBuild(actionType, sectionFilter = null) {
+                await compileSectionBySection(actionType, sectionFilter);
             }
 
             // ================================================================
@@ -1544,14 +3113,33 @@ Output as a \`\`\`html block.`;
                 const sections = parseHTMLIntoSections(ChatState.currentHTMLPreview || '');
                 const n        = sections.length;
                 const sLabel   = n === 1 ? '1 section' : n + ' sections';
+
+                // Multi-section generations are accepted per section, so the user can
+                // keep the three that work and drop the one that does not.
+                const picker = n > 1
+                    ? '<div class="snn-approve-sections">' + sections.map((s, i) =>
+                        '<label class="snn-approve-section"><input type="checkbox" class="snn-sec-pick" value="' + i + '" checked> ' +
+                        escapeHtml(s.label) + '</label>').join('') + '</div>'
+                    : '';
+
                 const $bar = $('<div id="snn-approve-bar" class="snn-approve-bar">').html(
-                    '<span class="snn-approve-label">Preview ready — <strong>' + sLabel + '</strong> detected</span>' +
-                    '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build ' + sLabel + '</button>'
+                    '<div class="snn-approve-main">' +
+                        '<span class="snn-approve-label">Preview ready — <strong>' + sLabel + '</strong> detected</span>' +
+                        '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build</button>' +
+                    '</div>' + picker
                 );
                 $('#snn-bricks-chat-messages').after($bar);
+
                 $('#snn-approve-build-btn').on('click', function() {
-                    compileSectionBySection('append');
+                    const picked = $('.snn-sec-pick:checked').map(function() { return parseInt(this.value, 10); }).get();
+                    compileSectionBySection('append', n > 1 ? picked : null);
                 });
+                $bar.on('change', '.snn-sec-pick', function() {
+                    const count = $('.snn-sec-pick:checked').length;
+                    $('#snn-approve-build-btn')
+                        .prop('disabled', count === 0)
+                        .html('&#10003; Build ' + count + '/' + n);
+                }).find('.snn-sec-pick').first().trigger('change');
             }
 
             function removeApproveBar() { $('#snn-approve-bar').remove(); }
@@ -1698,42 +3286,48 @@ OUTPUT THE HTML ONLY. No patch blocks, no JSON.`;
             // ================================================================
 
             function buildPatchingPrompt() {
-                const cc = BricksHelper.getCurrentContent();
-                let pageSnap = 'The page is empty — no elements to patch.';
-                if (cc && cc.elementCount > 0) {
-                    const snap = (cc.elements || []).map(el => {
-                        const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
-                        const txt = raw.replace(/<[^>]*>/g, '').trim().slice(0, 80);
-                        return txt ? `  [${el.id}] ${el.name}: "${txt}"` : `  [${el.id}] ${el.name}`;
-                    }).join('\n');
-                    pageSnap = `Page has ${cc.elementCount} elements:\n${snap}`;
-                }
-                return `You are a Bricks Builder element editor. Your ONLY job is to update existing page elements using patch blocks. Do NOT generate HTML. Do NOT create new designs.
+                return `You are a Bricks Builder element editor with live write access to the page.
 
-${pageSnap}
+${PageContext.serialize()}
 
-When asked to change text, color, image, background, or any setting on the elements above, respond with a patch block.
+Respond with a patch block containing edit operations:
 
 \`\`\`patch
-{
-  "patches": [
-    {"element_id": "EXISTING_ID", "updates": {"text": "New text content"}},
-    {"find_by": {"type": "text_content", "value": "partial text to find"}, "updates": {"text": "replacement text"}},
-    {"element_id": "IMG_ID", "updates": {"image_url": "https://new-image-url.jpg"}},
-    {"element_id": "EL_ID", "updates": {"bricks_settings": {"_background": {"color": {"raw": "#1a1a2e"}}}}},
-    {"element_id": "EL_ID", "updates": {"bricks_settings": {"_typography": {"color": {"raw": "#ffffff"}}, "_padding": {"top": "40", "bottom": "40", "left": "0", "right": "0"}}}}
-  ]
-}
+{"ops":[
+  {"op":"set_text","target":{"id":"abcdef"},"text":"New heading"},
+  {"op":"update_class","class":"snn-hero__title","declarations":{"font-size":"3.5rem"}},
+  {"op":"set_settings","target":{"id":"abcdef"},"settings":{"_padding":{"top":"40"}}},
+  {"op":"delete","target":{"id":"abcdef"}},
+  {"op":"duplicate","target":{"id":"abcdef"}},
+  {"op":"move","target":{"id":"abcdef"},"before":{"id":"ghijkl"}}
+]}
 \`\`\`
 
-After the patch block, briefly confirm what was changed in one sentence. Do NOT produce HTML.`;
+RULES
+1. STYLE CHANGES GO TO GLOBAL CLASSES via update_class — this page is class-based. Only use set_settings for a genuinely one-off tweak on a single element.
+2. Use real ids from the structure above. Never invent one.
+3. Respect the REQUEST SCOPE stated above.
+4. After the patch block, confirm what changed in one sentence, referencing ids like [abcdef].
+Do NOT produce HTML.`;
             }
 
             function buildAnsweringPrompt() {
-                return `You are a knowledgeable Bricks Builder expert and web design consultant.
-Answer the user's question concisely and helpfully.
-Do NOT generate HTML. Do NOT output patch blocks. Do NOT produce designs unless explicitly asked.
-Be direct and practical — 2–4 sentences unless a detailed explanation is genuinely needed.`;
+                return `You are the SNN design agent, running INSIDE the Bricks Builder canvas as a live tool — not a text-only chat assistant.
+
+WHAT YOU CAN ACTUALLY DO (this is literally true, never deny it):
+- Read the full element tree of the page currently open in the builder.
+- Edit any existing element: text, images, settings, and the global CSS classes that style it.
+- Add, delete, duplicate, move, wrap and unwrap elements.
+- Generate whole new sections and inject them into the page.
+- Rebuild any section you previously built, from its retained source HTML.
+You write directly into Bricks' reactive state, so your changes appear on the canvas immediately.
+If the user asks whether you can edit the page, or edit something you built: the answer is YES — say so plainly and offer to do it. Never claim you cannot manipulate the builder.
+
+${PageContext.serialize({ includeClasses: false })}
+
+Answer the user's question concisely — 2–4 sentences unless real detail is needed.
+Reference elements by id in square brackets like [abcdef] so the user can click through to them.
+Do NOT output HTML, patch blocks, or tool blocks here; if the user wants a change made, say what you'll do and that they can just ask.`;
             }
 
             // ================================================================
@@ -1977,10 +3571,6 @@ IMPORTANT RULES:
                 return `<span class="result-meta">Object (${keys.length} fields)</span>`;
             }
 
-            function escapeHtml(str) {
-                return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-            }
-
             function formatJsonHighlight(data) {
                 try {
                     return JSON.stringify(data, null, 2)
@@ -2175,7 +3765,10 @@ IMPORTANT RULES:
                 $('#snn-bricks-chat-input').on('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
                 $('#snn-bricks-chat-input').on('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px'; });
                 // Quick actions
-                $('.snn-bricks-quick-action-btn').on('click', function() { $('#snn-bricks-chat-input').val($(this).data('message')); sendMessage(); });
+                $('.snn-bricks-chat-quick-actions').on('click', '.snn-bricks-quick-action-btn', function() {
+                    $('#snn-bricks-chat-input').val($(this).attr('data-message'));
+                    sendMessage();
+                });
                 // Images
                 $('#snn-bricks-chat-attach-btn').on('click', () => $('#snn-bricks-chat-file-input').click());
                 $('#snn-bricks-chat-file-input').on('change', e => handleFileSelect(e.target.files));
@@ -2185,6 +3778,76 @@ IMPORTANT RULES:
                     const $msg = $(this).closest('.snn-bricks-chat-message');
                     $msg.toggleClass('is-collapsed');
                     $(this).text($msg.hasClass('is-collapsed') ? 'Show More ▾' : 'Show Less ▴');
+                });
+                // ── Content awareness: scope, selection, change cards ──
+                ChatState.defaultQuickActions = $('.snn-bricks-chat-quick-actions').html();
+                $('#snn-bricks-scope-select').on('change', function() {
+                    ChatState.scope = $(this).val();
+                    renderContextChip();
+                    renderQuickActions();
+                });
+                $('#snn-bricks-context-chip').on('click', '.snn-ctx-clear', function(e) {
+                    e.stopPropagation();
+                    SelectionWatcher.clear();
+                });
+                $('#snn-bricks-context-chip').on('click', function() {
+                    const id = $(this).attr('data-target-id');
+                    if (id) highlightElement(id);
+                });
+                // Apply / discard a proposed change
+                $('#snn-bricks-chat-messages').on('click', '.snn-chg-apply', function() {
+                    const ops = ChatState.pendingOps;
+                    $(this).closest('.snn-change-card').remove();
+                    ChatState.pendingOps = null;
+                    if (!ops) return;
+                    const pv  = EditOps.preview(ops);
+                    const res = EditOps.apply(ops, describeOpsShort(ops));
+                    if (res.success) {
+                        renderAppliedChange(pv, res.checkpointId);
+                        addMessage('assistant', '✓ ' + res.message);
+                    } else {
+                        addMessage('error', '✗ ' + res.error);
+                    }
+                });
+                $('#snn-bricks-chat-messages').on('click', '.snn-chg-discard', function() {
+                    ChatState.pendingOps = null;
+                    $(this).closest('.snn-change-card').remove();
+                    addMessage('assistant', 'Discarded — nothing was changed.');
+                });
+                $('#snn-bricks-chat-messages').on('change', '#snn-chg-auto-toggle', function() {
+                    ChatState.autoApply = $(this).is(':checked');
+                });
+                // Revert an applied change
+                $('#snn-bricks-chat-messages').on('click', '.snn-chg-revert', function() {
+                    const cp  = $(this).closest('.snn-change-card').attr('data-cp');
+                    const res = History.restore(cp);
+                    if (res.success) {
+                        $(this).closest('.snn-change-card').addClass('is-reverted').find('.snn-chg-actions').remove();
+                        addMessage('assistant', '↩ ' + res.message);
+                        renderContextChip();
+                    } else {
+                        addMessage('error', '✗ ' + res.error);
+                    }
+                });
+                // Disambiguation picks
+                $('#snn-bricks-chat-messages').on('click', '.snn-amb-pick', function() {
+                    resolveAmbiguity($(this).attr('data-el-id'));
+                });
+                $('#snn-bricks-chat-messages').on('mouseenter', '.snn-amb-pick', function() {
+                    highlightElement($(this).attr('data-el-id'));
+                });
+                // Element pills + change rows link back to the canvas
+                $('#snn-bricks-chat-messages').on('click', '.snn-el-pill, .snn-chg-row[data-el-id]', function() {
+                    const id = $(this).attr('data-el-id');
+                    if (!id) return;
+                    ChatState.selectionId = id;
+                    if (ChatState.scope === 'page') ChatState.scope = 'section';
+                    highlightElement(id);
+                    renderContextChip();
+                    renderQuickActions();
+                });
+                $('#snn-bricks-chat-messages').on('mouseenter', '.snn-el-pill', function() {
+                    highlightElement($(this).attr('data-el-id'));
                 });
                 setInterval(autoSaveConversation, 30000);
             }
@@ -2260,7 +3923,9 @@ IMPORTANT RULES:
                 ChatState.messages.push(m);
                 const $msgs = $('#snn-bricks-chat-messages');
                 $msgs.find('.snn-bricks-chat-welcome').remove();
-                $('.snn-bricks-chat-quick-actions').hide();
+                // Starter prompts are long and only make sense on an empty page;
+                // the contextual edit actions stay available while working.
+                if (!PageContext.index().content.length) $('.snn-bricks-chat-quick-actions').hide();
                 const $msg  = $('<div>').addClass('snn-bricks-chat-message snn-bricks-chat-message-' + role);
                 const $body = $('<div>').addClass('snn-msg-body');
                 if (m.images) {
@@ -2278,6 +3943,7 @@ IMPORTANT RULES:
                         $msg.append($('<button class="snn-msg-toggle">Show More ▾</button>'));
                     }
                 }, 0);
+                renderContextChip();
                 scrollToBottom();
             }
 
@@ -2287,8 +3953,10 @@ IMPORTANT RULES:
                 if (typeof c === 'string' && c.trimStart().startsWith('<div class="ability-results">')) {
                     return c;
                 }
-                if (typeof markdown !== 'undefined' && markdown.toHTML) { try { return markdown.toHTML(c); } catch(e) {} }
-                return c.replace(/\n/g, '<br>');
+                if (typeof markdown !== 'undefined' && markdown.toHTML) {
+                    try { return linkifyElementIds(markdown.toHTML(c)); } catch(e) {}
+                }
+                return linkifyElementIds(c.replace(/\n/g, '<br>'));
             }
 
             function scrollToBottom() { const $m = $('#snn-bricks-chat-messages'); $m.scrollTop($m[0].scrollHeight); }
@@ -2298,9 +3966,12 @@ IMPORTANT RULES:
                 ChatState.attachedImages = []; ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
                 ChatState.currentTheme = null; // Reset theme for new conversation
                 ChatState.globalUsedIds.clear(); // Reset ID tracker
+                ChatState.pendingOps = null; ChatState.pendingAmbiguous = null;
+                History.clear();
                 removeApproveBar(); hideHTMLPreview(); renderImagePreviews();
                 $('#snn-bricks-chat-messages').html('<div class="snn-bricks-chat-welcome"><h3>Conversation cleared</h3><p>Start a new conversation.</p></div>');
-                $('.snn-bricks-chat-quick-actions').show();
+                renderQuickActions();
+                renderContextChip();
             }
 
             function setAgentState(state, detail = '') {
@@ -2362,7 +4033,7 @@ IMPORTANT RULES:
                 if (!m) return null;
                 try {
                     const parsed = JSON.parse(m[1].trim());
-                    if (parsed && (Array.isArray(parsed.patches) || parsed.element_id || parsed.find_by)) return parsed;
+                    if (parsed && (Array.isArray(parsed.ops) || Array.isArray(parsed.patches) || parsed.element_id || parsed.find_by)) return parsed;
                 } catch(e) {
                     debugLog('extractPatchFromResponse parse error:', e);
                     if (DEBUG_MODE) console.warn('[Bricks AI] Patch block parse error:', e.message, m[1].slice(0, 200));
@@ -2651,10 +4322,70 @@ IMPORTANT RULES:
 .snn-approve-actions { display: flex; align-items: center; gap: 6px; }
 .snn-approve-build-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .snn-approve-build-btn:hover { background: #15803d; }
+.snn-approve-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+.snn-approve-sections { display: flex; flex-wrap: wrap; gap: 4px 12px; width: 100%; margin-top: 6px; }
+.snn-approve-section { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #15803d; cursor: pointer; }
+.snn-approve-bar { flex-wrap: wrap; }
+.snn-approve-build-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+.snn-change-card.is-reverted { opacity: 0.55; }
 /* Support link */
 .snn-bricks-chat-support { padding: 2px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
 .snn-bricks-chat-support a { font-size: 14px; font-weight:600; color: #666; text-decoration: none; transition: color 0.2s; }
 .snn-bricks-chat-support a:hover { color: #820808; }
+/* Context bar — what the agent is looking at, and what it may change */
+.snn-bricks-context-bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #fff; border-top: 1px solid #eee; }
+.snn-bricks-context-chip { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; background: #f1f5f9; border: 1px solid #dbe3ec; border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 12px; color: #334155; }
+.snn-ctx-icon { font-size: 12px; flex-shrink: 0; }
+.snn-ctx-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snn-ctx-detail { color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.snn-ctx-clear { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
+.snn-ctx-clear:hover { color: #dc2626; }
+.snn-bricks-scope-select { font-size: 12px; padding: 4px 6px; border: 1px solid #dbe3ec; border-radius: 6px; background: #fff; color: #334155; cursor: pointer; flex-shrink: 0; }
+/* Canvas highlight for element pills / disambiguation */
+.snn-ai-hl { outline: 2px solid #2271b1 !important; outline-offset: 2px !important; transition: outline-color 0.2s; }
+/* Execution checklist — live tool steps */
+.snn-bricks-execution-checklist { padding: 6px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; }
+.snn-cl-row { display: flex; align-items: center; gap: 7px; padding: 2px 0; color: #475569; }
+.snn-cl-icon { width: 13px; text-align: center; flex-shrink: 0; }
+.snn-cl-ok .snn-cl-icon { color: #16a34a; }
+.snn-cl-fail .snn-cl-icon { color: #dc2626; }
+.snn-cl-fail .snn-cl-label { color: #b91c1c; }
+.snn-cl-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snn-cl-note { color: #94a3b8; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snn-cl-spin { display: inline-block; width: 9px; height: 9px; border: 2px solid #cbd5e1; border-top-color: #2271b1; border-radius: 50%; animation: snn-cl-spin 0.7s linear infinite; }
+@keyframes snn-cl-spin { to { transform: rotate(360deg); } }
+/* Change cards — proposed, applied, ambiguous */
+.snn-change-card { margin: 6px 0; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; padding: 8px 10px; font-size: 12px; }
+.snn-change-card.is-pending { border-color: #fbbf24; background: #fffbeb; }
+.snn-change-card.is-applied { border-color: #bbf7d0; background: #f0fdf4; }
+.snn-change-card.is-ambiguous { border-color: #93c5fd; background: #eff6ff; }
+.snn-chg-head { font-weight: 700; margin-bottom: 5px; color: #334155; font-size: 12px; }
+.snn-chg-row { display: flex; align-items: baseline; gap: 6px; padding: 2px 0; line-height: 1.4; }
+.snn-chg-row[data-el-id] { cursor: pointer; border-radius: 4px; }
+.snn-chg-row[data-el-id]:hover { background: rgba(34, 113, 177, 0.08); }
+.snn-chg-sign { font-weight: 700; width: 10px; flex-shrink: 0; font-family: monospace; }
+.snn-chg-mod .snn-chg-sign { color: #ca8a04; }
+.snn-chg-add .snn-chg-sign { color: #16a34a; }
+.snn-chg-del .snn-chg-sign { color: #dc2626; }
+.snn-chg-label { font-weight: 600; color: #1e293b; white-space: nowrap; }
+.snn-chg-detail { color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snn-chg-actions { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+.snn-chg-apply, .snn-chg-discard, .snn-chg-revert { border: none; border-radius: 5px; padding: 4px 11px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.snn-chg-apply { background: #16a34a; color: #fff; }
+.snn-chg-apply:hover { background: #15803d; }
+.snn-chg-discard { background: #e2e8f0; color: #475569; }
+.snn-chg-discard:hover { background: #cbd5e1; }
+.snn-chg-revert { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
+.snn-chg-revert:hover { background: #f1f5f9; color: #b91c1c; border-color: #fca5a5; }
+.snn-chg-auto { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #64748b; margin-left: auto; cursor: pointer; }
+.snn-amb-pick { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 5px 8px; margin: 3px 0; cursor: pointer; font-size: 12px; }
+.snn-amb-pick:hover { background: #dbeafe; }
+.snn-amb-name { font-weight: 600; color: #1e293b; }
+.snn-amb-pick code { background: #eff6ff; padding: 0 3px; border-radius: 3px; color: #1d4ed8; font-size: 11px; }
+.snn-amb-text { color: #64748b; }
+/* Element id pills inside chat messages */
+.snn-el-pill { display: inline-block; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 4px; padding: 0 4px; font-family: monospace; font-size: 11px; cursor: pointer; }
+.snn-el-pill:hover { background: #4338ca; color: #fff; }
 /* Abilities API results */
 .ability-results { margin-top: 4px; }
 .ability-result { padding: 6px 10px; margin: 3px 0; border-radius: 5px; font-size: 13px; line-height: 1.5; }
@@ -2754,6 +4485,86 @@ function snn_pixabay_image_proxy_handler() {
     // No results from Pixabay
     status_header( 404 );
     exit;
+}
+
+/**
+ * Section Manifest — persistence for AI-built sections.
+ *
+ * Records which page sections the agent generated, along with the source HTML
+ * and theme that produced them. This is what lets the agent later EDIT or
+ * REGENERATE a section it built, rather than reverse-engineering the design
+ * back out of compiled Bricks JSON. Stored in post meta so it survives a
+ * builder reload.
+ */
+define( 'SNN_BRICKS_MANIFEST_META', '_snn_ai_section_manifest' );
+
+add_action( 'wp_ajax_snn_bricks_manifest_save', 'snn_bricks_manifest_save_handler' );
+add_action( 'wp_ajax_snn_bricks_manifest_get',  'snn_bricks_manifest_get_handler' );
+
+/**
+ * Sanitize one manifest row. Only known keys survive, and the retained source
+ * HTML is capped so a runaway generation cannot bloat post meta.
+ */
+function snn_bricks_manifest_sanitize_entry( $entry ) {
+    if ( ! is_array( $entry ) || empty( $entry['rootId'] ) ) {
+        return null;
+    }
+
+    $classes = array();
+    if ( ! empty( $entry['classes'] ) && is_array( $entry['classes'] ) ) {
+        $classes = array_slice( array_map( 'sanitize_html_class', $entry['classes'] ), 0, 200 );
+    }
+
+    return array(
+        'rootId'  => sanitize_key( $entry['rootId'] ),
+        'label'   => isset( $entry['label'] ) ? sanitize_text_field( $entry['label'] ) : 'Section',
+        // Source HTML is design markup, not page output: keep it intact but bounded.
+        'html'    => isset( $entry['html'] ) ? mb_substr( (string) $entry['html'], 0, 60000 ) : '',
+        'prompt'  => isset( $entry['prompt'] ) ? mb_substr( sanitize_textarea_field( (string) $entry['prompt'] ), 0, 2000 ) : '',
+        'theme'   => isset( $entry['theme'] ) && is_array( $entry['theme'] ) ? $entry['theme'] : null,
+        'classes' => $classes,
+        'builtAt' => isset( $entry['builtAt'] ) ? (int) $entry['builtAt'] : 0,
+    );
+}
+
+function snn_bricks_manifest_save_handler() {
+    check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+
+    $post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+    if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+        wp_send_json_error( array( 'message' => 'Insufficient permissions for this post.' ) );
+    }
+
+    $raw = isset( $_POST['manifest'] ) ? wp_unslash( $_POST['manifest'] ) : '[]';
+    $decoded = json_decode( $raw, true );
+    if ( ! is_array( $decoded ) ) {
+        wp_send_json_error( array( 'message' => 'Invalid manifest payload.' ) );
+    }
+
+    $clean = array();
+    foreach ( array_slice( $decoded, 0, 60 ) as $entry ) {
+        $row = snn_bricks_manifest_sanitize_entry( $entry );
+        if ( $row ) {
+            $clean[] = $row;
+        }
+    }
+
+    update_post_meta( $post_id, SNN_BRICKS_MANIFEST_META, wp_json_encode( $clean ) );
+    wp_send_json_success( array( 'saved' => count( $clean ) ) );
+}
+
+function snn_bricks_manifest_get_handler() {
+    check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+
+    $post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+    if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+        wp_send_json_error( array( 'message' => 'Insufficient permissions for this post.' ) );
+    }
+
+    $stored   = get_post_meta( $post_id, SNN_BRICKS_MANIFEST_META, true );
+    $manifest = $stored ? json_decode( $stored, true ) : array();
+
+    wp_send_json_success( array( 'manifest' => is_array( $manifest ) ? $manifest : array() ) );
 }
 
 /**
