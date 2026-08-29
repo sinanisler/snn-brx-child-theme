@@ -8,51 +8,56 @@ define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) );
 define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );  
 
 
+// Feature on/off switches (admin.php?page=snn-settings > Customizations)
+require_once SNN_PATH . 'includes/features/feature-toggles.php';
+
+
 // Main Features and Settings
 require_once SNN_PATH . 'includes/features/settings-page.php';
 
-require_once SNN_PATH . 'includes/features/other-settings.php';
-require_once SNN_PATH . 'includes/features/security-page.php';
-require_once SNN_PATH . 'includes/features/post-types-settings.php';
-require_once SNN_PATH . 'includes/features/custom-field-settings.php';
-require_once SNN_PATH . 'includes/features/taxonomy-settings.php';
-require_once SNN_PATH . 'includes/features/login-settings.php';
-require_once SNN_PATH . 'includes/features/remove-wp-version.php';
-require_once SNN_PATH . 'includes/features/disable-xmlrpc.php';
-require_once SNN_PATH . 'includes/features/disable-file-editing.php';
-require_once SNN_PATH . 'includes/features/remove-rss.php';
-require_once SNN_PATH . 'includes/features/disable-wp-json-if-not-logged-in.php';
-require_once SNN_PATH . 'includes/features/login-logo-change-url-change.php';
+if ( snn_feature_enabled('snn-other-settings') )         require_once SNN_PATH . 'includes/features/other-settings.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/security-page.php';
+if ( snn_feature_enabled('snn-custom-post-types') )      require_once SNN_PATH . 'includes/features/post-types-settings.php';
+if ( snn_feature_enabled('snn-custom-fields') )          require_once SNN_PATH . 'includes/features/custom-field-settings.php';
+if ( snn_feature_enabled('snn-taxonomies') )             require_once SNN_PATH . 'includes/features/taxonomy-settings.php';
+if ( snn_feature_enabled('snn-login-settings') )         require_once SNN_PATH . 'includes/features/login-settings.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/remove-wp-version.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/disable-xmlrpc.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/disable-file-editing.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/remove-rss.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/disable-wp-json-if-not-logged-in.php';
+if ( snn_feature_enabled('snn-login-settings') )         require_once SNN_PATH . 'includes/features/login-logo-change-url-change.php';
 require_once SNN_PATH . 'includes/features/enqueue-scripts.php';
-require_once SNN_PATH . 'includes/features/file-size-column-media.php';
-require_once SNN_PATH . 'includes/features/404-logging.php';
-require_once SNN_PATH . 'includes/features/search-loggins.php';
-require_once SNN_PATH . 'includes/features/301-redirect.php';
-require_once SNN_PATH . 'includes/features/smtp-settings.php';
-require_once SNN_PATH . 'includes/features/mail-logging.php';
-require_once SNN_PATH . 'includes/features/media-settings.php';
-require_once SNN_PATH . 'includes/features/disable-emojis.php';
-require_once SNN_PATH . 'includes/features/disable-gravatar.php';
-require_once SNN_PATH . 'includes/features/role-manager.php';
-require_once SNN_PATH . 'includes/features/custom-code-snippets.php';
-require_once SNN_PATH . 'includes/features/cookie-banner.php';
-require_once SNN_PATH . 'includes/features/accessibility-settings.php';
-require_once SNN_PATH . 'includes/features/activity-logs.php';
-require_once SNN_PATH . 'includes/features/seo.php';
-require_once SNN_PATH . 'includes/features/seo-bricks-setting.php';
-require_once SNN_PATH . 'includes/features/interactions.php';
-require_once SNN_PATH . 'includes/features/draft-revision.php';
+if ( snn_feature_enabled('snn-media-settings') )         require_once SNN_PATH . 'includes/features/file-size-column-media.php';
+if ( snn_feature_enabled('snn-404-logs') )               require_once SNN_PATH . 'includes/features/404-logging.php';
+if ( snn_feature_enabled('snn-search-logs') )            require_once SNN_PATH . 'includes/features/search-loggins.php';
+if ( snn_feature_enabled('snn-301-redirects') )          require_once SNN_PATH . 'includes/features/301-redirect.php';
+if ( snn_feature_enabled('snn-smtp-settings') )          require_once SNN_PATH . 'includes/features/smtp-settings.php';
+if ( snn_feature_enabled('snn-mail-logs') )              require_once SNN_PATH . 'includes/features/mail-logging.php';
+if ( snn_feature_enabled('snn-media-settings') )         require_once SNN_PATH . 'includes/features/media-settings.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/disable-emojis.php';
+if ( snn_feature_enabled('snn-security') )               require_once SNN_PATH . 'includes/features/disable-gravatar.php';
+if ( snn_feature_enabled('snn-role-management') )        require_once SNN_PATH . 'includes/features/role-manager.php';
+if ( snn_feature_enabled('snn-custom-codes-snippets') )  require_once SNN_PATH . 'includes/features/custom-code-snippets.php';
+if ( snn_feature_enabled('snn-cookie-settings') )        require_once SNN_PATH . 'includes/features/cookie-banner.php';
+if ( snn_feature_enabled('snn-accessibility-settings') ) require_once SNN_PATH . 'includes/features/accessibility-settings.php';
+if ( snn_feature_enabled('snn-activity-log') )           require_once SNN_PATH . 'includes/features/activity-logs.php';
+if ( snn_feature_enabled('snn-seo-settings') )           require_once SNN_PATH . 'includes/features/seo.php';
+if ( snn_feature_enabled('snn-seo-settings') )           require_once SNN_PATH . 'includes/features/seo-bricks-setting.php';
+if ( snn_feature_enabled('snn-interactions') )           require_once SNN_PATH . 'includes/features/interactions.php';
+if ( snn_feature_enabled('snn-other-settings') )         require_once SNN_PATH . 'includes/features/draft-revision.php';
 
 
-require_once SNN_PATH . 'includes/ai/api-call-templates.php';
-require_once SNN_PATH . 'includes/ai/ai-settings.php';
-require_once SNN_PATH . 'includes/ai/ai-api.php';
-require_once SNN_PATH . 'includes/ai/ai-proxy.php';
-require_once SNN_PATH . 'includes/ai/ai-overlay.php';
-require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
-require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
-require_once SNN_PATH . 'includes/ai/ai-agent-and-chat.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/api-call-templates.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/ai-settings.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/ai-api.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/ai-proxy.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/ai-overlay.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
+if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
+if ( snn_feature_enabled('snn-ai-agent-settings') ) require_once SNN_PATH . 'includes/ai/ai-agent-and-chat.php';
 
+if ( snn_feature_enabled('snn-ai-agent-settings') ) {
 require_once SNN_PATH . 'includes/ai/abilities/ability-categories.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-posts.php';
@@ -78,6 +83,7 @@ require_once SNN_PATH . 'includes/ai/abilities/generate-block-pattern.php';
 require_once SNN_PATH . 'includes/ai/abilities/edit-block-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-post-metadata.php';
 require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
+}
 
 
 
@@ -104,17 +110,17 @@ add_action('after_setup_theme', function() {
 // Bricks Features
 // ------------------------------------------------------------------------------
 
-require_once SNN_PATH . 'includes/features/editor-settings-bricks.php'; 
-require_once SNN_PATH . 'includes/features/editor-settings-panel-bricks.php';
-require_once SNN_PATH . 'includes/features/editor-class-generator.php';
-require_once SNN_PATH . 'includes/features/editor-custom-css.php';
+if ( snn_feature_enabled('editor-settings') ) require_once SNN_PATH . 'includes/features/editor-settings-bricks.php';
+if ( snn_feature_enabled('editor-settings') ) require_once SNN_PATH . 'includes/features/editor-settings-panel-bricks.php';
+if ( snn_feature_enabled('editor-settings') ) require_once SNN_PATH . 'includes/features/editor-class-generator.php';
+if ( snn_feature_enabled('editor-settings') ) require_once SNN_PATH . 'includes/features/editor-custom-css.php';
 
 // Bricks Builder Chat Agent and Bricks Abilities
-require_once SNN_PATH . 'includes/ai/bricks/ai-agent-and-chat-bricks.php';
+if ( snn_feature_enabled('snn-ai-agent-settings') ) require_once SNN_PATH . 'includes/ai/bricks/ai-agent-and-chat-bricks.php';
 
 
-require_once SNN_PATH . 'includes/features/block-editor-settings.php';
-require_once SNN_PATH . 'includes/features/media-image-opt.php';
+if ( snn_feature_enabled('snn-block-editor-settings') ) require_once SNN_PATH . 'includes/features/block-editor-settings.php';
+if ( snn_feature_enabled('snn-media-settings') )        require_once SNN_PATH . 'includes/features/media-image-opt.php';
 require_once SNN_PATH . 'includes/features/wp-admin-dashboard-widgets.php';
 
 // Register Custom Dynamic Data Tags
@@ -199,7 +205,7 @@ add_action('init', function () {
 
 
 // if GSAP setting is enabled Register Elements
-$options = snn_get_interactions_settings();
+$options = function_exists('snn_get_interactions_settings') ? snn_get_interactions_settings() : array();
 if (!empty($options['enqueue_gsap'])) {
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations-code.php');
@@ -213,7 +219,7 @@ if (!empty($options['enqueue_gsap'])) {
 }, 11);
 
 
-$options = snn_get_interactions_settings();
+$options = function_exists('snn_get_interactions_settings') ? snn_get_interactions_settings() : array();
 if (!empty($options['enqueue_gsap'])) {
 
     require_once SNN_PATH . 'includes/elements/gsap-multi-element-register.php';

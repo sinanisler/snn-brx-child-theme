@@ -24,35 +24,13 @@ function snn_settings_page_callback() {
         <!-- Dashboard-like grid of big square buttons -->
         <div class="snn-dashboard-buttons">
             <?php
-            $menu_items = array(
-                array('slug' => 'snn-settings',               'label' => $dynamic_title.' '.__('Settings', 'snn'),      'dashicon' => 'dashicons-admin-home'),
-                array('slug' => 'snn-other-settings',         'label' => __('Dashboard Settings', 'snn'),               'dashicon' => 'dashicons-dashboard'),
-                array('slug' => 'editor-settings',            'label' => __('Editor Settings', 'snn'),                  'dashicon' => 'dashicons-edit'),
-                array('slug' => 'snn-security',               'label' => __('Security Settings', 'snn'),                'dashicon' => 'dashicons-shield'),
-                array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                       'dashicon' => 'dashicons-admin-post'),
-                array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                    'dashicon' => 'dashicons-admin-page'),
-                array('slug' => 'snn-taxonomies',             'label' => __('Taxonomies', 'snn'),                       'dashicon' => 'dashicons-category'),
-                array('slug' => 'snn-seo-settings',           'label' => __('SEO Settings', 'snn'),                     'dashicon' => 'dashicons-editor-textcolor'),
-                array('slug' => 'snn-login-settings',         'label' => __('Login Settings', 'snn'),                   'dashicon' => 'dashicons-admin-users'),
-                array('slug' => 'snn-404-logs',               'label' => __('404 Logs', 'snn'),                         'dashicon' => 'dashicons-warning'),
-                array('slug' => 'snn-301-redirects',          'label' => __('301 Redirects', 'snn'),                    'dashicon' => 'dashicons-share'),
-                array('slug' => 'snn-smtp-settings',          'label' => __('Mail SMTP Settings', 'snn'),               'dashicon' => 'dashicons-email'),
-                array('slug' => 'snn-mail-logs',              'label' => __('Mail Logs', 'snn'),                        'dashicon' => 'dashicons-email-alt'),
-                array('slug' => 'snn-role-management',        'label' => __('Role Manager', 'snn'),                     'dashicon' => 'dashicons-admin-users'),
-                array('slug' => 'snn-cookie-settings',        'label' => __('Cookie Settings', 'snn'),                  'dashicon' => 'dashicons-admin-site'),
-                array('slug' => 'snn-accessibility-settings', 'label' => __('Accessibility Settings', 'snn'),           'dashicon' => 'dashicons-universal-access'),
-                array('slug' => 'snn-ai-settings',            'label' => __('AI Settings', 'snn'),                      'dashicon' => 'dashicons-nametag'),
-                array('slug' => 'snn-ai-agent-settings',      'label' => __('AI Agent and Chat', 'snn'),                'dashicon' => 'dashicons-nametag'),
-                array('slug' => 'snn-interactions',           'label' => __('Interactions', 'snn'),                     'dashicon' => 'dashicons-table-col-after'),
-                array('slug' => 'snn-search-logs',            'label' => __('Search Logs', 'snn'),                      'dashicon' => 'dashicons-search'),
-                array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                   'dashicon' => 'dashicons-format-image'),
-                array('slug' => 'snn-activity-log',           'label' => __('Activity Logs', 'snn'),                    'dashicon' => 'dashicons-text'),
-                array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                    'dashicon' => 'dashicons-editor-code'),
-                array('slug' => 'snn-block-editor-settings',  'label' => __('Block Editor Settings', 'snn'),            'dashicon' => 'dashicons-admin-customizer'),
-            );
-            
-            foreach ($menu_items as $item) {
-                $url = admin_url('admin.php?page=' . $item['slug']);
+            // Only the features that are currently switched on get a button.
+            foreach (snn_get_features() as $slug => $item) {
+                if (!snn_feature_enabled($slug)) {
+                    continue;
+                }
+
+                $url = admin_url('admin.php?page=' . $slug);
                 ?>
                 <a href="<?php echo esc_url($url); ?>" class="snn-dashboard-button">
                     <span class="dashicons <?php echo esc_attr($item['dashicon']); ?>"></span>
@@ -84,14 +62,102 @@ function snn_settings_page_callback() {
             </p>
         </div>
     
-        <form method="post" action="options.php">
-            <?php
-            settings_fields('snn_settings_group');
-            do_settings_sections('snn-settings');
-            submit_button();
-            ?>
-        </form>
+        <details class="snn-customizations">
+            <summary><?php _e('Customizations', 'snn'); ?></summary>
+
+            <form method="post" action="options.php">
+                <?php settings_fields('snn_settings_group'); ?>
+
+                <h3><?php _e('White Label Name', 'snn'); ?></h3>
+                <input type="text" name="snn_menu_title" value="<?php echo esc_attr($dynamic_title); ?>" class="regular-text">
+                <p class="description"><?php _e('You can rename SNN Settings title.', 'snn'); ?></p>
+
+                <h3><?php _e('Features', 'snn'); ?></h3>
+                <p class="description">
+                    <?php _e('Every feature is enabled by default. Unchecking one stops the theme from loading it at all, and removes its page from the dashboard above.', 'snn'); ?>
+                </p>
+
+                <p class="snn-feature-bulk">
+                    <button type="button" class="button" id="snn-select-all"><?php _e('Select All', 'snn'); ?></button>
+                    <button type="button" class="button" id="snn-deselect-all"><?php _e('Deselect All', 'snn'); ?></button>
+                </p>
+
+                <?php
+                // Always post the key, otherwise WordPress skips the option when
+                // every box is checked. Empty values are dropped on sanitize.
+                ?>
+                <input type="hidden" name="snn_disabled_features[]" value="">
+
+                <div class="snn-feature-toggles">
+                    <?php
+                    $always_on = snn_get_always_on_features();
+
+                    foreach (snn_get_features() as $slug => $item) {
+                        if (in_array($slug, $always_on, true)) {
+                            continue;
+                        }
+
+                        $enabled = snn_feature_enabled($slug);
+                        ?>
+                        <label class="snn-feature-toggle">
+                            <input type="checkbox" class="snn-feature-checkbox" data-slug="<?php echo esc_attr($slug); ?>" <?php checked($enabled); ?>>
+                            <input type="hidden" name="snn_disabled_features[]" value="<?php echo esc_attr($slug); ?>" <?php disabled($enabled); ?>>
+                            <span class="dashicons <?php echo esc_attr($item['dashicon']); ?>"></span>
+                            <span class="snn-feature-label"><?php echo esc_html($item['label']); ?></span>
+                        </label>
+                        <?php
+                    }
+                    ?>
+                </div>
+
+                <?php submit_button(); ?>
+            </form>
+        </details>
     </div>
+
+    <script>
+    (function () {
+        var wrap = document.querySelector('.snn-feature-toggles');
+
+        if (!wrap) {
+            return;
+        }
+
+        // A disabled hidden input is not submitted, so "checked" == enabled ==
+        // the slug never reaches snn_disabled_features.
+        function sync(checkbox) {
+            var hidden = checkbox.parentNode.querySelector('input[type="hidden"]');
+
+            if (hidden) {
+                hidden.disabled = checkbox.checked;
+            }
+        }
+
+        var checkboxes = wrap.querySelectorAll('.snn-feature-checkbox');
+
+        Array.prototype.forEach.call(checkboxes, function (checkbox) {
+            sync(checkbox);
+            checkbox.addEventListener('change', function () {
+                sync(checkbox);
+            });
+        });
+
+        function setAll(state) {
+            Array.prototype.forEach.call(checkboxes, function (checkbox) {
+                checkbox.checked = state;
+                sync(checkbox);
+            });
+        }
+
+        document.getElementById('snn-select-all').addEventListener('click', function () {
+            setAll(true);
+        });
+
+        document.getElementById('snn-deselect-all').addEventListener('click', function () {
+            setAll(false);
+        });
+    })();
+    </script>
     
     <style>
         /* Dashboard buttons grid */
@@ -132,6 +198,53 @@ function snn_settings_page_callback() {
             color: #333;
         }
         
+        /* Collapsed customizations panel */
+        .snn-customizations {
+            max-width: 1000px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 40px;
+        }
+        .snn-customizations > summary {
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .snn-customizations[open] > summary {
+            border-bottom: 1px solid #eee;
+        }
+        .snn-customizations > form {
+            padding: 0 16px 10px;
+        }
+        .snn-feature-bulk {
+            margin: 10px 0 16px;
+        }
+        .snn-feature-toggles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 6px 20px;
+        }
+        .snn-feature-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .snn-feature-toggle .dashicons {
+            color: #777;
+        }
+        .snn-feature-toggle .snn-feature-label {
+            font-size: 13px;
+        }
+        .wrap .snn-feature-toggle [type="checkbox"] {
+            float: none;
+            margin: 0 4px 0 0 !important;
+        }
+
         /* Existing styles */
         .wrap .tt1 {
             width: 880px;
@@ -159,34 +272,14 @@ function snn_settings_page_callback() {
 }
 
 function snn_register_settings() {
-    register_setting('snn_settings_group', 'snn_menu_title'); 
-
-    add_settings_section(
-        'snn_general_section',
-        __('General Setting', 'snn'),
-        'snn_general_section_callback',
-        'snn-settings'
-    );
-
-    add_settings_field(
-        'snn_menu_title_field',
-        __('White Label Name', 'snn'),
-        'snn_menu_title_field_callback',
-        'snn-settings',
-        'snn_general_section'
-    );
+    register_setting('snn_settings_group', 'snn_menu_title');
+    register_setting('snn_settings_group', 'snn_disabled_features', array(
+        'type'              => 'array',
+        'sanitize_callback' => 'snn_sanitize_disabled_features',
+        'default'           => array(),
+    ));
 }
 add_action('admin_init', 'snn_register_settings');
-
-function snn_general_section_callback() {
-    echo '<p>' . esc_html__('General setting for the SNN menu page.', 'snn') . '</p>';
-}
-
-function snn_menu_title_field_callback() {
-    $menu_title = get_option('snn_menu_title', __('SNN Settings', 'snn'));
-    echo '<input type="text" name="snn_menu_title" value="' . esc_attr($menu_title) . '" class="regular-text">';
-    echo '<p>' . esc_html__('You can rename SNN Settings title.', 'snn') . '</p>';
-}
 
 function mytheme_customize_register( $wp_customize ) {
     $wp_customize->add_setting( 'footer_custom_css', array(
