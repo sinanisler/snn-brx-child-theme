@@ -201,14 +201,11 @@ function snn_settings_page_callback() {
         /* Collapsed customizations panel */
         .snn-customizations {
             max-width: 1000px;
-            background: #fff;
-            border: 1px solid #ccc;
             border-radius: 4px;
             margin-bottom: 40px;
         }
         .snn-customizations > summary {
             cursor: pointer;
-            padding: 14px 16px;
             font-size: 15px;
             font-weight: 600;
         }
