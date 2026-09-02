@@ -214,6 +214,8 @@ function snn_seo_settings_page_callback() {
     // Get current settings with proper type checking
     $seo_enabled = get_option('snn_seo_enabled', false);
     $seo_ai_enabled = get_option('snn_seo_ai_enabled', false);
+    // AI SEO features depend on the global AI features toggle in AI Settings
+    $ai_features_enabled = get_option('snn_ai_enabled', 'no') === 'yes';
     $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
     $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
     $authors_enabled = get_option('snn_seo_authors_enabled', true);
@@ -313,12 +315,21 @@ function snn_seo_settings_page_callback() {
 
             <!-- AI SEO Features -->
             <div class="snn-seo-section">
-                <label>
-                    <input type="checkbox" name="snn_seo_ai_enabled" value="1" <?php checked($seo_ai_enabled, 1); ?>>
+                <?php if (!$ai_features_enabled): ?>
+                    <?php /* Keep the stored value intact while the checkbox is disabled (disabled inputs are not submitted) */ ?>
+                    <input type="hidden" name="snn_seo_ai_enabled" value="<?php echo $seo_ai_enabled ? '1' : '0'; ?>">
+                <?php endif; ?>
+                <label<?php echo !$ai_features_enabled ? ' class="snn-seo-disabled" title="' . esc_attr__('Enable AI Features in AI Settings to use this feature', 'snn') . '"' : ''; ?>>
+                    <input type="checkbox" name="snn_seo_ai_enabled" value="1" <?php checked($seo_ai_enabled, 1); ?> <?php disabled(!$ai_features_enabled); ?>>
                     <strong><?php _e('Enable AI SEO Features', 'snn'); ?></strong>
                 </label>
                 <p class="description">
                     <?php _e('Enable AI-powered SEO generation. Adds AI generation buttons to post edit screens and bulk actions. Requires AI settings to be properly configured in AI Settings page.', 'snn'); ?>
+                    <?php if (!$ai_features_enabled): ?>
+                        <br>
+                        <strong><?php _e('AI Features are currently disabled.', 'snn'); ?></strong>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=snn-ai-settings')); ?>"><?php _e('Enable them in AI Settings', 'snn'); ?></a>
+                    <?php endif; ?>
                 </p>
             </div>
 
@@ -766,6 +777,8 @@ function snn_seo_settings_page_callback() {
         .wrap h2 { margin-top: 10px; }
         .wrap code { background: #f0f0f1; padding: 2px 6px; border-radius: 3px; font-size: 13px; display: inline-block; margin: 2px 0; }
         .snn-seo-section { background: #fff; padding: 10px; max-width: 900px; }
+        .snn-seo-disabled { opacity: 0.6; cursor: not-allowed; }
+        .snn-seo-disabled input { cursor: not-allowed; }
         .snn-tags-hint { font-size: 12px; color: #666; margin: 5px 0; line-height: 1.6; }
         .snn-tags-hint code { font-size: 11px; padding: 1px 4px; }
         .snn-accordion-header { transition: background-color 0.2s; }
