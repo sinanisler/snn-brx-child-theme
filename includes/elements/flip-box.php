@@ -10,7 +10,7 @@ class Flipbox_Element extends Element {
     public $category       = 'snn';
     public $name           = 'flipbox';
     public $icon           = 'ti-exchange-vertical';
-    public $css_selector   = '.flip-container';
+    public $css_selector   = ''; // Empty = styles apply to the root element. '.flip-container' is set on _root, so a bare class selector would compile to '#brxe-id .flip-container' and never match.
     public $scripts        = [];
     public $nestable       = true;
     public $nestable_areas = ['front', 'back'];
