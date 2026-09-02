@@ -9,7 +9,7 @@ class SNN_Audio_Player_Element extends Element {
     public $category     = 'snn'; // Custom category for your elements
     public $name         = 'snn-audio-player';
     public $icon         = 'ti-music-alt'; // A suitable icon from Themify Icons
-    public $css_selector = '.snn-audio-player-wrapper';
+    public $css_selector = ''; // Empty = styles apply to the root element. '.snn-audio-player-wrapper' is set on _root, so a bare class selector would compile to '#brxe-id .snn-audio-player-wrapper' and never match.
     public $scripts      = []; // Scripts will be enqueued in the render method
     public $nestable     = false;
 
