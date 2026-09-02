@@ -2350,7 +2350,7 @@ function snn_seo_sitemap_init() {
     }
     
     add_rewrite_rule('^sitemap\.xml$', 'index.php?snn_sitemap=index', 'top');
-    add_rewrite_rule('^sitemap-([a-z_]+)-([0-9]+)\.xml$', 'index.php?snn_sitemap=$matches[1]&snn_sitemap_page=$matches[2]', 'top');
+    add_rewrite_rule('^sitemap-([a-zA-Z0-9_-]+)-([0-9]+)\.xml$', 'index.php?snn_sitemap=$matches[1]&snn_sitemap_page=$matches[2]', 'top');
     
     add_filter('query_vars', function($vars) {
         $vars[] = 'snn_sitemap';
@@ -2388,59 +2388,83 @@ function snn_seo_sitemap_output() {
  * Sitemap index
  */
 function snn_seo_sitemap_index() {
-    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-    echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
-    
     $sitemap_post_types = get_option('snn_seo_sitemap_post_types', []);
     $sitemap_taxonomies = get_option('snn_seo_sitemap_taxonomies', []);
     $sitemap_post_types = is_array($sitemap_post_types) ? $sitemap_post_types : [];
     $sitemap_taxonomies = is_array($sitemap_taxonomies) ? $sitemap_taxonomies : [];
-    
+
+    $sitemap_post_types = array_filter($sitemap_post_types);
+    $sitemap_taxonomies = array_filter($sitemap_taxonomies);
+
+    // Never saved on the settings screen: use the same defaults that screen pre-checks,
+    // otherwise the index would be empty and search engines reject it.
+    if (empty($sitemap_post_types) && empty($sitemap_taxonomies)) {
+        $sitemap_post_types = ['post' => true, 'page' => true];
+        $sitemap_taxonomies = ['category' => true, 'post_tag' => true];
+    }
+
+    $entries = [];
+
     // Post types
     foreach ($sitemap_post_types as $post_type => $enabled) {
         if (!$enabled || !post_type_exists($post_type)) {
             continue;
         }
-        
+
         $count = wp_count_posts($post_type);
-        $total = isset($count->publish) ? $count->publish : 0;
-        $pages = max(1, ceil($total / 100));
-        
+        $total = isset($count->publish) ? (int) $count->publish : 0;
+        if ($total < 1) {
+            continue;
+        }
+        $pages = max(1, (int) ceil($total / 100));
+
         for ($i = 1; $i <= $pages; $i++) {
-            echo '  <sitemap>' . "\n";
-            echo '    <loc>' . esc_url(home_url("/sitemap-{$post_type}-{$i}.xml")) . '</loc>' . "\n";
-            echo '    <lastmod>' . date('c') . '</lastmod>' . "\n";
-            echo '  </sitemap>' . "\n";
+            $entries[] = home_url("/sitemap-{$post_type}-{$i}.xml");
         }
     }
-    
+
     // Taxonomies
     foreach ($sitemap_taxonomies as $taxonomy => $enabled) {
         if (!$enabled || !taxonomy_exists($taxonomy)) {
             continue;
         }
-        
-        $terms = get_terms([
-            'taxonomy' => $taxonomy,
+
+        $total = wp_count_terms([
+            'taxonomy'   => $taxonomy,
             'hide_empty' => false,
-            'fields' => 'ids'
         ]);
-        
-        if (is_wp_error($terms)) {
+
+        if (is_wp_error($total)) {
             continue;
         }
-        
-        $total = is_array($terms) ? count($terms) : 0;
-        $pages = max(1, ceil($total / 100));
-        
+        $total = (int) $total;
+        if ($total < 1) {
+            continue;
+        }
+        $pages = max(1, (int) ceil($total / 100));
+
         for ($i = 1; $i <= $pages; $i++) {
-            echo '  <sitemap>' . "\n";
-            echo '    <loc>' . esc_url(home_url("/sitemap-{$taxonomy}-{$i}.xml")) . '</loc>' . "\n";
-            echo '    <lastmod>' . date('c') . '</lastmod>' . "\n";
-            echo '  </sitemap>' . "\n";
+            $entries[] = home_url("/sitemap-{$taxonomy}-{$i}.xml");
         }
     }
-    
+
+    // A sitemap index with no <sitemap> children is invalid, so always emit at least one.
+    if (empty($entries)) {
+        $entries[] = home_url('/sitemap-page-1.xml');
+    }
+
+    $lastmod = gmdate('c');
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+    foreach ($entries as $entry) {
+        echo '  <sitemap>' . "\n";
+        echo '    <loc>' . esc_url($entry) . '</loc>' . "\n";
+        echo '    <lastmod>' . $lastmod . '</lastmod>' . "\n";
+        echo '  </sitemap>' . "\n";
+    }
+
     echo '</sitemapindex>';
 }
 
@@ -2450,6 +2474,7 @@ function snn_seo_sitemap_index() {
 function snn_seo_sitemap_generate($type, $page = 1) {
     $per_page = 100;
     $offset = ($page - 1) * $per_page;
+    $printed = 0;
     
     echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
@@ -2476,6 +2501,7 @@ function snn_seo_sitemap_generate($type, $page = 1) {
                     echo '    <changefreq>weekly</changefreq>' . "\n";
                     echo '    <priority>0.8</priority>' . "\n";
                     echo '  </url>' . "\n";
+                    $printed++;
                 }
             }
         }
@@ -2499,11 +2525,22 @@ function snn_seo_sitemap_generate($type, $page = 1) {
                     echo '    <changefreq>weekly</changefreq>' . "\n";
                     echo '    <priority>0.6</priority>' . "\n";
                     echo '  </url>' . "\n";
+                    $printed++;
                 }
             }
         }
     }
     
+    // An empty <urlset> is reported as an error by search engines, so fall back to the home page.
+    if ($printed === 0 && $page === 1) {
+        echo '  <url>' . "\n";
+        echo '    <loc>' . esc_url(home_url('/')) . '</loc>' . "\n";
+        echo '    <lastmod>' . gmdate('c') . '</lastmod>' . "\n";
+        echo '    <changefreq>weekly</changefreq>' . "\n";
+        echo '    <priority>1.0</priority>' . "\n";
+        echo '  </url>' . "\n";
+    }
+
     echo '</urlset>';
 }
 
