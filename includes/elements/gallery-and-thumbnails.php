@@ -9,7 +9,7 @@ class Snn_Gallery_And_Thumbnails extends Element {
     public $category      = 'snn';
     public $name          = 'snn-gallery-thumbnails';
     public $icon          = 'ti-gallery';
-    public $css_selector  = '.snn-gallery-wrapper';
+    public $css_selector  = ''; // Empty = styles apply to the root element. '.snn-gallery-wrapper' is set on _root, so a bare class selector would compile to '#brxe-id .snn-gallery-wrapper' and never match. Controls that target children keep their own explicit selectors.
     public $scripts       = [];
     public $nestable      = false;
 
