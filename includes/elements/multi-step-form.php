@@ -7,7 +7,7 @@ class Multi_Step_Form_Element extends Element {
     public $category     = 'general';
     public $name         = 'multi-step-form';
     public $icon         = 'ti-list-ol';
-    public $css_selector = '.multi-step-form-wrapper';
+    public $css_selector = ''; // Empty = styles apply to the root element. '.multi-step-form-wrapper' is set on _root, so a bare class selector would compile to '#brxe-id .multi-step-form-wrapper' and never match.
     public $scripts      = [];
     public $nestable     = false;
 
@@ -38,7 +38,7 @@ Enter the CSS selector of your form.
             'css'     => [
                 [
                     'property' => 'background-color',
-                    'selector' => '.multi-step-form-wrapper .button-progress',
+                    'selector' => '.button-progress',
                 ]
             ],
         ];
@@ -50,7 +50,7 @@ Enter the CSS selector of your form.
             'css'   => [
                 [
                     'property' => 'typography',
-                    'selector' => '.multi-step-form-wrapper .button-progress',
+                    'selector' => '.button-progress',
                 ]
             ],
         ];
@@ -63,7 +63,7 @@ Enter the CSS selector of your form.
             'css'     => [
                 [
                     'property' => 'background-color',
-                    'selector' => '.multi-step-form-wrapper .progress-bar',
+                    'selector' => '.progress-bar',
                 ]
             ],
         ];
@@ -76,7 +76,7 @@ Enter the CSS selector of your form.
             'css'     => [
                 [
                     'property' => 'background-color',
-                    'selector' => '.multi-step-form-wrapper .progress-bar span',
+                    'selector' => '.progress-bar span',
                 ]
             ],
         ];
