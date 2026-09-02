@@ -6,7 +6,7 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
     public $category     = 'snn';
     public $name         = 'snn-scroll-line-vertical-indicator';
     public $icon         = 'ti-more';
-    public $css_selector = '.snn-scroll-line-vertical-indicator-wrapper';
+    public $css_selector = ''; // Empty = styles apply to the root element. '.snn-scroll-line-vertical-indicator-wrapper' is set on _root, so a bare class selector would compile to '#brxe-id .snn-scroll-line-vertical-indicator-wrapper' and never match.
     public $scripts      = [];
     public $nestable     = false;
 
