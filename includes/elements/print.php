@@ -7,7 +7,7 @@ class Snn_Print_Page_Pdf extends Element {
     public $category     = 'snn';
     public $name         = 'snn-print-page-pdf';
     public $icon         = 'ti-printer';
-    public $css_selector = '.brxe-snn-print-page-pdf';
+    public $css_selector = ''; // Empty = styles apply to the root element. Both classes here live on _root, so a bare class selector would compile to '#brxe-id .class' and never match.
     public $scripts      = [];
     public $nestable     = false;
 

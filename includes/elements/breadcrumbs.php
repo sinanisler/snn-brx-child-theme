@@ -9,7 +9,7 @@ class SNN_Breadcrumbs_Element extends Element {
     public $category     = 'snn';
     public $name         = 'snn-breadcrumbs';
     public $icon         = 'ti-angle-double-right';
-    public $css_selector = '.brxe-snn-breadcrumbs';
+    public $css_selector = ''; // Empty = styles apply to the root element. '.brxe-snn-breadcrumbs' is the root's own class, so using it here made Bricks emit descendant selectors ('#brxe-id .brxe-snn-breadcrumbs') that never match.
     public $scripts      = [];
 
     public function get_label() {
@@ -120,11 +120,6 @@ class SNN_Breadcrumbs_Element extends Element {
             'label'   => esc_html__( 'Separator', 'snn' ),
             'type'    => 'text',
             'default' => '/',
-            'css'     => [
-                [
-                    'selector' => '.breadcrumb-separator',
-                ],
-            ],
         ];
 
         // Separator Icon
@@ -132,11 +127,6 @@ class SNN_Breadcrumbs_Element extends Element {
             'tab'   => 'content',
             'label' => esc_html__( 'Separator Icon', 'snn' ),
             'type'  => 'icon',
-            'css'   => [
-                [
-                    'selector' => '.breadcrumb-separator',
-                ],
-            ],
         ];
 
         // Typography Controls
