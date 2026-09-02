@@ -6,7 +6,7 @@ class Snn_Image_Hotspots extends Element {
     public $category      = 'snn';
     public $name          = 'image-hotspots';
     public $icon          = 'ti-location-pin';
-    public $css_selector  = '.snn-image-hotspots-wrapper';
+    public $css_selector  = ''; // Empty = styles apply to the root element. '.snn-image-hotspots-wrapper' is set on _root, so a bare class selector would compile to '#brxe-id .snn-image-hotspots-wrapper' and never match.
     public $scripts       = [];
     public $nestable      = false;
 
