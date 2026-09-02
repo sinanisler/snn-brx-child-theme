@@ -9,7 +9,7 @@ class Timeline_Element extends Element {
     public $category     = 'snn';
     public $name         = 'timeline';
     public $icon         = 'ti-time'; 
-    public $css_selector = '.timeline-element';
+    public $css_selector = ''; // Empty = styles apply to the root element. '.timeline-element' is set on _root, so a bare class selector would compile to '#brxe-id .timeline-element' and never match.
     public $scripts      = []; // No external scripts required.
     public $nestable     = false;
 
