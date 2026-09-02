@@ -9,7 +9,7 @@ class SNN_Video_Player_Element extends Element {
     public $category     = 'snn';
     public $name         = 'snn-video-player';
     public $icon         = 'ti-control-play';
-    public $css_selector = '.snn-player-wrapper';
+    public $css_selector = ''; // Empty = styles apply to the root element. '.snn-player-wrapper' is set on _root, so a bare class selector would compile to '#brxe-id .snn-player-wrapper' and never match. Controls that target children keep their own explicit selectors.
     public $scripts      = [];
     public $nestable     = false;
 
