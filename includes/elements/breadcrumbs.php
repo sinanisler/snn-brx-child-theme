@@ -100,15 +100,15 @@ class SNN_Breadcrumbs_Element extends Element {
                     'default' => false,
                 ],
                 'custom_text' => [
-                    'label'       => esc_html__( 'Custom Text', 'snn' ),
+                    'label'       => esc_html__( 'Custom Text / Dynamic Data', 'snn' ),
                     'type'        => 'text',
-                    'placeholder' => esc_html__( 'Enter custom text', 'snn' ),
+                    'placeholder' => esc_html__( 'Enter custom text or dynamic data tag', 'snn' ),
                     'required'    => ['item_type', '=', ['custom_text', 'custom_link', '404_page', 'search_results']],
                 ],
                 'custom_url' => [
-                    'label'       => esc_html__( 'Custom URL', 'snn' ),
+                    'label'       => esc_html__( 'Custom URL / Dynamic Data', 'snn' ),
                     'type'        => 'text',
-                    'placeholder' => esc_html__( 'Enter custom URL', 'snn' ),
+                    'placeholder' => esc_html__( 'Enter custom URL or dynamic data tag', 'snn' ),
                     'required'    => ['item_type', '=', 'custom_link'],
                 ],
             ],
@@ -333,6 +333,14 @@ class SNN_Breadcrumbs_Element extends Element {
         $custom_url     = $item['custom_url'] ?? '';
         $home_text      = $item['home_text'] ?? '';
         $taxonomy_name  = $item['taxonomy_name'] ?? '';
+
+        // Parse dynamic data tags in the custom fields (e.g. {echo:pll_home_url}, {post_url}).
+        if ( ! empty( $custom_text ) ) {
+            $custom_text = $this->render_dynamic_data( $custom_text );
+        }
+        if ( ! empty( $custom_url ) ) {
+            $custom_url = $this->render_dynamic_data( $custom_url );
+        }
 
         // Get context once for all cases
         $ctx = $this->get_context();
@@ -704,15 +712,19 @@ class SNN_Breadcrumbs_Element extends Element {
                 return [];
 
             case 'custom_text':
-                $text = ! empty( $custom_text ) ? $custom_text : '';
-                return [
-                    'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $text ) . '</span>',
-                    'url'     => '',
-                    'name'    => $text,
-                    'current' => true,
-                ];
+                // Re-checked after dynamic data parsing: a tag may resolve to an empty string.
+                if ( ! empty( $custom_text ) ) {
+                    return [
+                        'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $custom_text ) . '</span>',
+                        'url'     => '',
+                        'name'    => $custom_text,
+                        'current' => true,
+                    ];
+                }
+                return [];
 
             case 'custom_link':
+                // Re-checked after dynamic data parsing: a tag may resolve to an empty string.
                 if ( ! empty( $custom_text ) && ! empty( $custom_url ) ) {
                     return [
                         'html' => '<a href="' . esc_url( $custom_url ) . '">' . esc_html( $custom_text ) . '</a>',
