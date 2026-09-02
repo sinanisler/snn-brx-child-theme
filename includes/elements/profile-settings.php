@@ -13,7 +13,7 @@ class SNN_Element_Profile_Settings extends Element {
 	public $category     = 'snn';
 	public $name         = 'profile-settings';
 	public $icon         = 'ti-user';
-	public $css_selector = '.snn-profile-settings';
+	public $css_selector = ''; // Empty = styles apply to the root element. '.snn-profile-settings' was never rendered anywhere (the root class is '.snn-profile-settings-wrapper'), so every Style tab control compiled to a selector that matched nothing.
 	public $nestable     = false;
 
 	public function get_label() {
