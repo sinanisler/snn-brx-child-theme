@@ -7927,10 +7927,6 @@ msgstr "Yönetici Başı PHP / HTML"
 msgid "PHP (functions.php)"
 msgstr "PHP (fonksiyonlar.php)"
 
-#: includes/features/custom-code-snippets.php:65
-msgid "Advanced Code (functions.php)"
-msgstr "Gelişmiş Kod (functions.php)"
-
 #: includes/features/custom-code-snippets.php:364
 msgctxt "post type general name"
 msgid "Code Snippets"
@@ -8055,14 +8051,6 @@ msgstr "WordPress yönetici sayfalarının <code>&lt;head&gt;</code> içinde ça
 #: includes/features/custom-code-snippets.php:1284
 msgid "PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site."
 msgstr "Bu kod özelliği yüklendiğinde hemen çalıştırılan PHP (hook yok) – kodu <code>functions.php</code> içine koymaya benzer. Hook'lar, filtreler ve fonksiyonlar için kullanın. Amaçlanmadıkça doğrudan çıktı vermekten kaçının. Hatalar sitenizi bozabilir."
-
-#: includes/features/custom-code-snippets.php:1290
-msgid "Advance Code (functions.php)"
-msgstr "Ön Kod (fonksiyonlar.php)"
-
-#: includes/features/custom-code-snippets.php:1293
-msgid "<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe."
-msgstr "<strong>AŞIRI TEHLİKE:</strong> Bu kod doğrudan çalıştırılır. Hiçbir koruma yoktur. Bunu yalnızca uzmansanız ve tüm sitenizi bozma risklerini anlıyorsanız kullanın. Bu snippet için revizyonlar KULLANILAMAZ.<br> Bu kod, functions.php içindeki gibi doğrudan çalışır ve herhangi bir sanitizasyon regex koruması yoktur."
 
 #: includes/features/custom-code-snippets.php:1305
 msgid "All error logs have been cleared."
@@ -8243,10 +8231,6 @@ msgstr "Bu snippet'i yeniden etkinleştir"
 msgid "Run this snippet"
 msgstr "Bu snippet'i çalıştır"
 
-#: includes/features/custom-code-snippets.php:1692
-msgid "Enter your raw, unsanitized PHP code here..."
-msgstr "Ham, başlatılmamış PHP kodunuzu buraya girin..."
-
 #: includes/features/custom-code-snippets.php:1722
 msgid "Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!"
 msgstr "Bu bölümdeki kod, işlevler gibi çalışır.php. Buradaki hatalar sitenizi kolayca kırabilir. İyice test edin!"
@@ -8305,22 +8289,6 @@ msgstr "Düzeltmeleri izlemeye başlamak için bu pasajı kaydedin."
 #: includes/features/custom-code-snippets.php:1818
 msgid "Save All Snippets & Settings"
 msgstr "Tüm Parçacıkları ve Ayarları Kaydet"
-
-#: includes/features/custom-code-snippets.php:1824
-msgid "Show Advanced Settings"
-msgstr "Gelişmiş Ayarları Göster"
-
-#: includes/features/custom-code-snippets.php:1828
-msgid "Advanced Raw Code"
-msgstr "Gelişmiş Ham Kod"
-
-#: includes/features/custom-code-snippets.php:1833
-msgid "Enable Advance Raw Code"
-msgstr "Önceden Ham Kodu Etkinleştir"
-
-#: includes/features/custom-code-snippets.php:1835
-msgid "WARNING: Enabling this feature allows for direct, unsanitized code execution. This is extremely dangerous and should only be used by expert developers."
-msgstr "Uyarı: Bu özelliğin etkinleştirilmesi, doğrudan, başlatılmamış kod yürütülmesine olanak tanır. Bu son derece tehlikelidir ve yalnızca uzman geliştiriciler tarafından kullanılmalıdır."
 
 #: includes/features/custom-code-snippets.php:1944
 #: includes/features/custom-code-snippets.php:1974

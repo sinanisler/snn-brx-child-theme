@@ -10,8 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 define('SNN_CUSTOM_CODES_LOG_OPTION', 'snn_custom_codes_error_log');
 define('SNN_CUSTOM_CODES_MAX_LOG_ENTRIES', 150);
 define('SNN_FATAL_ERROR_NOTICE_TRANSIENT', 'snn_fatal_error_admin_notice');
-define('SNN_ADVANCED_CODE_ENABLED_OPTION', 'snn_advanced_raw_code_enabled');
-define('SNN_ADVANCED_CODE_CONTENT_OPTION', 'snn_advanced_raw_code_content');
 
 // Runtime safety state: which snippets are verified-good, which are blocked by an
 // error, and which one (if any) was mid-execution when a request died.
@@ -49,7 +47,6 @@ function snn_snippet_slugs() {
         'footer'       => 'snn-snippet-footer',
         'admin'        => 'snn-snippet-admin-head',
         'functions'    => 'snn-snippet-functions-php',
-        'advanced_raw' => 'snn-snippet-advanced-raw',
     );
 }
 
@@ -62,7 +59,6 @@ function snn_snippet_titles() {
         'snn-snippet-footer'        => __( 'Frontend Footer PHP/HTML', 'snn' ),
         'snn-snippet-admin-head'    => __( 'Admin Head PHP/HTML', 'snn' ),
         'snn-snippet-functions-php' => __( 'PHP (functions.php)', 'snn' ),
-        'snn-snippet-advanced-raw'  => __( 'Advanced Code (functions.php)', 'snn' ),
     );
 }
 
@@ -454,7 +450,7 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
         sprintf(
             'jQuery( function( $ ) {
                 var editorSettings = %s;
-                $( "#snn_frontend_code, #snn_footer_code, #snn_admin_code, #snn_functions_code, #snn_advanced_raw_code" ).each( function() {
+                $( "#snn_frontend_code, #snn_footer_code, #snn_admin_code, #snn_functions_code" ).each( function() {
                     if (wp && wp.codeEditor) { // Check if CodeMirror API is available
                         wp.codeEditor.initialize( this, editorSettings );
                     } else {
@@ -600,13 +596,6 @@ jQuery(document).ready(function($) {
             }
         });
     });
-
-    // Logic for the hidden advanced settings button
-    $('#snn-reveal-advanced-settings').on('click', function(e) {
-        e.preventDefault();
-        $('#snn-advanced-settings-wrapper').slideDown();
-        $(this).hide();
-    });
 });
 ";
     wp_add_inline_script( 'wp-theme-plugin-editor', $js_for_revisions );
@@ -709,10 +698,6 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-setting-row-error label { /* Ensure label text is clearly visible */
              color: #333;
         }
-
-        /* Styling for hidden advanced settings */
-        #snn-advanced-settings-wrapper { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ccc; }
-        #snn-reveal-advanced-settings { margin-top: 20px; }
     </style>';
 }
 add_action( 'admin_head', 'snn_custom_codes_snippets_admin_styles' );
@@ -796,7 +781,6 @@ function snn_log_error_event( $type, $message, $snippet_slug, $file = '', $line 
         'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
         'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
         'snn-snippet-functions-php' => 'PHP (functions.php)',
-        'snn-snippet-advanced-raw' => 'Advanced Code (functions.php)',
     );
     $snippet_title = isset( $snippet_titles[ $snippet_slug ] ) ? $snippet_titles[ $snippet_slug ] : $snippet_slug;
 
@@ -856,48 +840,6 @@ function snn_get_code_snippet_id( $slug ) {
     $snippet_ids = get_posts( $args );
     return ! empty( $snippet_ids ) ? $snippet_ids[0] : 0; // Return ID or 0 if not found
 }
-
-/**
- * Saves the raw, unsanitized advanced code directly to the options table.
- *
- * @param string $raw_code The raw code to save.
- */
-function snn_save_raw_code_unsanitized( $raw_code ) {
-    global $wpdb;
-    $table_name = $wpdb->options;
-    $option_name = SNN_ADVANCED_CODE_CONTENT_OPTION;
-
-    // Use $wpdb->replace which is a safe way to insert/update without sanitizing the value itself.
-    // $wpdb->prepare is not needed here as we are not inserting variables into the SQL structure itself.
-    // The values are passed as an array, and $wpdb handles the necessary escaping for the query structure.
-    $wpdb->replace(
-        $table_name,
-        array(
-            'option_name'  => $option_name,
-            'option_value' => $raw_code,
-            'autoload'     => 'no',
-        ),
-        array(
-            '%s', // option_name
-            '%s', // option_value - We want this to be a raw string
-            '%s', // autoload
-        )
-    );
-}
-
-/**
- * Retrieves the raw, unsanitized advanced code directly from the options table.
- *
- * @return string The raw code.
- */
-function snn_get_raw_code_unsanitized() {
-    global $wpdb;
-    $option_name = SNN_ADVANCED_CODE_CONTENT_OPTION;
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-    $raw_code = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $option_name ) );
-    return is_string($raw_code) ? $raw_code : '';
-}
-
 
 /**
  * Executes a PHP code snippet with output buffering and error handling.
@@ -1135,6 +1077,21 @@ function snn_snippet_recover_from_crash() {
     $slug      = $in_flight['slug'];
 
     /*
+     * A marker naming a snippet that no longer exists is stale bookkeeping, not
+     * a crash to report. This happens when a snippet type is removed from the
+     * theme (the "Advanced Raw Code" feature, for one) while one of its markers
+     * was still standing: without this the code below would "recover" a snippet
+     * that cannot be edited, logging a fatal and raising an admin notice that
+     * points at a tab which is no longer rendered - and which therefore offers
+     * no button to clear it. Drop the marker quietly and carry on.
+     */
+    if ( ! in_array( $slug, snn_snippet_slugs(), true ) ) {
+        unset( $state['in_flight'] );
+        snn_update_snippet_state( $state );
+        return;
+    }
+
+    /*
      * Three independent triggers, so recovery does not depend on any single one
      * of them working:
      *
@@ -1285,14 +1242,6 @@ function snn_custom_codes_snippets_page() {
         ),
     );
 
-    // Definition for the advanced raw code snippet (handled separately)
-    $advanced_snippet_def = array(
-        'title'       => __( 'Advance Code (functions.php)', 'snn' ),
-        'slug'        => 'snn-snippet-advanced-raw',
-        'field_id'    => 'snn_advanced_raw_code',
-        'description' => __( '<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe.', 'snn' ),
-    );
-
     $settings_saved_message_type = 'updated'; // Default message type for settings errors
 
     // Handle form submissions
@@ -1378,10 +1327,6 @@ function snn_custom_codes_snippets_page() {
             $is_enabled = isset( $_POST['snn_codes_snippets_enabled'] ) ? 1 : 0;
             update_option( 'snn_codes_snippets_enabled', $is_enabled );
 
-            // Advanced raw code setting
-            $is_advanced_enabled = isset( $_POST[SNN_ADVANCED_CODE_ENABLED_OPTION] ) ? 1 : 0;
-            update_option( SNN_ADVANCED_CODE_ENABLED_OPTION, $is_advanced_enabled );
-
             if ($is_enabled) {
                 delete_transient(SNN_FATAL_ERROR_NOTICE_TRANSIENT);
                 // The admin has deliberately switched execution back on. Start the
@@ -1455,18 +1400,6 @@ function snn_custom_codes_snippets_page() {
                 }
             }
 
-            // Save advanced raw code snippet (if enabled)
-            if ($is_advanced_enabled && isset($_POST[$advanced_snippet_def['field_id']])) {
-                $advanced_raw_code = wp_unslash($_POST[$advanced_snippet_def['field_id']]);
-                $advanced_syntax   = snn_check_php_syntax( $advanced_raw_code );
-                snn_save_raw_code_unsanitized($advanced_raw_code);
-                snn_apply_syntax_check_result( $advanced_snippet_def['slug'], $advanced_snippet_def['title'], $advanced_syntax, $advanced_raw_code );
-                if ( is_array( $advanced_syntax ) ) {
-                    $any_syntax_error = true;
-                }
-            }
-
-
             // Determine overall success message
             $notices = get_settings_errors('snn-custom-codes');
             $has_specific_action_message = false;
@@ -1487,16 +1420,12 @@ function snn_custom_codes_snippets_page() {
 
     // Get current state for display
     $enabled_globally = get_option( 'snn_codes_snippets_enabled', 0 );
-    $advanced_raw_enabled = get_option( SNN_ADVANCED_CODE_ENABLED_OPTION, 0 );
     $default_tab = 'frontend';
     $current_tab_key = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : $default_tab;
     
     // Validate tab
     $valid_tabs = array_keys($snippet_defs);
     $valid_tabs[] = 'error_logs';
-    if ($advanced_raw_enabled) {
-        $valid_tabs[] = 'advanced_raw';
-    }
     if ( ! in_array( $current_tab_key, $valid_tabs ) ) {
         $current_tab_key = $default_tab;
     }
@@ -1511,8 +1440,6 @@ function snn_custom_codes_snippets_page() {
             $codes_for_display[ $key ] = snn_get_code_snippet_content( $def['slug'] );
         }
     }
-    // Fetch advanced code for display
-    $advanced_code_for_display = snn_get_raw_code_unsanitized();
 
 
     settings_errors('snn-custom-codes'); // Display any admin notices queued
@@ -1582,12 +1509,6 @@ function snn_custom_codes_snippets_page() {
                     $tab_url = admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=' . $key );
                     echo '<a href="' . esc_url( $tab_url ) . '" class="nav-tab ' . esc_attr( $active_class ) . '">' . esc_html( $def['title'] ) . '</a>';
                 }
-                // Conditionally show Advanced Code tab
-                if ( $advanced_raw_enabled ) {
-                    $adv_active_class = ( $current_tab_key === 'advanced_raw' ) ? 'nav-tab-active' : '';
-                    $adv_tab_url = admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=advanced_raw' );
-                    echo '<a href="' . esc_url( $adv_tab_url ) . '" class="nav-tab ' . esc_attr( $adv_active_class ) . '">' . esc_html( $advanced_snippet_def['title'] ) . '</a>';
-                }
                 // Add Error Logs tab link
                 $logs_tab_active_class = ( $current_tab_key === 'error_logs' ) ? 'nav-tab-active' : '';
                 $logs_tab_url = admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=error_logs' );
@@ -1650,49 +1571,6 @@ function snn_custom_codes_snippets_page() {
                     <p><?php esc_html_e( 'No errors logged yet.', 'snn' ); ?></p>
                 <?php endif; ?>
             </div>
-
-            <?php elseif ( $advanced_raw_enabled && $current_tab_key === 'advanced_raw' ) : // Display Advanced Raw Code Tab ?>
-                <div id="snn-tab-content-advanced-raw" class="snn-tab-content">
-                    <h3><?php echo esc_html( $advanced_snippet_def['title'] ); ?></h3>
-                    <div class="notice notice-error inline snn-php-execution-warning">
-                        <p><?php echo wp_kses_post( $advanced_snippet_def['description'] ); ?></p>
-                    </div>
-
-                    <?php $advanced_error = snn_snippet_get_error( $advanced_snippet_def['slug'] ); ?>
-                    <?php if ( $advanced_error ) : ?>
-                        <div class="notice notice-error inline snn-php-execution-warning">
-                            <p>
-                                <strong><?php esc_html_e( 'This snippet is blocked and is not running.', 'snn' ); ?></strong><br>
-                                <code><?php echo esc_html( $advanced_error['type'] ); ?></code>
-                                <?php echo esc_html( $advanced_error['message'] ); ?>
-                                <?php if ( ! empty( $advanced_error['line'] ) ) : ?>
-                                    <?php printf( esc_html__( '(line %d)', 'snn' ), absint( $advanced_error['line'] ) ); ?>
-                                <?php endif; ?>
-                            </p>
-                            <p>
-                                <button type="submit" name="snn_clear_snippet_error_button" value="advanced_raw" class="button">
-                                    <?php esc_html_e( 'Re-enable this snippet', 'snn' ); ?>
-                                </button>
-                            </p>
-                        </div>
-                    <?php endif; ?>
-
-                    <p>
-                        <input type="hidden" name="snn_snippet_toggle_present" value="advanced_raw">
-                        <label for="snn_snippet_enabled">
-                            <input type="checkbox" id="snn_snippet_enabled" name="snn_snippet_enabled" value="1" <?php checked( true, snn_snippet_is_enabled( $advanced_snippet_def['slug'] ) ); ?>>
-                            <?php esc_html_e( 'Run this snippet', 'snn' ); ?>
-                        </label>
-                    </p>
-
-                    <textarea id="<?php echo esc_attr( $advanced_snippet_def['field_id'] ); ?>"
-                        name="<?php echo esc_attr( $advanced_snippet_def['field_id'] ); ?>"
-                        class="large-text code"
-                        rows="25"
-                        placeholder="<?php esc_attr_e( 'Enter your raw, unsanitized PHP code here...', 'snn' ); ?>"
-                    ><?php echo esc_textarea( $advanced_code_for_display ); ?></textarea>
-                </div>
-
 
             <?php elseif ( isset( $snippet_defs[ $current_tab_key ] ) ) : // Display Snippet Editor Tab Content
                 $active_snippet_def = $snippet_defs[ $current_tab_key ];
@@ -1817,28 +1695,6 @@ function snn_custom_codes_snippets_page() {
             <?php if ($current_tab_key !== 'error_logs'): ?>
                 <?php submit_button( __( 'Save All Snippets & Settings', 'snn' ), 'primary large', 'snn_save_all_settings_button' ); ?>
             <?php endif; ?>
-            
-            <hr>
-            
-            <!-- Hidden Advanced Setting -->
-            <button type="button" class="button" id="snn-reveal-advanced-settings" <?php if ($advanced_raw_enabled) echo 'style="display:none;"'; ?>><?php esc_html_e( 'Show Advanced Settings', 'snn' ); ?></button>
-            <div id="snn-advanced-settings-wrapper" <?php if ($advanced_raw_enabled) echo 'style="display:block;"'; ?>>
-                <table class="form-table">
-                    <tr>
-                        <th scope="row"><?php esc_html_e( 'Advanced Raw Code', 'snn' ); ?></th>
-                        <td>
-                            <fieldset>
-                                <label for="<?php echo SNN_ADVANCED_CODE_ENABLED_OPTION; ?>">
-                                    <input type="checkbox" id="<?php echo SNN_ADVANCED_CODE_ENABLED_OPTION; ?>" name="<?php echo SNN_ADVANCED_CODE_ENABLED_OPTION; ?>" value="1" <?php checked(1, $advanced_raw_enabled); ?>>
-                                    <?php esc_html_e('Enable Advance Raw Code', 'snn'); ?>
-                                </label>
-                                <p class="description"><?php esc_html_e('WARNING: Enabling this feature allows for direct, unsanitized code execution. This is extremely dangerous and should only be used by expert developers.', 'snn'); ?></p>
-                            </fieldset>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
 
         </form>
     </div>
@@ -1878,16 +1734,6 @@ function snn_custom_codes_snippets_init_execution() {
     if ( snn_snippet_should_run( 'snn-snippet-functions-php', $direct_code ) ) {
         echo snn_snippet_run( $direct_code, 'snn-snippet-functions-php' );
     }
-
-    // Execute Advanced Raw Code snippet (if enabled)
-    $advanced_enabled = get_option(SNN_ADVANCED_CODE_ENABLED_OPTION, 0);
-    if ($advanced_enabled) {
-        $advanced_code = snn_get_raw_code_unsanitized();
-        if ( snn_snippet_should_run( 'snn-snippet-advanced-raw', $advanced_code ) ) {
-            echo snn_snippet_run( $advanced_code, 'snn-snippet-advanced-raw' );
-        }
-    }
-
 
     // Add hooks for other snippets only if they have content
     if ( snn_snippet_should_run( 'snn-snippet-frontend-head', snn_get_code_snippet_content( 'snn-snippet-frontend-head' ) ) ) {
@@ -2271,14 +2117,6 @@ function snn_custom_codes_feature_activate() {
     }
     if ( false === get_option( SNN_CUSTOM_CODES_LOG_OPTION, false ) ) {
         update_option( SNN_CUSTOM_CODES_LOG_OPTION, array() );
-    }
-    // Initialize advanced options
-    if ( false === get_option( SNN_ADVANCED_CODE_ENABLED_OPTION, false ) ) {
-        update_option( SNN_ADVANCED_CODE_ENABLED_OPTION, 0 );
-    }
-    if ( false === get_option( SNN_ADVANCED_CODE_CONTENT_OPTION, false ) ) {
-        // Use our custom saver to ensure it's created correctly, even if empty.
-        snn_save_raw_code_unsanitized('');
     }
 }
 

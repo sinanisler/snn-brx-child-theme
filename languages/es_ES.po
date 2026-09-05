@@ -7927,10 +7927,6 @@ msgstr "PHP/HTML del Encabezado del Administrador"
 msgid "PHP (functions.php)"
 msgstr "PHP (functions.php)"
 
-#: includes/features/custom-code-snippets.php:65
-msgid "Advanced Code (functions.php)"
-msgstr "Código Avanzado (functions.php)"
-
 #: includes/features/custom-code-snippets.php:364
 msgctxt "post type general name"
 msgid "Code Snippets"
@@ -8055,14 +8051,6 @@ msgstr "Código PHP o HTML ejecutado dentro del <code>&lt;head&gt;</code> de las
 #: includes/features/custom-code-snippets.php:1284
 msgid "PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site."
 msgstr "PHP ejecutado inmediatamente cuando esta función de código se carga (sin hook) – similar a poner código en <code>functions.php</code>. Úselo para hooks, filtros y funciones. Evite la salida directa aquí a menos que sea intencional. Los errores pueden romper su sitio."
-
-#: includes/features/custom-code-snippets.php:1290
-msgid "Advance Code (functions.php)"
-msgstr "Código Avanzado (functions.php)"
-
-#: includes/features/custom-code-snippets.php:1293
-msgid "<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe."
-msgstr "<strong>PELIGRO EXTREMO:</strong> Este código se ejecuta directamente. No hay salvaguardas. Úselo solo si es un experto y comprende los riesgos de romper todo su sitio. Las revisiones NO están disponibles para este fragmento.<br> Este código se ejecuta directamente como si estuviera en functions.php y sin protección de expresión regular de saneamiento."
 
 #: includes/features/custom-code-snippets.php:1305
 msgid "All error logs have been cleared."
@@ -8243,10 +8231,6 @@ msgstr "Reactivar este fragmento"
 msgid "Run this snippet"
 msgstr "Ejecutar este fragmento"
 
-#: includes/features/custom-code-snippets.php:1692
-msgid "Enter your raw, unsanitized PHP code here..."
-msgstr "Introduzca aquí su código PHP sin procesar ni sanear..."
-
 #: includes/features/custom-code-snippets.php:1722
 msgid "Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!"
 msgstr "El código en esta sección se ejecuta como functions.php. Los errores aquí pueden romper fácilmente su sitio. ¡Pruebe exhaustivamente!"
@@ -8305,22 +8289,6 @@ msgstr "Guarde este fragmento para empezar a rastrear revisiones."
 #: includes/features/custom-code-snippets.php:1818
 msgid "Save All Snippets & Settings"
 msgstr "Guardar Todos los Fragmentos y Ajustes"
-
-#: includes/features/custom-code-snippets.php:1824
-msgid "Show Advanced Settings"
-msgstr "Mostrar Ajustes Avanzados"
-
-#: includes/features/custom-code-snippets.php:1828
-msgid "Advanced Raw Code"
-msgstr "Código Sin Procesar Avanzado"
-
-#: includes/features/custom-code-snippets.php:1833
-msgid "Enable Advance Raw Code"
-msgstr "Activar Código Sin Procesar Avanzado"
-
-#: includes/features/custom-code-snippets.php:1835
-msgid "WARNING: Enabling this feature allows for direct, unsanitized code execution. This is extremely dangerous and should only be used by expert developers."
-msgstr "ADVERTENCIA: Activar esta función permite la ejecución de código directo y sin sanear. Esto es extremadamente peligroso y solo debe ser usado por desarrolladores expertos."
 
 #: includes/features/custom-code-snippets.php:1944
 #: includes/features/custom-code-snippets.php:1974

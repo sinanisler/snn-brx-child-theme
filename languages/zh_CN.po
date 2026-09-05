@@ -7927,10 +7927,6 @@ msgstr "管理 Head PHP/HTML"
 msgid "PHP (functions.php)"
 msgstr "PHP (functions.php)"
 
-#: includes/features/custom-code-snippets.php:65
-msgid "Advanced Code (functions.php)"
-msgstr "高级代码（functions.php）"
-
 #: includes/features/custom-code-snippets.php:364
 msgctxt "post type general name"
 msgid "Code Snippets"
@@ -8055,14 +8051,6 @@ msgstr "在 WordPress 管理页面的 <code>&lt;head&gt;</code> 中执行的 PHP
 #: includes/features/custom-code-snippets.php:1284
 msgid "PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site."
 msgstr "当加载该代码功能（无钩子）时，PHP 立即执行 - 类似于将代码放入 <code>functions.php</code> 中。用于钩子、过滤器和函数。除非有意为之，否则避免在此直接输出。错误会导致网站崩溃。"
-
-#: includes/features/custom-code-snippets.php:1290
-msgid "Advance Code (functions.php)"
-msgstr "高级代码 (functions.php)"
-
-#: includes/features/custom-code-snippets.php:1293
-msgid "<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe."
-msgstr "<strong>极端危险：</strong>此代码会被直接执行。没有任何保护措施。  只有当您是专家并了解会破坏整个网站的风险时，才能使用此代码。<br>此代码直接运行，就像在 functions.php 中运行一样，没有任何安全校验 regex。"
 
 #: includes/features/custom-code-snippets.php:1305
 msgid "All error logs have been cleared."
@@ -8243,10 +8231,6 @@ msgstr "重新启用此代码片段"
 msgid "Run this snippet"
 msgstr "运行此代码片段"
 
-#: includes/features/custom-code-snippets.php:1692
-msgid "Enter your raw, unsanitized PHP code here..."
-msgstr "请在此处输入您未经过消毒的原始 PHP 代码..."
-
 #: includes/features/custom-code-snippets.php:1722
 msgid "Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!"
 msgstr "该部分的代码运行起来就像 functions.php。这里的错误很容易导致网站崩溃。彻底测试！"
@@ -8305,22 +8289,6 @@ msgstr "保存此代码段以开始跟踪修订。"
 #: includes/features/custom-code-snippets.php:1818
 msgid "Save All Snippets & Settings"
 msgstr "保存所有片段和设置"
-
-#: includes/features/custom-code-snippets.php:1824
-msgid "Show Advanced Settings"
-msgstr "显示高级设置"
-
-#: includes/features/custom-code-snippets.php:1828
-msgid "Advanced Raw Code"
-msgstr "高级原始代码"
-
-#: includes/features/custom-code-snippets.php:1833
-msgid "Enable Advance Raw Code"
-msgstr "启用高级原始码"
-
-#: includes/features/custom-code-snippets.php:1835
-msgid "WARNING: Enabling this feature allows for direct, unsanitized code execution. This is extremely dangerous and should only be used by expert developers."
-msgstr "警告：启用此功能可直接执行未加密的代码。这是极其危险的，只有专业开发人员才能使用。"
 
 #: includes/features/custom-code-snippets.php:1944
 #: includes/features/custom-code-snippets.php:1974

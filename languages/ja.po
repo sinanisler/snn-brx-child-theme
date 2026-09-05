@@ -7927,10 +7927,6 @@ msgstr "管理画面ヘッダーPHP/HTML"
 msgid "PHP (functions.php)"
 msgstr "PHP（functions.php）"
 
-#: includes/features/custom-code-snippets.php:65
-msgid "Advanced Code (functions.php)"
-msgstr "高度なコード（functions.php）"
-
 #: includes/features/custom-code-snippets.php:364
 msgctxt "post type general name"
 msgid "Code Snippets"
@@ -8055,14 +8051,6 @@ msgstr "WordPress管理画面ページの<code>&lt;head&gt;</code>内で実行�
 #: includes/features/custom-code-snippets.php:1284
 msgid "PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site."
 msgstr "このコード機能が読み込まれた際に即座に実行されるPHP（フックなし） – <code>functions.php</code>にコードを配置するのと似ています。フック、フィルター、関数に使用してください。意図しない限り、ここでの直接出力は避けてください。エラーはサイトを破損させる可能性があります。"
-
-#: includes/features/custom-code-snippets.php:1290
-msgid "Advance Code (functions.php)"
-msgstr "高度なコード（functions.php）"
-
-#: includes/features/custom-code-snippets.php:1293
-msgid "<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe."
-msgstr "<strong>極めて危険:</strong> このコードは直接実行されます。安全対策はありません。専門家であり、サイト全体が破損するリスクを理解している場合にのみ使用してください。このスニペットのリビジョンは利用できません。<br> このコードはfunctions.phpと同様に直接実行され、サニタイズ用の正規表現保護もありません。"
 
 #: includes/features/custom-code-snippets.php:1305
 msgid "All error logs have been cleared."
@@ -8243,10 +8231,6 @@ msgstr "このスニペットを再度有効化"
 msgid "Run this snippet"
 msgstr "このスニペットを実行"
 
-#: includes/features/custom-code-snippets.php:1692
-msgid "Enter your raw, unsanitized PHP code here..."
-msgstr "ここに未加工の、サニタイズされていないPHPコードを入力してください..."
-
 #: includes/features/custom-code-snippets.php:1722
 msgid "Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!"
 msgstr "このセクションのコードはfunctions.phpと同様に実行されます。ここでのエラーはサイトを簡単に破損させる可能性があります。十分にテストしてください！"
@@ -8305,22 +8289,6 @@ msgstr "このスニペットを保存してリビジョンの追跡を開始し
 #: includes/features/custom-code-snippets.php:1818
 msgid "Save All Snippets & Settings"
 msgstr "すべてのスニペットと設定を保存"
-
-#: includes/features/custom-code-snippets.php:1824
-msgid "Show Advanced Settings"
-msgstr "高度な設定を表示"
-
-#: includes/features/custom-code-snippets.php:1828
-msgid "Advanced Raw Code"
-msgstr "高度な未加工コード"
-
-#: includes/features/custom-code-snippets.php:1833
-msgid "Enable Advance Raw Code"
-msgstr "高度な未加工コードを有効化"
-
-#: includes/features/custom-code-snippets.php:1835
-msgid "WARNING: Enabling this feature allows for direct, unsanitized code execution. This is extremely dangerous and should only be used by expert developers."
-msgstr "警告: この機能を有効にすると、サニタイズされていないコードの直接実行が可能になります。これは非常に危険であり、専門の開発者のみが使用するべきです。"
 
 #: includes/features/custom-code-snippets.php:1944
 #: includes/features/custom-code-snippets.php:1974
