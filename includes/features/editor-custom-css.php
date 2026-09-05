@@ -620,6 +620,13 @@ function snn_custom_css_overlay_output() {
         var currentElemId      = null;
         var isSyncing          = false;
         var writeCssTimer      = null;
+        // Pending debounced write, captured at SCHEDULE time (not at fire time):
+        //   { kind:'element'|'page', settings, key, value }
+        //   { kind:'class', classId, key, value }
+        // Resolving the destination when the edit happens — rather than when the timer
+        // fires — is what keeps a stale timer from writing the wrong text to the wrong
+        // element, class or breakpoint.
+        var pendingWrite       = null;
         var isGlobalMode         = false;
         var rootShortcutActive   = false;
         var globalCssDirty       = false;
@@ -786,25 +793,115 @@ function snn_custom_css_overlay_output() {
             return (page && page[pageKey]) || '';
         }
 
-        function writeCurrentCss(value) {
+        // Which top-level state key holds the current element tree (matches Bricks' own
+        // area resolution in its save routine).
+        function getDynamicArea() {
+            var state = getBricksState();
+            var tt    = state && state.templateType;
+            if (tt === 'header') return 'header';
+            if (tt === 'footer') return 'footer';
+            return 'content';
+        }
+
+        /**
+         * Tell Bricks an area changed.
+         *
+         * Bricks only serializes areas listed in $_state.unsavedChanges, and that list is
+         * populated by a deep watcher gated on messageOrigin === 'main' that flushes on
+         * nextTick. Marking it synchronously here means a save fired in the same tick as
+         * the edit still includes it.
+         */
+        function markBricksDirty(area) {
+            var state = getBricksState();
+            if (!state) return;
+            try { state.messageOrigin = 'main'; } catch(e) {}
+            try {
+                if (Array.isArray(state.unsavedChanges) && state.unsavedChanges.indexOf(area) === -1) {
+                    state.unsavedChanges.push(area);
+                }
+            } catch(e) {}
+        }
+
+        /**
+         * Resolve the CSS write target for whatever is active RIGHT NOW.
+         *
+         * activeElement is a live reference into the element tree, so holding its settings
+         * object is safe. activeClass is NOT — Bricks stores it as a deep clone that is
+         * only merged back into globalClasses on save, so classes are captured by id and
+         * written through to the durable store at flush time.
+         */
+        function resolveCssTarget() {
             var bp  = getActiveBreakpoint();
             var key = getCssKeyForBreakpoint(bp);
             var activeClass = getActiveClass();
             if (activeClass && activeClass.id) {
-                if (!activeClass.settings) activeClass.settings = {};
-                activeClass.settings[key] = value;
-                return;
+                return { kind: 'class', classId: activeClass.id, key: key };
             }
             var activeEl = getActiveElement();
             if (activeEl && activeEl.id) {
                 if (!activeEl.settings) activeEl.settings = {};
-                activeEl.settings[key] = value;
-                return;
+                return { kind: 'element', settings: activeEl.settings, key: key };
             }
             // Page CSS: breakpoint-aware
-            var page    = getPageSettings();
-            var pageKey = getPageCssKeyForBreakpoint(bp);
-            if (page) page[pageKey] = value;
+            var page = getPageSettings();
+            if (!page) return null;
+            return { kind: 'page', settings: page, key: getPageCssKeyForBreakpoint(bp) };
+        }
+
+        // Write class CSS into globalClasses (the durable store, which is what Bricks' own
+        // class control writes to), and keep the activeClass clone in sync when it still
+        // points at the same class. Returns true if anything actually changed.
+        function applyClassCss(classId, key, value) {
+            var state = getBricksState();
+            if (!state) return false;
+            var wrote = false;
+            try {
+                var idx = state.globalClassIndexById ? state.globalClassIndexById[classId] : undefined;
+                var cls = (idx !== undefined && state.globalClasses) ? state.globalClasses[idx] : null;
+                if (cls) {
+                    if (!cls.settings || Array.isArray(cls.settings)) cls.settings = {};
+                    if (cls.settings[key] !== value) { cls.settings[key] = value; wrote = true; }
+                }
+                var ac = state.activeClass;
+                if (ac && ac.id === classId) {
+                    if (!ac.settings || Array.isArray(ac.settings)) ac.settings = {};
+                    if (ac.settings[key] !== value) { ac.settings[key] = value; wrote = true; }
+                }
+            } catch(e) { return false; }
+            return wrote;
+        }
+
+        /**
+         * Commit any queued write immediately and disarm the timer.
+         *
+         * Safe to call at any time and in any order: both the value and the destination
+         * were captured when the user typed, so this can never write the current editor
+         * buffer into a previously selected element, class or breakpoint.
+         */
+        function flushCssWrite() {
+            clearTimeout(writeCssTimer);
+            writeCssTimer = null;
+            var w = pendingWrite;
+            pendingWrite = null;
+            if (!w) return;
+
+            var prevSyncing = isSyncing;
+            isSyncing = true;
+            var wrote = false;
+            if (w.kind === 'class') {
+                wrote = applyClassCss(w.classId, w.key, w.value);
+            } else if (w.settings[w.key] !== w.value) {
+                w.settings[w.key] = w.value;
+                wrote = true;
+            }
+            isSyncing = prevSyncing;
+
+            if (!wrote) return;
+            markBricksDirty(
+                w.kind === 'class' ? 'globalClasses'
+              : w.kind === 'page'  ? 'pageSettings'
+              : getDynamicArea()
+            );
         }
 
         /* ── Update title + breakpoint indicator ── */
@@ -1001,12 +1098,15 @@ function snn_custom_css_overlay_output() {
             cmInstance.on('change', function(cm) {
                 if (isSyncing) return;
                 if (isGlobalMode) { globalCssDirty = true; return; }
+                // Capture BOTH the value and the destination now. Resolving either of
+                // these when the timer fires is what caused edits to be lost when the
+                // user switched element/breakpoint inside the debounce window.
+                var target = resolveCssTarget();
+                if (!target) return;
+                target.value = cm.getValue();
+                pendingWrite = target;
                 clearTimeout(writeCssTimer);
-                writeCssTimer = setTimeout(function() {
-                    isSyncing = true;
-                    writeCurrentCss(cm.getValue());
-                    isSyncing = false;
-                }, 100);
+                writeCssTimer = setTimeout(flushCssWrite, 100);
             });
         }
 
@@ -1075,6 +1175,7 @@ function snn_custom_css_overlay_output() {
             
             if (collapseBtn) {
                 collapseBtn.addEventListener('click', function() {
+                    flushCssWrite();
                     if (isCollapsed) {
                         expand();
                     } else {
@@ -1082,9 +1183,10 @@ function snn_custom_css_overlay_output() {
                     }
                 });
             }
-            
+
             if (closeBtn) {
                 closeBtn.addEventListener('click', function() {
+                    flushCssWrite();
                     if (overlay) {
                         overlay.classList.add('snn-hidden');
                         saveState();
@@ -1132,6 +1234,7 @@ function snn_custom_css_overlay_output() {
                             cmInstance.refresh(); cmInstance.focus();
                         }
                     } else {
+                        flushCssWrite();
                         overlay.classList.add('snn-hidden');
                         saveState();
                     }
@@ -1230,6 +1333,7 @@ function snn_custom_css_overlay_output() {
                         enumerable  : true,
                         get: function() { return _activeEl; },
                         set: function(v) {
+                            flushCssWrite(); // commit pending edit while the old target is still active
                             _activeEl = v;
                             updateTitle();
                             syncFromBricks();
@@ -1242,6 +1346,7 @@ function snn_custom_css_overlay_output() {
                         enumerable  : true,
                         get: function() { return _activeClass; },
                         set: function(v) {
+                            flushCssWrite(); // commit against the class it was typed into
                             _activeClass = v;
                             updateTitle();
                             syncFromBricks();
@@ -1254,6 +1359,7 @@ function snn_custom_css_overlay_output() {
                         enumerable  : true,
                         get: function() { return _breakpointActive; },
                         set: function(v) {
+                            flushCssWrite(); // commit against the breakpoint it was typed on
                             _breakpointActive = v;
                             updateTitle();
                             syncFromBricks();
@@ -1276,6 +1382,9 @@ function snn_custom_css_overlay_output() {
                     + '@' + bp;
                 if (key !== lastKey) {
                     lastKey = key;
+                    // Polling detects the switch after the fact, but the queued write holds
+                    // its own target, so this still commits to the right place.
+                    flushCssWrite();
                     updateTitle();
                     syncFromBricks();
                 }
@@ -1628,6 +1737,11 @@ function snn_custom_css_overlay_output() {
 
         function enterGlobalMode() {
             if (isGlobalMode) return;
+            // Commit any queued element/page edit BEFORE the buffer is replaced with the
+            // fetched global CSS. Without this, a fetch that returns inside the debounce
+            // window leaves a timer that writes the whole global stylesheet into the
+            // element's _cssCustom.
+            flushCssWrite();
             isGlobalMode   = true;
             globalCssDirty = false;
             globalCssFetchOk = false;
@@ -1691,20 +1805,27 @@ function snn_custom_css_overlay_output() {
                 if (isGlobalMode) { exitGlobalMode(); } else { enterGlobalMode(); }
             });
 
-            // Catch Bricks .save button click
+            // Catch Bricks .save button click.
+            // Capture phase + synchronous flush, so the queued edit is in Bricks' state
+            // before Bricks serializes $_state.content / .pageSettings for the request.
             document.addEventListener('click', function(e) {
-                if (!isGlobalMode) return;
+                if (!pendingWrite && !isGlobalMode) return; // nothing to commit — skip the walk
                 var t = e.target;
                 while (t && t !== document) {
-                    if (t.classList && t.classList.contains('save')) { saveGlobalCss(); return; }
+                    if (t.classList && t.classList.contains('save')) {
+                        flushCssWrite();
+                        if (isGlobalMode) saveGlobalCss();
+                        return;
+                    }
                     t = t.parentNode;
                 }
             }, true);
 
             // Catch Ctrl+S / Cmd+S
             document.addEventListener('keydown', function(e) {
-                if (isGlobalMode && (e.ctrlKey || e.metaKey) && e.key === 's') {
-                    saveGlobalCss();
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    flushCssWrite();
+                    if (isGlobalMode) saveGlobalCss();
                 }
             }, true);
 
@@ -1715,6 +1836,12 @@ function snn_custom_css_overlay_output() {
                 }
             }, 10000);
         }
+
+        // Last-resort backstop: commit anything still queued before the page goes away,
+        // so Bricks' own unsaved-changes prompt reflects the edit.
+        window.addEventListener('beforeunload', function() {
+            flushCssWrite();
+        });
 
         // ── Initialize everything ──
         initResize();
