@@ -19,6 +19,12 @@ add_action( 'wp_ajax_snn_get_global_css', function() {
     $css = ( is_array( $bricks_settings ) && isset( $bricks_settings['customCss'] ) )
         ? $bricks_settings['customCss']
         : '';
+
+    // Bricks stores customCss with wp_slash(); un-slash here so the editor shows clean CSS.
+    if ( '' !== $css ) {
+        $css = wp_unslash( $css );
+    }
+
     wp_send_json_success( [ 'css' => $css ] );
 } );
 
@@ -27,13 +33,46 @@ add_action( 'wp_ajax_snn_save_global_css', function() {
         wp_send_json_error( 'Unauthorized' );
     }
     check_ajax_referer( 'snn_save_global_css', 'nonce' );
-    $css = isset( $_POST['css'] ) ? wp_unslash( $_POST['css'] ) : '';
+
+    $css   = isset( $_POST['css'] ) ? wp_unslash( $_POST['css'] ) : '';
+    $force = ! empty( $_POST['force'] ) && in_array( $_POST['force'], [ '1', 'true', 'yes' ], true );
+
     $bricks_settings = get_option( 'bricks_global_settings', [] );
     if ( ! is_array( $bricks_settings ) ) {
         $bricks_settings = [];
     }
-    $bricks_settings['customCss'] = $css;
+
+    $existing      = isset( $bricks_settings['customCss'] ) ? (string) $bricks_settings['customCss'] : '';
+    $existing_clean = '' !== $existing ? wp_unslash( $existing ) : '';
+
+    /**
+     * Safety backstop: never silently blank non-empty global CSS unless the
+     * client explicitly confirms with force=1. This is what wiped Ernest's
+     * CSS framework when the overlay saved an empty editor.
+     */
+    if ( '' === $css && '' !== $existing_clean && ! $force ) {
+        wp_send_json_error( [
+            'message' => 'Refusing to overwrite non-empty global CSS with an empty value.',
+            'css'     => $existing_clean,
+        ] );
+    }
+
+    // Always back up the previous value before any change so this is recoverable.
+    if ( '' !== $existing_clean && $existing_clean !== $css ) {
+        update_option(
+            'snn_global_css_backup',
+            [
+                'css'      => $existing,
+                'saved_at' => current_time( 'mysql' ),
+            ],
+            false
+        );
+    }
+
+    // Store in Bricks' expected format (Bricks wp_slash()es on save, wp_unslash()es on file generation).
+    $bricks_settings['customCss'] = wp_slash( $css );
     update_option( 'bricks_global_settings', $bricks_settings );
+
     wp_send_json_success();
 } );
 
@@ -42,6 +81,11 @@ add_action( 'wp_ajax_snn_save_global_css', function() {
 add_action( 'wp_enqueue_scripts', 'snn_custom_css_overlay_enqueue' );
 function snn_custom_css_overlay_enqueue() {
     if ( is_admin() ) {
+        return;
+    }
+
+    // Skip the Bricks canvas preview iframe – overlay only runs in the main builder frame.
+    if ( ! empty( $_GET['brickspreview'] ) ) {
         return;
     }
 
@@ -90,6 +134,11 @@ function snn_custom_css_overlay_enqueue() {
 add_action( 'wp_footer', 'snn_custom_css_overlay_output', 99 );
 function snn_custom_css_overlay_output() {
     if ( is_admin() ) {
+        return;
+    }
+
+    // Skip the Bricks canvas preview iframe – overlay only runs in the main builder frame.
+    if ( ! empty( $_GET['brickspreview'] ) ) {
         return;
     }
 
@@ -571,9 +620,11 @@ function snn_custom_css_overlay_output() {
         var currentElemId      = null;
         var isSyncing          = false;
         var writeCssTimer      = null;
-        var isGlobalMode       = false;
-        var rootShortcutActive = false;
-        var globalCssDirty     = false;
+        var isGlobalMode         = false;
+        var rootShortcutActive   = false;
+        var globalCssDirty       = false;
+        var globalCssFetchOk     = false; // Was the last global CSS fetch successful?
+        var globalCssLastFetched = '';    // Last CSS content read from the server ('' = empty fetch).
 
         /* ── PHP-supplied constants ── */
         var snnGlobalCssNonce = '<?php echo wp_create_nonce( "snn_save_global_css" ); ?>';
@@ -1505,29 +1556,66 @@ function snn_custom_css_overlay_output() {
             xhr.onload = function() {
                 try {
                     var data = JSON.parse(xhr.responseText);
-                    callback(data.success && data.data ? data.data.css : '');
-                } catch(e) { callback(''); }
+                    if (data && data.success) {
+                        callback({ ok: true, css: (data.data && typeof data.data.css === 'string') ? data.data.css : '' });
+                    } else {
+                        var msg = (data && data.data && data.data.message) ? data.data.message : 'Server error';
+                        callback({ ok: false, css: '', error: msg });
+                    }
+                } catch(e) { callback({ ok: false, css: '', error: 'Invalid server response' }); }
             };
-            xhr.onerror = function() { callback(''); };
+            xhr.onerror = function() { callback({ ok: false, css: '', error: 'Network error' }); };
             xhr.send('action=snn_get_global_css');
         }
 
         function saveGlobalCss(callback) {
-            if (!isGlobalMode) { if (callback) callback(); return; }
-            var css = cmInstance ? cmInstance.getValue() : '';
+            if (!isGlobalMode) { if (callback) callback(false); return; }
+
+            // Never save while the editor is unusable or the initial read failed:
+            // saving an empty string here is exactly how global CSS was wiped before.
+            if (!cmInstance) { if (callback) callback(false); return; }
+            if (!globalCssFetchOk) { if (callback) callback(false); return; }
+
+            var css = cmInstance.getValue();
+
+            // Nothing changed → nothing to save (also protects against accidental blanks).
+            if (!globalCssDirty && css === globalCssLastFetched) {
+                if (callback) callback(false);
+                return;
+            }
+
+            var blanking = (css.replace(/\s/g, '') === '' && globalCssLastFetched.replace(/\s/g, '') !== '');
+            if (blanking && !window.confirm('Careful: the saved global CSS is NOT empty.\nSaving an empty editor will DELETE all global CSS.\nContinue?')) {
+                globalCssDirty = false;
+                if (callback) callback(false);
+                return;
+            }
+
             var xhr = new XMLHttpRequest();
             xhr.open('POST', snnAjaxUrl, true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onload = function() {
-                globalCssDirty = false;
-                showGlobalSavedFeedback();
-                if (callback) callback();
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data && data.success) {
+                        globalCssDirty = false;
+                        globalCssLastFetched = css;
+                        showGlobalSavedFeedback();
+                        if (callback) callback(true);
+                    } else {
+                        // Keep dirty so the user can retry after fixing the issue.
+                        var msg = (data && data.data && data.data.message) ? data.data.message : 'Save failed';
+                        window.alert('Global CSS was NOT saved: ' + msg);
+                        if (callback) callback(false);
+                    }
+                } catch(e) { if (callback) callback(false); }
             };
-            xhr.onerror = function() { if (callback) callback(); };
+            xhr.onerror = function() { if (callback) callback(false); };
             xhr.send(
                 'action=snn_save_global_css'
                 + '&nonce=' + encodeURIComponent(snnGlobalCssNonce)
                 + '&css='   + encodeURIComponent(css)
+                + (blanking ? '&force=1' : '')
             );
         }
 
@@ -1542,19 +1630,44 @@ function snn_custom_css_overlay_output() {
             if (isGlobalMode) return;
             isGlobalMode   = true;
             globalCssDirty = false;
+            globalCssFetchOk = false;
+
+            if (!cmInstance) initCodeMirror();
+            if (!cmInstance) {
+                // Editor unavailable → do NOT enter global mode; saving without an editor would wipe CSS.
+                isGlobalMode = false;
+                window.alert('Custom CSS Overlay: CodeMirror is not available, so Global mode was not opened to protect your CSS.');
+                updateTitle();
+                return;
+            }
+
             var globalBtn = document.getElementById('snn-css-global-btn');
             if (globalBtn) globalBtn.classList.add('active');
             if (bpIndicatorEl) bpIndicatorEl.style.display = 'none';
             if (titleEl) titleEl.textContent = 'CSS – Global (site-wide)';
-            if (!cmInstance) initCodeMirror();
-            fetchGlobalCss(function(css) {
-                if (cmInstance) {
-                    isSyncing = true;
-                    cmInstance.setValue(css || '');
-                    isSyncing = false;
-                    cmInstance.refresh();
-                    cmInstance.focus();
+
+            fetchGlobalCss(function(result) {
+                if (!result.ok) {
+                    // Read failed → revert immediately instead of showing an empty editor
+                    // that a later save could write over the real CSS.
+                    isGlobalMode    = false;
+                    globalCssFetchOk = false;
+                    globalCssLastFetched = '';
+                    var gBtn = document.getElementById('snn-css-global-btn');
+                    if (gBtn) { gBtn.classList.remove('active'); gBtn.textContent = 'Global'; }
+                    if (bpIndicatorEl) bpIndicatorEl.style.display = '';
+                    updateTitle();
+                    syncFromBricks();
+                    window.alert('Could not load global CSS (' + result.error + '). Global mode was closed to protect your data.');
+                    return;
                 }
+                globalCssFetchOk = true;
+                globalCssLastFetched = result.css || '';
+                isSyncing = true;
+                cmInstance.setValue(globalCssLastFetched || '');
+                isSyncing = false;
+                cmInstance.refresh();
+                cmInstance.focus();
             });
         }
 
