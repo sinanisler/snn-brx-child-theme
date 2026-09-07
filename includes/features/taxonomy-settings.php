@@ -389,19 +389,32 @@ function snn_register_custom_taxonomies() {
             continue; // Skip taxonomy if no valid post types are associated
         }
 
+        // Route the stored label through gettext so translation plugins can pick it up.
+        // A context keeps these user-defined names out of the theme's own msgid pool,
+        // so a label like "Category" or "Author" can never collide with a shipped translation.
+        $taxonomy_label = _x( $taxonomy['name'], 'SNN custom taxonomy label', 'snn' ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteral
+
         $args = array(
             'labels' => array(
-                'name'              => $taxonomy['name'],
-                'singular_name'     => $taxonomy['name'],
-                'search_items'      => 'Search ' . $taxonomy['name'],
-                'all_items'         => 'All ' . $taxonomy['name'],
-                'parent_item'       => 'Parent ' . $taxonomy['name'],
-                'parent_item_colon' => 'Parent ' . $taxonomy['name'] . ':',
-                'edit_item'         => 'Edit ' . $taxonomy['name'],
-                'update_item'       => 'Update ' . $taxonomy['name'],
-                'add_new_item'      => 'Add New ' . $taxonomy['name'],
-                'new_item_name'     => 'New ' . $taxonomy['name'] . ' Name',
-                'menu_name'         => $taxonomy['name'],
+                'name'              => $taxonomy_label,
+                'singular_name'     => $taxonomy_label,
+                /* translators: %s: Taxonomy name. */
+                'search_items'      => sprintf( __( 'Search %s', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'all_items'         => sprintf( __( 'All %s', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'parent_item'       => sprintf( __( 'Parent %s', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'parent_item_colon' => sprintf( __( 'Parent %s:', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'edit_item'         => sprintf( __( 'Edit %s', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'update_item'       => sprintf( __( 'Update %s', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'add_new_item'      => sprintf( __( 'Add New %s', 'snn' ), $taxonomy_label ),
+                /* translators: %s: Taxonomy name. */
+                'new_item_name'     => sprintf( __( 'New %s Name', 'snn' ), $taxonomy_label ),
+                'menu_name'         => $taxonomy_label,
             ),
             'hierarchical'      => (bool) $taxonomy['hierarchical'],
             'public'            => true,

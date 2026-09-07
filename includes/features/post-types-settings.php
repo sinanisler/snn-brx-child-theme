@@ -784,8 +784,13 @@ function snn_register_custom_post_types() {
         $enable_notes = in_array( 'notes', $supports, true );
         $supports = array_diff( $supports, array( 'notes' ) );
 
+        // Route the stored label through gettext so translation plugins can pick it up.
+        // A context keeps these user-defined names out of the theme's own msgid pool,
+        // so a label like "Event" or "Author" can never collide with a shipped translation.
+        $post_type_label = _x( $post_type['name'], 'SNN custom post type label', 'snn' ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteral
+
         $args = array(
-            'label'             => $post_type['name'],
+            'label'             => $post_type_label,
             'public'            => ! (bool) $post_type['private'],
             'has_archive'       => ( isset($post_type['has_archive']) && $post_type['has_archive'] !== '' ) ? (bool)$post_type['has_archive'] : true,
             'supports'          => ! empty( $supports ) ? $supports : $default_supports,
