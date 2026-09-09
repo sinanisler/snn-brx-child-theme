@@ -716,7 +716,6 @@ function snn_render_wp_admin_image_optimization_section() {
         <span class="count-badge" id="uploadedCount">0</span>
       </h2>
       <div class="uploaded-tools">
-        <button type="button" class="tool-btn" id="copyAllButton"><?php esc_html_e('Copy all URLs', 'snn'); ?></button>
         <button type="button" class="tool-btn" id="downloadAllButton"><?php esc_html_e('Download copies', 'snn'); ?></button>
         <button type="button" class="tool-btn" id="clearListButton"><?php esc_html_e('Clear list', 'snn'); ?></button>
       </div>
@@ -745,7 +744,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const uploadedPanel     = document.getElementById('uploadedPanel');
     const uploadedList      = document.getElementById('uploadedList');
     const uploadedCount     = document.getElementById('uploadedCount');
-    const copyAllButton     = document.getElementById('copyAllButton');
     const downloadAllButton = document.getElementById('downloadAllButton');
     const clearListButton   = document.getElementById('clearListButton');
 
@@ -768,9 +766,7 @@ document.addEventListener('DOMContentLoaded', function () {
         edit:       '<?php echo esc_js( __('Edit', 'snn') ); ?>',
         copyUrl:    '<?php echo esc_js( __('Copy URL', 'snn') ); ?>',
         copied:     '<?php echo esc_js( __('Copied!', 'snn') ); ?>',
-        copyFailed: '<?php echo esc_js( __('Copy failed', 'snn') ); ?>',
-        copyAll:    '<?php echo esc_js( __('Copy all URLs', 'snn') ); ?>',
-        allCopied:  '<?php echo esc_js( __('All URLs copied!', 'snn') ); ?>'
+        copyFailed: '<?php echo esc_js( __('Copy failed', 'snn') ); ?>'
     };
 
     const ICON_EDIT = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M13.6 2.6a1.4 1.4 0 012 2l-.9.9-2-2 .9-.9zM11.3 4.9l2 2L6.6 13.6l-2.4.4.4-2.4 6.7-6.7z"/></svg>';
@@ -887,8 +883,6 @@ document.addEventListener('DOMContentLoaded', function () {
       uploadedCount.textContent = uploaded.length;
       const hasBlobs = uploaded.some(function (it) { return !!it.blob; });
       downloadAllButton.classList.toggle('hidden', !hasBlobs);
-      const hasUrls = uploaded.some(function (it) { return !!it.url; });
-      copyAllButton.classList.toggle('hidden', !hasUrls);
     }
 
     /* ---------- Queue rows (inside the drop area) ---------- */
@@ -1177,8 +1171,9 @@ document.addEventListener('DOMContentLoaded', function () {
         batchDone++;
         if (result && result.success) {
           batchOk++;
-          // wp_send_json_success() nests the payload under "data"; fall back to the
-          // top level so a plain { success, id, url } response also works.
+          // Two handlers are registered for this action and they disagree on shape:
+          // one nests under "data" with an "id", the other replies flat with
+          // "attachment_id". Accept either so the row always gets its links.
           const payload = (result.data && typeof result.data === 'object') ? result.data : result;
           removeQueueRow(item);
           addUploadedRow({
@@ -1189,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', function () {
             newSize:      converted.blob.size,
             width:        converted.width,
             height:       converted.height,
-            id:           payload.id || null,
+            id:           payload.attachment_id || payload.id || null,
             url:          payload.url || ''
           });
         } else {
@@ -1354,21 +1349,6 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         handleFiles(files);
       }
-    };
-
-    copyAllButton.onclick = function () {
-      const urls = uploaded.filter(function (it) { return !!it.url; })
-                           .map(function (it) { return it.url; })
-                           .join('\n');
-      if (!urls) { return; }
-      copyText(urls, function (ok) {
-        copyAllButton.textContent = ok ? TXT.allCopied : TXT.copyFailed;
-        copyAllButton.classList.toggle('is-copied', ok);
-        setTimeout(function () {
-          copyAllButton.textContent = TXT.copyAll;
-          copyAllButton.classList.remove('is-copied');
-        }, 1500);
-      });
     };
 
     downloadAllButton.onclick = function () {
