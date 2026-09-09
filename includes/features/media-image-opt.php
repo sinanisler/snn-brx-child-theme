@@ -72,15 +72,15 @@ function snn_render_wp_admin_image_optimization_section() {
 
 <style>
   /* General & App Layout */
-  .snn-wp-admin-image-optimize-container .app-container {
+  .snn-wp-admin-image-optimize-container .snn-app-container {
     margin: 20px 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
   }
-  .snn-wp-admin-image-optimize-container .hidden {
+  .snn-wp-admin-image-optimize-container .snn-hidden {
     display: none !important;
   }
   /* Settings Card */
-  .snn-wp-admin-image-optimize-container .settings-card {
+  .snn-wp-admin-image-optimize-container .snn-settings-card {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px 28px;
@@ -93,11 +93,11 @@ function snn_render_wp_admin_image_optimization_section() {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   @media (min-width: 900px) {
-    .snn-wp-admin-image-optimize-container .settings-card {
+    .snn-wp-admin-image-optimize-container .snn-settings-card {
       grid-template-columns: auto 1fr auto;
     }
   }
-  .snn-wp-admin-image-optimize-container .field-label {
+  .snn-wp-admin-image-optimize-container .snn-field-label {
     display: block;
     font-weight: 600;
     color: #1d2327;
@@ -106,20 +106,20 @@ function snn_render_wp_admin_image_optimization_section() {
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-  .snn-wp-admin-image-optimize-container .field.disabled {
+  .snn-wp-admin-image-optimize-container .snn-field.snn-disabled {
     opacity: 0.4;
     pointer-events: none;
   }
 
   /* Segmented control */
-  .snn-wp-admin-image-optimize-container .segmented {
+  .snn-wp-admin-image-optimize-container .snn-segmented {
     display: inline-flex;
     background: #f0f0f1;
     border-radius: 8px;
     padding: 3px;
     gap: 2px;
   }
-  .snn-wp-admin-image-optimize-container .segmented button {
+  .snn-wp-admin-image-optimize-container .snn-segmented button {
     appearance: none;
     border: none;
     background: transparent;
@@ -132,21 +132,21 @@ function snn_render_wp_admin_image_optimization_section() {
     cursor: pointer;
     transition: background-color 150ms, color 150ms, box-shadow 150ms;
   }
-  .snn-wp-admin-image-optimize-container .segmented button:hover {
+  .snn-wp-admin-image-optimize-container .snn-segmented button:hover {
     color: #1d2327;
   }
-  .snn-wp-admin-image-optimize-container .segmented button[aria-checked="true"] {
+  .snn-wp-admin-image-optimize-container .snn-segmented button[aria-checked="true"] {
     background: #fff;
     color: #2271b1;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   }
-  .snn-wp-admin-image-optimize-container .segmented button:focus-visible {
+  .snn-wp-admin-image-optimize-container .snn-segmented button:focus-visible {
     outline: 2px solid #2271b1;
     outline-offset: 1px;
   }
 
   /* Quality slider */
-  .snn-wp-admin-image-optimize-container .slider-row {
+  .snn-wp-admin-image-optimize-container .snn-slider-row {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -191,7 +191,7 @@ function snn_render_wp_admin_image_optimization_section() {
     outline: 2px solid #2271b1;
     outline-offset: 3px;
   }
-  .snn-wp-admin-image-optimize-container .value-chip {
+  .snn-wp-admin-image-optimize-container .snn-value-chip {
     min-width: 52px;
     text-align: center;
     font-size: 12px;
@@ -205,12 +205,12 @@ function snn_render_wp_admin_image_optimization_section() {
   }
 
   /* Width input + presets */
-  .snn-wp-admin-image-optimize-container .width-row {
+  .snn-wp-admin-image-optimize-container .snn-width-row {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .snn-wp-admin-image-optimize-container .width-input-wrap {
+  .snn-wp-admin-image-optimize-container .snn-width-input-wrap {
     position: relative;
   }
   .snn-wp-admin-image-optimize-container #resizeWidth {
@@ -235,7 +235,7 @@ function snn_render_wp_admin_image_optimization_section() {
     border-color: #2271b1;
     box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.15);
   }
-  .snn-wp-admin-image-optimize-container .width-suffix {
+  .snn-wp-admin-image-optimize-container .snn-width-suffix {
     position: absolute;
     right: 10px;
     top: 50%;
@@ -244,7 +244,7 @@ function snn_render_wp_admin_image_optimization_section() {
     color: #a7aaad;
     pointer-events: none;
   }
-  .snn-wp-admin-image-optimize-container .preset {
+  .snn-wp-admin-image-optimize-container .snn-preset {
     appearance: none;
     background: #fff;
     border: 1px solid #dcdcde;
@@ -256,12 +256,12 @@ function snn_render_wp_admin_image_optimization_section() {
     cursor: pointer;
     transition: border-color 150ms, color 150ms, background-color 150ms;
   }
-  .snn-wp-admin-image-optimize-container .preset:hover {
+  .snn-wp-admin-image-optimize-container .snn-preset:hover {
     border-color: #2271b1;
     color: #2271b1;
     background: #f0f6fc;
   }
-  .snn-wp-admin-image-optimize-container .preset.active {
+  .snn-wp-admin-image-optimize-container .snn-preset.snn-active {
     border-color: #2271b1;
     background: #2271b1;
     color: #fff;
@@ -284,7 +284,7 @@ function snn_render_wp_admin_image_optimization_section() {
     border-color: #2271b1;
     background-color: #f6fafd;
   }
-  .snn-wp-admin-image-optimize-container #uploadArea.drag-over {
+  .snn-wp-admin-image-optimize-container #uploadArea.snn-drag-over {
     border-color: #2271b1;
     background-color: #f0f6fc;
     box-shadow: inset 0 0 0 4px rgba(34, 113, 177, 0.08);
@@ -294,7 +294,7 @@ function snn_render_wp_admin_image_optimization_section() {
     text-align: center;
     pointer-events: none;
   }
-  .snn-wp-admin-image-optimize-container .upload-icon-circle {
+  .snn-wp-admin-image-optimize-container .snn-upload-icon-circle {
     width: 68px;
     height: 68px;
     margin: 0 auto 14px auto;
@@ -307,51 +307,51 @@ function snn_render_wp_admin_image_optimization_section() {
     justify-content: center;
     transition: transform 200ms, border-color 200ms;
   }
-  .snn-wp-admin-image-optimize-container #uploadArea:hover .upload-icon-circle,
-  .snn-wp-admin-image-optimize-container #uploadArea.drag-over .upload-icon-circle {
+  .snn-wp-admin-image-optimize-container #uploadArea:hover .snn-upload-icon-circle,
+  .snn-wp-admin-image-optimize-container #uploadArea.snn-drag-over .snn-upload-icon-circle {
     transform: translateY(-2px);
     border-color: #cfe3f5;
   }
-  .snn-wp-admin-image-optimize-container .upload-icon {
+  .snn-wp-admin-image-optimize-container .snn-upload-icon {
     height: 30px;
     width: 30px;
     color: #2271b1;
   }
-  .snn-wp-admin-image-optimize-container .upload-text {
+  .snn-wp-admin-image-optimize-container .snn-upload-text {
     color: #1d2327;
     font-size: 15px;
     font-weight: 600;
     margin: 0;
   }
-  .snn-wp-admin-image-optimize-container .upload-text-highlight {
+  .snn-wp-admin-image-optimize-container .snn-upload-text-highlight {
     color: #2271b1;
   }
-  .snn-wp-admin-image-optimize-container .upload-hint {
+  .snn-wp-admin-image-optimize-container .snn-upload-hint {
     font-size: 12px;
     color: #787c82;
     margin: 10px 2px 0 2px;
   }
-  .snn-wp-admin-image-optimize-container .upload-hint a {
+  .snn-wp-admin-image-optimize-container .snn-upload-hint a {
     cursor: pointer;
     text-decoration: none;
   }
-  .snn-wp-admin-image-optimize-container .upload-hint a:hover {
+  .snn-wp-admin-image-optimize-container .snn-upload-hint a:hover {
     text-decoration: underline;
   }
-  .snn-wp-admin-image-optimize-container .upload-hint .sep {
+  .snn-wp-admin-image-optimize-container .snn-upload-hint .snn-sep {
     margin: 0 6px;
     color: #dcdcde;
   }
 
   /* Shared row bits */
-  .snn-wp-admin-image-optimize-container .row-thumb {
+  .snn-wp-admin-image-optimize-container .snn-row-thumb {
     position: relative;
     flex: 0 0 auto;
     width: 44px;
     height: 44px;
     display: block;
   }
-  .snn-wp-admin-image-optimize-container .row-img {
+  .snn-wp-admin-image-optimize-container .snn-row-img {
     width: 44px;
     height: 44px;
     object-fit: cover;
@@ -359,18 +359,18 @@ function snn_render_wp_admin_image_optimization_section() {
     background-color: #f6f7f7;
     display: block;
   }
-  .snn-wp-admin-image-optimize-container .thumb-badge {
+  .snn-wp-admin-image-optimize-container .snn-thumb-badge {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .snn-wp-admin-image-optimize-container .row-meta {
+  .snn-wp-admin-image-optimize-container .snn-row-meta {
     flex: 1 1 auto;
     min-width: 0;
   }
-  .snn-wp-admin-image-optimize-container .row-name {
+  .snn-wp-admin-image-optimize-container .snn-row-name {
     display: block;
     font-size: 13px;
     font-weight: 600;
@@ -391,7 +391,7 @@ function snn_render_wp_admin_image_optimization_section() {
     width: 100%;
     box-sizing: border-box;
   }
-  .snn-wp-admin-image-optimize-container .queue-item {
+  .snn-wp-admin-image-optimize-container .snn-queue-item {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -400,11 +400,11 @@ function snn_render_wp_admin_image_optimization_section() {
     padding: 8px 12px;
     background-color: #fff;
   }
-  .snn-wp-admin-image-optimize-container .queue-item.is-pending .row-img,
-  .snn-wp-admin-image-optimize-container .queue-item.is-working .row-img {
+  .snn-wp-admin-image-optimize-container .snn-queue-item.snn-is-pending .snn-row-img,
+  .snn-wp-admin-image-optimize-container .snn-queue-item.snn-is-working .snn-row-img {
     opacity: 0.4;
   }
-  .snn-wp-admin-image-optimize-container .row-status {
+  .snn-wp-admin-image-optimize-container .snn-row-status {
     display: block;
     font-size: 12px;
     margin-top: 2px;
@@ -413,17 +413,17 @@ function snn_render_wp_admin_image_optimization_section() {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .snn-wp-admin-image-optimize-container .queue-item.is-error {
+  .snn-wp-admin-image-optimize-container .snn-queue-item.snn-is-error {
     border-color: #f0b4b5;
     background-color: #fdf7f7;
   }
-  .snn-wp-admin-image-optimize-container .queue-item.is-error .row-status {
+  .snn-wp-admin-image-optimize-container .snn-queue-item.snn-is-error .snn-row-status {
     color: #d63638;
     font-weight: 600;
   }
 
   /* Uploaded panel (below the drop area) */
-  .snn-wp-admin-image-optimize-container .uploaded-panel {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-panel {
     margin-top: 20px;
     background: #fff;
     border: 1px solid #e2e4e7;
@@ -431,7 +431,7 @@ function snn_render_wp_admin_image_optimization_section() {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     overflow: hidden;
   }
-  .snn-wp-admin-image-optimize-container .uploaded-head {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -441,7 +441,7 @@ function snn_render_wp_admin_image_optimization_section() {
     border-bottom: 1px solid #f0f0f1;
     background: #fbfbfc;
   }
-  .snn-wp-admin-image-optimize-container .uploaded-title {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-title {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -451,7 +451,7 @@ function snn_render_wp_admin_image_optimization_section() {
     font-weight: 600;
     color: #1d2327;
   }
-  .snn-wp-admin-image-optimize-container .count-badge {
+  .snn-wp-admin-image-optimize-container .snn-count-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -465,12 +465,12 @@ function snn_render_wp_admin_image_optimization_section() {
     font-size: 11px;
     font-weight: 700;
   }
-  .snn-wp-admin-image-optimize-container .uploaded-tools {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-tools {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
   }
-  .snn-wp-admin-image-optimize-container .tool-btn {
+  .snn-wp-admin-image-optimize-container .snn-tool-btn {
     background: #fff;
     border: 1px solid #dcdcde;
     border-radius: 6px;
@@ -481,12 +481,12 @@ function snn_render_wp_admin_image_optimization_section() {
     cursor: pointer;
     transition: border-color 150ms, color 150ms, background-color 150ms;
   }
-  .snn-wp-admin-image-optimize-container .tool-btn:hover {
+  .snn-wp-admin-image-optimize-container .snn-tool-btn:hover {
     border-color: #2271b1;
     color: #2271b1;
     background: #f0f6fc;
   }
-  .snn-wp-admin-image-optimize-container .tool-btn.is-copied {
+  .snn-wp-admin-image-optimize-container .snn-tool-btn.snn-is-copied {
     border-color: #00a32a;
     background: #edfaef;
     color: #00812e;
@@ -495,20 +495,20 @@ function snn_render_wp_admin_image_optimization_section() {
     max-height: 480px;
     overflow-y: auto;
   }
-  .snn-wp-admin-image-optimize-container .uploaded-item {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 10px 16px;
     border-bottom: 1px solid #f0f0f1;
   }
-  .snn-wp-admin-image-optimize-container .uploaded-item:last-child {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-item:last-child {
     border-bottom: none;
   }
-  .snn-wp-admin-image-optimize-container .uploaded-item:hover {
+  .snn-wp-admin-image-optimize-container .snn-uploaded-item:hover {
     background: #fbfcfd;
   }
-  .snn-wp-admin-image-optimize-container .row-detail {
+  .snn-wp-admin-image-optimize-container .snn-row-detail {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -517,15 +517,15 @@ function snn_render_wp_admin_image_optimization_section() {
     font-size: 12px;
     color: #787c82;
   }
-  .snn-wp-admin-image-optimize-container .size-before {
+  .snn-wp-admin-image-optimize-container .snn-size-before {
     text-decoration: line-through;
     color: #a7aaad;
   }
-  .snn-wp-admin-image-optimize-container .size-after {
+  .snn-wp-admin-image-optimize-container .snn-size-after {
     color: #1d2327;
     font-weight: 600;
   }
-  .snn-wp-admin-image-optimize-container .size-saved {
+  .snn-wp-admin-image-optimize-container .snn-size-saved {
     background: #edfaef;
     color: #00812e;
     border-radius: 999px;
@@ -533,16 +533,16 @@ function snn_render_wp_admin_image_optimization_section() {
     font-size: 11px;
     font-weight: 700;
   }
-  .snn-wp-admin-image-optimize-container .row-dims {
+  .snn-wp-admin-image-optimize-container .snn-row-dims {
     color: #a7aaad;
   }
-  .snn-wp-admin-image-optimize-container .row-actions {
+  .snn-wp-admin-image-optimize-container .snn-row-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex: 0 0 auto;
   }
-  .snn-wp-admin-image-optimize-container .tile-action {
+  .snn-wp-admin-image-optimize-container .snn-tile-action {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -559,37 +559,37 @@ function snn_render_wp_admin_image_optimization_section() {
     white-space: nowrap;
     transition: border-color 150ms, background-color 150ms, color 150ms;
   }
-  .snn-wp-admin-image-optimize-container .tile-action:hover {
+  .snn-wp-admin-image-optimize-container .snn-tile-action:hover {
     border-color: #2271b1;
     background: #f0f6fc;
     color: #135e96;
   }
-  .snn-wp-admin-image-optimize-container .tile-action:focus-visible,
-  .snn-wp-admin-image-optimize-container .tool-btn:focus-visible {
+  .snn-wp-admin-image-optimize-container .snn-tile-action:focus-visible,
+  .snn-wp-admin-image-optimize-container .snn-tool-btn:focus-visible {
     outline: 2px solid #2271b1;
     outline-offset: 1px;
   }
-  .snn-wp-admin-image-optimize-container .tile-action.is-copied {
+  .snn-wp-admin-image-optimize-container .snn-tile-action.snn-is-copied {
     border-color: #00a32a;
     background: #edfaef;
     color: #00812e;
   }
-  .snn-wp-admin-image-optimize-container .tile-action svg {
+  .snn-wp-admin-image-optimize-container .snn-tile-action svg {
     width: 13px;
     height: 13px;
   }
   @media screen and (max-width: 600px) {
-    .snn-wp-admin-image-optimize-container .uploaded-item {
+    .snn-wp-admin-image-optimize-container .snn-uploaded-item {
       flex-wrap: wrap;
     }
-    .snn-wp-admin-image-optimize-container .row-actions {
+    .snn-wp-admin-image-optimize-container .snn-row-actions {
       width: 100%;
       justify-content: flex-start;
     }
   }
 
   /* Spinner */
-  .snn-wp-admin-image-optimize-container .spinner-dark {
+  .snn-wp-admin-image-optimize-container .snn-spinner-dark {
     border: 2px solid rgba(34, 113, 177, 0.25);
     border-radius: 50%;
     border-top-color: #2271b1;
@@ -602,7 +602,7 @@ function snn_render_wp_admin_image_optimization_section() {
   }
 
   /* Progress Bar */
-  .snn-wp-admin-image-optimize-container .progress-container {
+  .snn-wp-admin-image-optimize-container .snn-progress-container {
     width: 100%;
     background-color: #f0f0f1;
     border-radius: 3px;
@@ -611,13 +611,13 @@ function snn_render_wp_admin_image_optimization_section() {
     display: none;
     border: 1px solid #c3c4c7;
   }
-  .snn-wp-admin-image-optimize-container .progress-bar {
+  .snn-wp-admin-image-optimize-container .snn-progress-bar {
     height: 6px;
     background-color: #2271b1;
     transition: width 0.15s ease;
     width: 0%;
   }
-  .snn-wp-admin-image-optimize-container .progress-text {
+  .snn-wp-admin-image-optimize-container .snn-progress-text {
     text-align: center;
     margin: 6px 0 0;
     font-size: 13px;
@@ -626,7 +626,7 @@ function snn_render_wp_admin_image_optimization_section() {
   }
 
   /* Message Area */
-  .snn-wp-admin-image-optimize-container .message {
+  .snn-wp-admin-image-optimize-container .snn-message {
     font-weight: 500;
     padding: 12px 16px;
     border-radius: 3px;
@@ -635,89 +635,89 @@ function snn_render_wp_admin_image_optimization_section() {
     border-left: 4px solid;
     font-size: 14px;
   }
-  .snn-wp-admin-image-optimize-container .message.error {
+  .snn-wp-admin-image-optimize-container .snn-message.snn-error {
     color: #d63638;
     background-color: #fcf0f1;
     border-left-color: #d63638;
   }
-  .snn-wp-admin-image-optimize-container .message.success {
+  .snn-wp-admin-image-optimize-container .snn-message.snn-success {
     color: #00812e;
     background-color: #f0f6fc;
     border-left-color: #00a32a;
   }
-  .snn-wp-admin-image-optimize-container .message.info {
+  .snn-wp-admin-image-optimize-container .snn-message.snn-info {
     color: #2271b1;
     background-color: #f0f6fc;
     border-left-color: #2271b1;
   }
 </style>
 
-<div class="app-container">
+<div class="snn-app-container">
 
-  <div class="settings-card">
-    <div class="field">
-      <span class="field-label"><?php esc_html_e('Format', 'snn'); ?></span>
-      <div class="segmented" id="formatControl" role="radiogroup" aria-label="<?php esc_attr_e('Output format', 'snn'); ?>">
+  <div class="snn-settings-card">
+    <div class="snn-field">
+      <span class="snn-field-label"><?php esc_html_e('Format', 'snn'); ?></span>
+      <div class="snn-segmented" id="formatControl" role="radiogroup" aria-label="<?php esc_attr_e('Output format', 'snn'); ?>">
         <button type="button" role="radio" data-format="image/jpeg" aria-checked="true">JPG</button>
         <button type="button" role="radio" data-format="image/webp" aria-checked="false">WebP</button>
         <button type="button" role="radio" data-format="image/png" aria-checked="false">PNG</button>
       </div>
     </div>
-    <div class="field" id="qualityField">
-      <label class="field-label" for="qualityInput"><?php esc_html_e('Quality', 'snn'); ?></label>
-      <div class="slider-row">
+    <div class="snn-field" id="qualityField">
+      <label class="snn-field-label" for="qualityInput"><?php esc_html_e('Quality', 'snn'); ?></label>
+      <div class="snn-slider-row">
         <input type="range" id="qualityInput" min="10" max="100" step="1" value="85">
-        <span class="value-chip" id="qualityValue">85%</span>
+        <span class="snn-value-chip" id="qualityValue">85%</span>
       </div>
     </div>
-    <div class="field">
-      <label class="field-label" for="resizeWidth"><?php esc_html_e('Max width', 'snn'); ?></label>
-      <div class="width-row">
-        <span class="width-input-wrap">
+    <div class="snn-field">
+      <label class="snn-field-label" for="resizeWidth"><?php esc_html_e('Max width', 'snn'); ?></label>
+      <div class="snn-width-row">
+        <span class="snn-width-input-wrap">
           <input type="number" id="resizeWidth" min="1" step="1" placeholder="<?php esc_attr_e('Original', 'snn'); ?>">
-          <span class="width-suffix">px</span>
+          <span class="snn-width-suffix">px</span>
         </span>
-        <button type="button" class="preset" data-width="2560">2560</button>
-        <button type="button" class="preset" data-width="1920">1920</button>
-        <button type="button" class="preset" data-width="1280">1280</button>
-        <button type="button" class="preset" data-width=""><?php esc_html_e('Full', 'snn'); ?></button>
+        <button type="button" class="snn-preset" data-width="2560">2560</button>
+        <button type="button" class="snn-preset" data-width="1920">1920</button>
+        <button type="button" class="snn-preset" data-width="1280">1280</button>
+        <button type="button" class="snn-preset" data-width=""><?php esc_html_e('Full', 'snn'); ?></button>
       </div>
     </div>
   </div>
 
   <div id="uploadArea">
-    <input type="file" id="imageInput" accept=".png, .jpg, .jpeg, .webp, .jfif" multiple class="hidden" />
+    <input type="file" id="imageInput" accept=".png, .jpg, .jpeg, .webp, .jfif" multiple class="snn-hidden" />
     <div id="uploadAreaInitialContent">
-      <div class="upload-icon-circle">
-        <svg xmlns="http://www.w3.org/2000/svg" class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+      <div class="snn-upload-icon-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" class="snn-upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
       </div>
-      <p class="upload-text">
-        <span class="upload-text-highlight"><?php esc_html_e('Drop images here', 'snn'); ?></span> <?php esc_html_e('or click to browse', 'snn'); ?>
+      <p class="snn-upload-text">
+        <span class="snn-upload-text-highlight"><?php esc_html_e('Drop images here', 'snn'); ?></span> <?php esc_html_e('or click to browse', 'snn'); ?>
       </p>
     </div>
-    <div id="selectedFilesPreview" class="hidden"></div>
+    <div id="selectedFilesPreview" class="snn-hidden"></div>
   </div>
 
-  <p class="upload-hint"><?php esc_html_e('Images are optimized and added to the Media Library right away. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></p>
+  <p class="snn-upload-hint"><?php esc_html_e('Images are optimized and added to the Media Library right away. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></p>
 
-  <div class="progress-container" id="progressContainer">
-    <div class="progress-bar" id="progressBar"></div>
+  <div class="snn-progress-container" id="progressContainer">
+    <div class="snn-progress-bar" id="progressBar"></div>
   </div>
-  <div class="progress-text" id="progressText"></div>
+  <div class="snn-progress-text" id="progressText"></div>
 
   <div id="messageArea"></div>
 
-  <div id="uploadedPanel" class="uploaded-panel hidden">
-    <div class="uploaded-head">
-      <h2 class="uploaded-title">
+  <div id="uploadedPanel" class="snn-uploaded-panel snn-hidden">
+    <div class="snn-uploaded-head">
+      <h2 class="snn-uploaded-title">
         <?php esc_html_e('Uploaded to Media Library', 'snn'); ?>
-        <span class="count-badge" id="uploadedCount">0</span>
+        <span class="snn-count-badge" id="uploadedCount">0</span>
       </h2>
-      <div class="uploaded-tools">
-        <button type="button" class="tool-btn" id="downloadAllButton"><?php esc_html_e('Download copies', 'snn'); ?></button>
-        <button type="button" class="tool-btn" id="clearListButton"><?php esc_html_e('Clear list', 'snn'); ?></button>
+      <div class="snn-uploaded-tools">
+        <button type="button" class="snn-tool-btn" id="downloadAllButton"><?php esc_html_e('Download copies', 'snn'); ?></button>
+        <button type="button" class="snn-tool-btn" id="clearListButton"><?php esc_html_e('Clear list', 'snn'); ?></button>
       </div>
     </div>
     <div id="uploadedList"></div>
@@ -732,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const queueList         = document.getElementById('selectedFilesPreview');
     const formatControl     = document.getElementById('formatControl');
     const formatButtons     = Array.prototype.slice.call(formatControl.querySelectorAll('button'));
-    const presetButtons     = Array.prototype.slice.call(document.querySelectorAll('.snn-wp-admin-image-optimize-container .preset'));
+    const presetButtons     = Array.prototype.slice.call(document.querySelectorAll('.snn-wp-admin-image-optimize-container .snn-preset'));
     const qualityInput      = document.getElementById('qualityInput');
     const qualityValue      = document.getElementById('qualityValue');
     const qualityField      = document.getElementById('qualityField');
@@ -824,9 +824,9 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.setAttribute('aria-checked', btn.dataset.format === currentFormat ? 'true' : 'false');
       });
       qualityValue.textContent = qualityInput.value + '%';
-      qualityField.classList.toggle('disabled', currentFormat === 'image/png');
+      qualityField.classList.toggle('snn-disabled', currentFormat === 'image/png');
       presetButtons.forEach(function (btn) {
-        btn.classList.toggle('active', btn.dataset.width === resizeWidthInput.value);
+        btn.classList.toggle('snn-active', btn.dataset.width === resizeWidthInput.value);
       });
     }
 
@@ -869,52 +869,52 @@ document.addEventListener('DOMContentLoaded', function () {
       messageArea.innerHTML = '';
       const p = document.createElement('p');
       p.textContent = message;
-      p.classList.add('message', type || 'info');
+      p.classList.add('snn-message', type || 'snn-info');
       messageArea.appendChild(p);
     }
 
     function refreshLayout() {
       const hasQueue = queueItems.length > 0;
-      initialContent.classList.toggle('hidden', hasQueue);
-      queueList.classList.toggle('hidden', !hasQueue);
+      initialContent.classList.toggle('snn-hidden', hasQueue);
+      queueList.classList.toggle('snn-hidden', !hasQueue);
       uploadArea.style.display = hasQueue ? 'block' : 'flex';
 
-      uploadedPanel.classList.toggle('hidden', uploaded.length === 0);
+      uploadedPanel.classList.toggle('snn-hidden', uploaded.length === 0);
       uploadedCount.textContent = uploaded.length;
       const hasBlobs = uploaded.some(function (it) { return !!it.blob; });
-      downloadAllButton.classList.toggle('hidden', !hasBlobs);
+      downloadAllButton.classList.toggle('snn-hidden', !hasBlobs);
     }
 
     /* ---------- Queue rows (inside the drop area) ---------- */
 
     function buildQueueRow(item) {
       const row = document.createElement('div');
-      row.className = 'queue-item is-pending';
+      row.className = 'snn-queue-item snn-is-pending';
 
       const thumb = document.createElement('div');
-      thumb.className = 'row-thumb';
+      thumb.className = 'snn-row-thumb';
 
       const img = document.createElement('img');
       img.src = item.thumbnailUrl;
       img.alt = '';
-      img.className = 'row-img';
+      img.className = 'snn-row-img';
 
       const badge = document.createElement('div');
-      badge.className = 'thumb-badge';
+      badge.className = 'snn-thumb-badge';
 
       thumb.appendChild(img);
       thumb.appendChild(badge);
 
       const name = document.createElement('span');
-      name.className = 'row-name';
+      name.className = 'snn-row-name';
       name.textContent = item.file.name;
       name.title = item.file.name;
 
       const status = document.createElement('span');
-      status.className = 'row-status';
+      status.className = 'snn-row-status';
 
       const meta = document.createElement('div');
-      meta.className = 'row-meta';
+      meta.className = 'snn-row-meta';
       meta.appendChild(name);
       meta.appendChild(status);
 
@@ -932,10 +932,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function setQueueState(item, state, text) {
       item.status = state;
       if (!item.el) { return; }
-      item.el.className = 'queue-item is-' + state;
+      item.el.className = 'snn-queue-item snn-is-' + state;
       item.statusEl.textContent = text || '';
       item.statusEl.title = text || '';
-      item.badge.innerHTML = (state === 'working') ? '<div class="spinner-dark"></div>' : '';
+      item.badge.innerHTML = (state === 'working') ? '<div class="snn-spinner-dark"></div>' : '';
     }
 
     function removeQueueRow(item) {
@@ -952,10 +952,10 @@ document.addEventListener('DOMContentLoaded', function () {
       uploaded.push(entry);
 
       const row = document.createElement('div');
-      row.className = 'uploaded-item';
+      row.className = 'snn-uploaded-item';
 
       const thumbLink = document.createElement('a');
-      thumbLink.className = 'row-thumb';
+      thumbLink.className = 'snn-row-thumb';
       if (entry.url) {
         thumbLink.href = entry.url;
         thumbLink.target = '_blank';
@@ -965,29 +965,29 @@ document.addEventListener('DOMContentLoaded', function () {
       const img = document.createElement('img');
       img.src = entry.thumbnailUrl;
       img.alt = '';
-      img.className = 'row-img';
+      img.className = 'snn-row-img';
       thumbLink.appendChild(img);
 
       const name = document.createElement('span');
-      name.className = 'row-name';
+      name.className = 'snn-row-name';
       name.textContent = entry.name;
       name.title = entry.name;
 
       const detail = document.createElement('span');
-      detail.className = 'row-detail';
+      detail.className = 'snn-row-detail';
       detail.appendChild(sizeFragment(entry));
 
       const meta = document.createElement('div');
-      meta.className = 'row-meta';
+      meta.className = 'snn-row-meta';
       meta.appendChild(name);
       meta.appendChild(detail);
 
       const actions = document.createElement('div');
-      actions.className = 'row-actions';
+      actions.className = 'snn-row-actions';
 
       if (entry.id) {
         const editLink = document.createElement('a');
-        editLink.className = 'tile-action';
+        editLink.className = 'snn-tile-action';
         // Built here rather than in PHP: esc_js() would double-encode the ampersand.
         editLink.href = EDIT_URL + '?post=' + encodeURIComponent(entry.id) + '&action=edit';
         editLink.target = '_blank';
@@ -1000,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (entry.url) {
         const copyBtn = document.createElement('button');
         copyBtn.type = 'button';
-        copyBtn.className = 'tile-action';
+        copyBtn.className = 'snn-tile-action';
         const setLabel = function (text) {
           copyBtn.innerHTML = ICON_COPY;
           copyBtn.appendChild(document.createTextNode(text));
@@ -1009,10 +1009,10 @@ document.addEventListener('DOMContentLoaded', function () {
         copyBtn.onclick = function () {
           copyText(entry.url, function (ok) {
             setLabel(ok ? TXT.copied : TXT.copyFailed);
-            copyBtn.classList.toggle('is-copied', ok);
+            copyBtn.classList.toggle('snn-is-copied', ok);
             setTimeout(function () {
               setLabel(TXT.copyUrl);
-              copyBtn.classList.remove('is-copied');
+              copyBtn.classList.remove('snn-is-copied');
             }, 1500);
           });
         };
@@ -1030,27 +1030,27 @@ document.addEventListener('DOMContentLoaded', function () {
       const frag = document.createDocumentFragment();
 
       const before = document.createElement('span');
-      before.className = 'size-before';
+      before.className = 'snn-size-before';
       before.textContent = formatBytes(entry.originalSize);
       frag.appendChild(before);
 
       frag.appendChild(document.createTextNode(' → '));
 
       const after = document.createElement('span');
-      after.className = 'size-after';
+      after.className = 'snn-size-after';
       after.textContent = formatBytes(entry.newSize);
       frag.appendChild(after);
 
       if (entry.originalSize > 0 && entry.newSize < entry.originalSize) {
         const saved = document.createElement('span');
-        saved.className = 'size-saved';
+        saved.className = 'snn-size-saved';
         saved.textContent = '-' + Math.round((1 - entry.newSize / entry.originalSize) * 100) + '%';
         frag.appendChild(saved);
       }
 
       if (entry.width && entry.height) {
         const dims = document.createElement('span');
-        dims.className = 'row-dims';
+        dims.className = 'snn-row-dims';
         dims.textContent = entry.width + ' × ' + entry.height;
         frag.appendChild(dims);
       }
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function addFile(file) {
       if (!file.type || file.type.indexOf('image/') !== 0) {
-        showMessage(file.name + ' ' + TXT.notImage, 'error');
+        showMessage(file.name + ' ' + TXT.notImage, 'snn-error');
         return false;
       }
       const duplicate = queueItems.some(function (it) {
@@ -1216,11 +1216,11 @@ document.addEventListener('DOMContentLoaded', function () {
       progressText.textContent = '';
 
       if (batchOk > 0 && batchFail === 0) {
-        showMessage(batchOk + ' ' + TXT.allDone, 'success');
+        showMessage(batchOk + ' ' + TXT.allDone, 'snn-success');
       } else if (batchOk > 0) {
-        showMessage(batchOk + ' ' + TXT.partial + ' ' + batchFail, 'error');
+        showMessage(batchOk + ' ' + TXT.partial + ' ' + batchFail, 'snn-error');
       } else if (batchFail > 0) {
-        showMessage(TXT.noneDone, 'error');
+        showMessage(TXT.noneDone, 'snn-error');
       }
 
       batchTotal = 0;
@@ -1318,14 +1318,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     uploadArea.ondragover = function (e) {
       e.preventDefault();
-      uploadArea.classList.add('drag-over');
+      uploadArea.classList.add('snn-drag-over');
     };
     uploadArea.ondragleave = function () {
-      uploadArea.classList.remove('drag-over');
+      uploadArea.classList.remove('snn-drag-over');
     };
     uploadArea.ondrop = function (e) {
       e.preventDefault();
-      uploadArea.classList.remove('drag-over');
+      uploadArea.classList.remove('snn-drag-over');
       handleFiles(e.dataTransfer.files);
     };
 
