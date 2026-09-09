@@ -52,8 +52,6 @@ function snn_image_optimization_page() {
                     break;
                 case 'upload':
                 default:
-                    echo '<p class="description">' . __('Optimize, convert, and resize images before adding them to your media library.', 'snn') . '</p>';
-                    echo '<div class="notice notice-info inline" style="margin: 15px 0;"><p><strong>⚡ ' . __('Fast Client-Side Processing:', 'snn') . '</strong> ' . __('Images are optimized directly in your browser using your CPU. Keep this tab open during processing for best performance. Even thousands of images will be processed quickly!', 'snn') . '</p></div>';
                     snn_render_wp_admin_image_optimization_section();
                     break;
             }
@@ -76,7 +74,6 @@ function snn_render_wp_admin_image_optimization_section() {
   /* General & App Layout */
   .snn-wp-admin-image-optimize-container .app-container {
     margin: 20px 0;
-    max-width: 900px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
   }
   .snn-wp-admin-image-optimize-container .hidden {
@@ -147,7 +144,7 @@ function snn_render_wp_admin_image_optimization_section() {
     border-radius: 4px;
     cursor: pointer;
     background-color: #f6f7f7;
-    min-height: 150px;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
     justify-content: center;
