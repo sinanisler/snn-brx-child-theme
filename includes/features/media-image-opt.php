@@ -77,7 +77,7 @@ function snn_render_wp_admin_image_optimization_section() {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
   }
   .snn-wp-admin-image-optimize-container .hidden {
-    display: none;
+    display: none !important;
   }
   /* Settings Card */
   .snn-wp-admin-image-optimize-container .settings-card {
@@ -343,45 +343,45 @@ function snn_render_wp_admin_image_optimization_section() {
     color: #dcdcde;
   }
 
-  /* File Previews */
+  /* Upload list */
   .snn-wp-admin-image-optimize-container #selectedFilesPreview {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 16px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
     overflow-y: auto;
-    max-height: 340px;
+    max-height: 420px;
     width: 100%;
     box-sizing: border-box;
   }
   .snn-wp-admin-image-optimize-container .preview-item {
     position: relative;
-    border: 1px solid #c3c4c7;
-    border-radius: 4px;
-    padding: 8px;
-    background-color: #fff;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    width: 124px;
+    gap: 12px;
+    border: 1px solid #e2e4e7;
+    border-radius: 10px;
+    padding: 8px 12px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .snn-wp-admin-image-optimize-container .preview-thumb {
     position: relative;
-    width: 96px;
-    height: 96px;
-    margin-bottom: 6px;
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
   }
   .snn-wp-admin-image-optimize-container .preview-img {
-    width: 96px;
-    height: 96px;
-    object-fit: contain;
-    border-radius: 2px;
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
     background-color: #f6f7f7;
     display: block;
   }
   .snn-wp-admin-image-optimize-container .preview-item.is-pending .preview-img,
   .snn-wp-admin-image-optimize-container .preview-item.is-working .preview-img {
-    opacity: 0.45;
+    opacity: 0.4;
   }
   .snn-wp-admin-image-optimize-container .thumb-badge {
     position: absolute;
@@ -390,63 +390,90 @@ function snn_render_wp_admin_image_optimization_section() {
     align-items: center;
     justify-content: center;
   }
+  .snn-wp-admin-image-optimize-container .preview-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
   .snn-wp-admin-image-optimize-container .preview-name {
     display: block;
-    font-size: 11px;
-    color: #50575e;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%;
-    text-align: center;
   }
   .snn-wp-admin-image-optimize-container .preview-status {
     display: block;
-    font-size: 11px;
-    text-align: center;
-    width: 100%;
+    font-size: 12px;
     margin-top: 2px;
-    color: #646970;
+    color: #787c82;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .snn-wp-admin-image-optimize-container .preview-item.is-done .preview-status {
     color: #00812e;
+    font-weight: 600;
   }
   .snn-wp-admin-image-optimize-container .preview-item.is-error .preview-status {
     color: #d63638;
+    font-weight: 600;
   }
   .snn-wp-admin-image-optimize-container .preview-item.is-error {
-    border-color: #d63638;
+    border-color: #f0b4b5;
+    background-color: #fdf7f7;
   }
   .snn-wp-admin-image-optimize-container .preview-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    width: 100%;
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px solid #f0f0f1;
+    gap: 8px;
+    flex: 0 0 auto;
   }
   .snn-wp-admin-image-optimize-container .tile-action {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 11px;
-    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
     color: #2271b1;
     text-decoration: none;
     cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 150ms, background-color 150ms, color 150ms;
   }
   .snn-wp-admin-image-optimize-container .tile-action:hover {
+    border-color: #2271b1;
+    background: #f0f6fc;
     color: #135e96;
-    text-decoration: underline;
   }
-  .snn-wp-admin-image-optimize-container .tile-action-sep {
-    font-size: 11px;
-    color: #dcdcde;
+  .snn-wp-admin-image-optimize-container .tile-action:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
+  }
+  .snn-wp-admin-image-optimize-container .tile-action.is-copied {
+    border-color: #00a32a;
+    background: #edfaef;
+    color: #00812e;
+  }
+  .snn-wp-admin-image-optimize-container .tile-action svg {
+    width: 13px;
+    height: 13px;
+  }
+  @media screen and (max-width: 600px) {
+    .snn-wp-admin-image-optimize-container .preview-item {
+      flex-wrap: wrap;
+    }
+    .snn-wp-admin-image-optimize-container .preview-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
   }
 
   /* Spinner */
@@ -598,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const STORAGE_KEY = 'snnOptimizeMediaSettings';
     const AJAX_URL    = '<?php echo esc_js( admin_url('admin-ajax.php') ); ?>';
     const NONCE       = '<?php echo esc_js( wp_create_nonce('snn_save_image_nonce') ); ?>';
-    const EDIT_URL    = '<?php echo esc_js( admin_url('post.php?post=SNNATTACHMENTID&action=edit') ); ?>';
+    const EDIT_URL    = '<?php echo esc_js( admin_url('post.php') ); ?>';
 
     const TXT = {
         waiting:    '<?php echo esc_js( __('Waiting', 'snn') ); ?>',
@@ -755,14 +782,18 @@ document.addEventListener('DOMContentLoaded', function () {
       const statusSpan = document.createElement('span');
       statusSpan.className = 'preview-status';
 
-      const actions = document.createElement('span');
+      const meta = document.createElement('div');
+      meta.className = 'preview-meta';
+      meta.appendChild(nameSpan);
+      meta.appendChild(statusSpan);
+
+      const actions = document.createElement('div');
       actions.className = 'preview-actions hidden';
-      // Keep tile actions from re-opening the file picker on the upload area.
+      // Keep row actions from re-opening the file picker on the upload area.
       actions.onclick = function (e) { e.stopPropagation(); };
 
       tile.appendChild(thumb);
-      tile.appendChild(nameSpan);
-      tile.appendChild(statusSpan);
+      tile.appendChild(meta);
       tile.appendChild(actions);
       previewList.appendChild(tile);
 
@@ -786,30 +817,38 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!item.actionsEl || !item.attachmentId) { return; }
       item.actionsEl.innerHTML = '';
 
+      const ICON_EDIT = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M13.6 2.6a1.4 1.4 0 012 2l-.9.9-2-2 .9-.9zM11.3 4.9l2 2L6.6 13.6l-2.4.4.4-2.4 6.7-6.7z"/></svg>';
+      const ICON_COPY = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7 2h7a2 2 0 012 2v9h-2V4H7V2zM4 5h7a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm0 2v9h7V7H4z"/></svg>';
+
       const editLink = document.createElement('a');
       editLink.className = 'tile-action';
-      editLink.href = EDIT_URL.replace('SNNATTACHMENTID', item.attachmentId);
+      // Build the query string here: escaping it through PHP would double-encode the ampersand.
+      editLink.href = EDIT_URL + '?post=' + encodeURIComponent(item.attachmentId) + '&action=edit';
       editLink.target = '_blank';
       editLink.rel = 'noopener';
-      editLink.textContent = TXT.edit;
-
-      const sep = document.createElement('span');
-      sep.className = 'tile-action-sep';
-      sep.textContent = '|';
+      editLink.innerHTML = ICON_EDIT;
+      editLink.appendChild(document.createTextNode(TXT.edit));
 
       const copyBtn = document.createElement('button');
       copyBtn.type = 'button';
       copyBtn.className = 'tile-action';
-      copyBtn.textContent = TXT.copyUrl;
+      const setCopyLabel = function (text) {
+        copyBtn.innerHTML = ICON_COPY;
+        copyBtn.appendChild(document.createTextNode(text));
+      };
+      setCopyLabel(TXT.copyUrl);
       copyBtn.onclick = function () {
         copyText(item.attachmentUrl, function (ok) {
-          copyBtn.textContent = ok ? TXT.copied : TXT.copyFailed;
-          setTimeout(function () { copyBtn.textContent = TXT.copyUrl; }, 1500);
+          setCopyLabel(ok ? TXT.copied : TXT.copyFailed);
+          copyBtn.classList.toggle('is-copied', ok);
+          setTimeout(function () {
+            setCopyLabel(TXT.copyUrl);
+            copyBtn.classList.remove('is-copied');
+          }, 1500);
         });
       };
 
       item.actionsEl.appendChild(editLink);
-      item.actionsEl.appendChild(sep);
       item.actionsEl.appendChild(copyBtn);
       item.actionsEl.classList.remove('hidden');
     }
