@@ -265,6 +265,34 @@ function snn_render_wp_admin_image_optimization_section() {
   .snn-wp-admin-image-optimize-container .preview-item.is-error {
     border-color: #d63638;
   }
+  .snn-wp-admin-image-optimize-container .preview-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid #f0f0f1;
+  }
+  .snn-wp-admin-image-optimize-container .tile-action {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #2271b1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .snn-wp-admin-image-optimize-container .tile-action:hover {
+    color: #135e96;
+    text-decoration: underline;
+  }
+  .snn-wp-admin-image-optimize-container .tile-action-sep {
+    font-size: 11px;
+    color: #dcdcde;
+  }
 
   /* Spinner */
   .snn-wp-admin-image-optimize-container .spinner-dark {
@@ -402,6 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const STORAGE_KEY = 'snnOptimizeMediaSettings';
     const AJAX_URL    = '<?php echo esc_js( admin_url('admin-ajax.php') ); ?>';
     const NONCE       = '<?php echo esc_js( wp_create_nonce('snn_save_image_nonce') ); ?>';
+    const EDIT_URL    = '<?php echo esc_js( admin_url('post.php?post=SNNATTACHMENTID&action=edit') ); ?>';
 
     const TXT = {
         waiting:    '<?php echo esc_js( __('Waiting', 'snn') ); ?>',
@@ -413,7 +442,11 @@ document.addEventListener('DOMContentLoaded', function () {
         processing: '<?php echo esc_js( __('Processing', 'snn') ); ?>',
         allDone:    '<?php echo esc_js( __('image(s) optimized and added to the Media Library.', 'snn') ); ?>',
         partial:    '<?php echo esc_js( __('image(s) added to the Media Library, failed:', 'snn') ); ?>',
-        noneDone:   '<?php echo esc_js( __('No images could be processed. Please try again.', 'snn') ); ?>'
+        noneDone:   '<?php echo esc_js( __('No images could be processed. Please try again.', 'snn') ); ?>',
+        edit:       '<?php echo esc_js( __('Edit', 'snn') ); ?>',
+        copyUrl:    '<?php echo esc_js( __('Copy URL', 'snn') ); ?>',
+        copied:     '<?php echo esc_js( __('Copied!', 'snn') ); ?>',
+        copyFailed: '<?php echo esc_js( __('Copy failed', 'snn') ); ?>'
     };
 
     let items     = [];
@@ -531,14 +564,21 @@ document.addEventListener('DOMContentLoaded', function () {
       const statusSpan = document.createElement('span');
       statusSpan.className = 'preview-status';
 
+      const actions = document.createElement('span');
+      actions.className = 'preview-actions hidden';
+      // Keep tile actions from re-opening the file picker on the upload area.
+      actions.onclick = function (e) { e.stopPropagation(); };
+
       tile.appendChild(thumb);
       tile.appendChild(nameSpan);
       tile.appendChild(statusSpan);
+      tile.appendChild(actions);
       previewList.appendChild(tile);
 
       item.el        = tile;
       item.badge     = badge;
       item.statusEl  = statusSpan;
+      item.actionsEl = actions;
       setTileState(item, 'pending', TXT.waiting);
     }
 
@@ -549,6 +589,66 @@ document.addEventListener('DOMContentLoaded', function () {
       item.statusEl.textContent = text || '';
       item.statusEl.title = text || '';
       item.badge.innerHTML = (state === 'working') ? '<div class="spinner-dark"></div>' : '';
+    }
+
+    function buildTileActions(item) {
+      if (!item.actionsEl || !item.attachmentId) { return; }
+      item.actionsEl.innerHTML = '';
+
+      const editLink = document.createElement('a');
+      editLink.className = 'tile-action';
+      editLink.href = EDIT_URL.replace('SNNATTACHMENTID', item.attachmentId);
+      editLink.target = '_blank';
+      editLink.rel = 'noopener';
+      editLink.textContent = TXT.edit;
+
+      const sep = document.createElement('span');
+      sep.className = 'tile-action-sep';
+      sep.textContent = '|';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'tile-action';
+      copyBtn.textContent = TXT.copyUrl;
+      copyBtn.onclick = function () {
+        copyText(item.attachmentUrl, function (ok) {
+          copyBtn.textContent = ok ? TXT.copied : TXT.copyFailed;
+          setTimeout(function () { copyBtn.textContent = TXT.copyUrl; }, 1500);
+        });
+      };
+
+      item.actionsEl.appendChild(editLink);
+      item.actionsEl.appendChild(sep);
+      item.actionsEl.appendChild(copyBtn);
+      item.actionsEl.classList.remove('hidden');
+    }
+
+    function copyText(text, callback) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(function () { callback(true); })
+          .catch(function () { callback(legacyCopy(text)); });
+        return;
+      }
+      callback(legacyCopy(text));
+    }
+
+    function legacyCopy(text) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      let ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (err) {
+        ok = false;
+      }
+      document.body.removeChild(area);
+      return ok;
     }
 
     /* ---------- File intake ---------- */
@@ -644,7 +744,10 @@ document.addEventListener('DOMContentLoaded', function () {
         batchDone++;
         if (result && result.success) {
           batchOk++;
+          item.attachmentId  = result.data ? result.data.id : null;
+          item.attachmentUrl = result.data ? result.data.url : '';
           setTileState(item, 'done', formatBytes(item.file.size) + ' -> ' + formatBytes(converted.blob.size));
+          buildTileActions(item);
         } else {
           batchFail++;
           setTileState(item, 'error', TXT.uploadFail);
