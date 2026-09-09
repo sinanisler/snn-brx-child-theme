@@ -343,7 +343,44 @@ function snn_render_wp_admin_image_optimization_section() {
     color: #dcdcde;
   }
 
-  /* Upload list */
+  /* Shared row bits */
+  .snn-wp-admin-image-optimize-container .row-thumb {
+    position: relative;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    display: block;
+  }
+  .snn-wp-admin-image-optimize-container .row-img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    background-color: #f6f7f7;
+    display: block;
+  }
+  .snn-wp-admin-image-optimize-container .thumb-badge {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .snn-wp-admin-image-optimize-container .row-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .snn-wp-admin-image-optimize-container .row-name {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Processing queue (inside the drop area) */
   .snn-wp-admin-image-optimize-container #selectedFilesPreview {
     display: flex;
     flex-direction: column;
@@ -354,8 +391,7 @@ function snn_render_wp_admin_image_optimization_section() {
     width: 100%;
     box-sizing: border-box;
   }
-  .snn-wp-admin-image-optimize-container .preview-item {
-    position: relative;
+  .snn-wp-admin-image-optimize-container .queue-item {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -363,47 +399,12 @@ function snn_render_wp_admin_image_optimization_section() {
     border-radius: 10px;
     padding: 8px 12px;
     background-color: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  .snn-wp-admin-image-optimize-container .preview-thumb {
-    position: relative;
-    flex: 0 0 auto;
-    width: 48px;
-    height: 48px;
-  }
-  .snn-wp-admin-image-optimize-container .preview-img {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 6px;
-    background-color: #f6f7f7;
-    display: block;
-  }
-  .snn-wp-admin-image-optimize-container .preview-item.is-pending .preview-img,
-  .snn-wp-admin-image-optimize-container .preview-item.is-working .preview-img {
+  .snn-wp-admin-image-optimize-container .queue-item.is-pending .row-img,
+  .snn-wp-admin-image-optimize-container .queue-item.is-working .row-img {
     opacity: 0.4;
   }
-  .snn-wp-admin-image-optimize-container .thumb-badge {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .snn-wp-admin-image-optimize-container .preview-meta {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .snn-wp-admin-image-optimize-container .preview-name {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #1d2327;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .snn-wp-admin-image-optimize-container .preview-status {
+  .snn-wp-admin-image-optimize-container .row-status {
     display: block;
     font-size: 12px;
     margin-top: 2px;
@@ -412,19 +413,130 @@ function snn_render_wp_admin_image_optimization_section() {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .snn-wp-admin-image-optimize-container .preview-item.is-done .preview-status {
-    color: #00812e;
-    font-weight: 600;
-  }
-  .snn-wp-admin-image-optimize-container .preview-item.is-error .preview-status {
-    color: #d63638;
-    font-weight: 600;
-  }
-  .snn-wp-admin-image-optimize-container .preview-item.is-error {
+  .snn-wp-admin-image-optimize-container .queue-item.is-error {
     border-color: #f0b4b5;
     background-color: #fdf7f7;
   }
-  .snn-wp-admin-image-optimize-container .preview-actions {
+  .snn-wp-admin-image-optimize-container .queue-item.is-error .row-status {
+    color: #d63638;
+    font-weight: 600;
+  }
+
+  /* Uploaded panel (below the drop area) */
+  .snn-wp-admin-image-optimize-container .uploaded-panel {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+  .snn-wp-admin-image-optimize-container .uploaded-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f1;
+    background: #fbfbfc;
+  }
+  .snn-wp-admin-image-optimize-container .uploaded-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+  }
+  .snn-wp-admin-image-optimize-container .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #edfaef;
+    color: #00812e;
+    border: 1px solid #b8e6c4;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .snn-wp-admin-image-optimize-container .uploaded-tools {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .snn-wp-admin-image-optimize-container .tool-btn {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #50575e;
+    cursor: pointer;
+    transition: border-color 150ms, color 150ms, background-color 150ms;
+  }
+  .snn-wp-admin-image-optimize-container .tool-btn:hover {
+    border-color: #2271b1;
+    color: #2271b1;
+    background: #f0f6fc;
+  }
+  .snn-wp-admin-image-optimize-container .tool-btn.is-copied {
+    border-color: #00a32a;
+    background: #edfaef;
+    color: #00812e;
+  }
+  .snn-wp-admin-image-optimize-container #uploadedList {
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .snn-wp-admin-image-optimize-container .uploaded-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f0f1;
+  }
+  .snn-wp-admin-image-optimize-container .uploaded-item:last-child {
+    border-bottom: none;
+  }
+  .snn-wp-admin-image-optimize-container .uploaded-item:hover {
+    background: #fbfcfd;
+  }
+  .snn-wp-admin-image-optimize-container .row-detail {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 3px;
+    font-size: 12px;
+    color: #787c82;
+  }
+  .snn-wp-admin-image-optimize-container .size-before {
+    text-decoration: line-through;
+    color: #a7aaad;
+  }
+  .snn-wp-admin-image-optimize-container .size-after {
+    color: #1d2327;
+    font-weight: 600;
+  }
+  .snn-wp-admin-image-optimize-container .size-saved {
+    background: #edfaef;
+    color: #00812e;
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .snn-wp-admin-image-optimize-container .row-dims {
+    color: #a7aaad;
+  }
+  .snn-wp-admin-image-optimize-container .row-actions {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -452,7 +564,8 @@ function snn_render_wp_admin_image_optimization_section() {
     background: #f0f6fc;
     color: #135e96;
   }
-  .snn-wp-admin-image-optimize-container .tile-action:focus-visible {
+  .snn-wp-admin-image-optimize-container .tile-action:focus-visible,
+  .snn-wp-admin-image-optimize-container .tool-btn:focus-visible {
     outline: 2px solid #2271b1;
     outline-offset: 1px;
   }
@@ -466,14 +579,13 @@ function snn_render_wp_admin_image_optimization_section() {
     height: 13px;
   }
   @media screen and (max-width: 600px) {
-    .snn-wp-admin-image-optimize-container .preview-item {
+    .snn-wp-admin-image-optimize-container .uploaded-item {
       flex-wrap: wrap;
     }
-    .snn-wp-admin-image-optimize-container .preview-actions {
+    .snn-wp-admin-image-optimize-container .row-actions {
       width: 100%;
       justify-content: flex-start;
     }
-  }
   }
 
   /* Spinner */
@@ -588,10 +700,7 @@ function snn_render_wp_admin_image_optimization_section() {
     <div id="selectedFilesPreview" class="hidden"></div>
   </div>
 
-  <p class="upload-hint">
-    <span><?php esc_html_e('Images are optimized and added to the Media Library right away. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></span>
-    <span id="resultActions" class="hidden"><span class="sep">|</span><a href="#" id="downloadAllLink"><?php esc_html_e('Download optimized copies', 'snn'); ?></a><span class="sep">|</span><a href="#" id="clearAllLink"><?php esc_html_e('Clear list', 'snn'); ?></a></span>
-  </p>
+  <p class="upload-hint"><?php esc_html_e('Images are optimized and added to the Media Library right away. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></p>
 
   <div class="progress-container" id="progressContainer">
     <div class="progress-bar" id="progressBar"></div>
@@ -599,6 +708,21 @@ function snn_render_wp_admin_image_optimization_section() {
   <div class="progress-text" id="progressText"></div>
 
   <div id="messageArea"></div>
+
+  <div id="uploadedPanel" class="uploaded-panel hidden">
+    <div class="uploaded-head">
+      <h2 class="uploaded-title">
+        <?php esc_html_e('Uploaded to Media Library', 'snn'); ?>
+        <span class="count-badge" id="uploadedCount">0</span>
+      </h2>
+      <div class="uploaded-tools">
+        <button type="button" class="tool-btn" id="copyAllButton"><?php esc_html_e('Copy all URLs', 'snn'); ?></button>
+        <button type="button" class="tool-btn" id="downloadAllButton"><?php esc_html_e('Download copies', 'snn'); ?></button>
+        <button type="button" class="tool-btn" id="clearListButton"><?php esc_html_e('Clear list', 'snn'); ?></button>
+      </div>
+    </div>
+    <div id="uploadedList"></div>
+  </div>
 </div>
 
 <script>
@@ -606,7 +730,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const imageInput        = document.getElementById('imageInput');
     const uploadArea        = document.getElementById('uploadArea');
     const initialContent    = document.getElementById('uploadAreaInitialContent');
-    const previewList       = document.getElementById('selectedFilesPreview');
+    const queueList         = document.getElementById('selectedFilesPreview');
     const formatControl     = document.getElementById('formatControl');
     const formatButtons     = Array.prototype.slice.call(formatControl.querySelectorAll('button'));
     const presetButtons     = Array.prototype.slice.call(document.querySelectorAll('.snn-wp-admin-image-optimize-container .preset'));
@@ -618,14 +742,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressContainer = document.getElementById('progressContainer');
     const progressBar       = document.getElementById('progressBar');
     const progressText      = document.getElementById('progressText');
-    const resultActions     = document.getElementById('resultActions');
-    const downloadAllLink   = document.getElementById('downloadAllLink');
-    const clearAllLink      = document.getElementById('clearAllLink');
+    const uploadedPanel     = document.getElementById('uploadedPanel');
+    const uploadedList      = document.getElementById('uploadedList');
+    const uploadedCount     = document.getElementById('uploadedCount');
+    const copyAllButton     = document.getElementById('copyAllButton');
+    const downloadAllButton = document.getElementById('downloadAllButton');
+    const clearListButton   = document.getElementById('clearListButton');
 
     const STORAGE_KEY = 'snnOptimizeMediaSettings';
     const AJAX_URL    = '<?php echo esc_js( admin_url('admin-ajax.php') ); ?>';
-    const NONCE       = '<?php echo esc_js( wp_create_nonce('snn_save_image_nonce') ); ?>';
     const EDIT_URL    = '<?php echo esc_js( admin_url('post.php') ); ?>';
+    const NONCE       = '<?php echo esc_js( wp_create_nonce('snn_save_image_nonce') ); ?>';
 
     const TXT = {
         waiting:    '<?php echo esc_js( __('Waiting', 'snn') ); ?>',
@@ -641,13 +768,19 @@ document.addEventListener('DOMContentLoaded', function () {
         edit:       '<?php echo esc_js( __('Edit', 'snn') ); ?>',
         copyUrl:    '<?php echo esc_js( __('Copy URL', 'snn') ); ?>',
         copied:     '<?php echo esc_js( __('Copied!', 'snn') ); ?>',
-        copyFailed: '<?php echo esc_js( __('Copy failed', 'snn') ); ?>'
+        copyFailed: '<?php echo esc_js( __('Copy failed', 'snn') ); ?>',
+        copyAll:    '<?php echo esc_js( __('Copy all URLs', 'snn') ); ?>',
+        allCopied:  '<?php echo esc_js( __('All URLs copied!', 'snn') ); ?>'
     };
 
+    const ICON_EDIT = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M13.6 2.6a1.4 1.4 0 012 2l-.9.9-2-2 .9-.9zM11.3 4.9l2 2L6.6 13.6l-2.4.4.4-2.4 6.7-6.7z"/></svg>';
+    const ICON_COPY = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7 2h7a2 2 0 012 2v9h-2V4H7V2zM4 5h7a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm0 2v9h7V7H4z"/></svg>';
+
     let currentFormat = 'image/jpeg';
-    let items     = [];
-    let queue     = [];
-    let isRunning = false;
+    let queue      = [];   // waiting to be processed
+    let queueItems = [];   // rows currently shown inside the drop area
+    let uploaded   = [];   // finished uploads, listed below the drop area
+    let isRunning  = false;
     let batchTotal = 0;
     let batchDone  = 0;
     let batchOk    = 0;
@@ -717,9 +850,9 @@ document.addEventListener('DOMContentLoaded', function () {
       };
     });
 
-    qualityInput.oninput     = syncSettingsUI;
-    qualityInput.onchange    = saveSettings;
-    resizeWidthInput.oninput = syncSettingsUI;
+    qualityInput.oninput      = syncSettingsUI;
+    qualityInput.onchange     = saveSettings;
+    resizeWidthInput.oninput  = syncSettingsUI;
     resizeWidthInput.onchange = saveSettings;
 
     loadSettings();
@@ -745,28 +878,32 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function refreshLayout() {
-      const hasItems = items.length > 0;
-      initialContent.classList.toggle('hidden', hasItems);
-      previewList.classList.toggle('hidden', !hasItems);
-      uploadArea.style.display = hasItems ? 'block' : 'flex';
-      resultActions.classList.toggle('hidden', !hasItems || isRunning);
-      const hasBlobs = items.some(function (it) { return it.status === 'done' && it.blob; });
-      downloadAllLink.style.display = hasBlobs ? '' : 'none';
+      const hasQueue = queueItems.length > 0;
+      initialContent.classList.toggle('hidden', hasQueue);
+      queueList.classList.toggle('hidden', !hasQueue);
+      uploadArea.style.display = hasQueue ? 'block' : 'flex';
+
+      uploadedPanel.classList.toggle('hidden', uploaded.length === 0);
+      uploadedCount.textContent = uploaded.length;
+      const hasBlobs = uploaded.some(function (it) { return !!it.blob; });
+      downloadAllButton.classList.toggle('hidden', !hasBlobs);
+      const hasUrls = uploaded.some(function (it) { return !!it.url; });
+      copyAllButton.classList.toggle('hidden', !hasUrls);
     }
 
-    /* ---------- Preview tiles ---------- */
+    /* ---------- Queue rows (inside the drop area) ---------- */
 
-    function buildTile(item) {
-      const tile = document.createElement('div');
-      tile.className = 'preview-item is-pending';
+    function buildQueueRow(item) {
+      const row = document.createElement('div');
+      row.className = 'queue-item is-pending';
 
       const thumb = document.createElement('div');
-      thumb.className = 'preview-thumb';
+      thumb.className = 'row-thumb';
 
       const img = document.createElement('img');
       img.src = item.thumbnailUrl;
-      img.alt = item.file.name;
-      img.className = 'preview-img';
+      img.alt = '';
+      img.className = 'row-img';
 
       const badge = document.createElement('div');
       badge.className = 'thumb-badge';
@@ -774,83 +911,157 @@ document.addEventListener('DOMContentLoaded', function () {
       thumb.appendChild(img);
       thumb.appendChild(badge);
 
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'preview-name';
-      nameSpan.textContent = item.file.name;
-      nameSpan.title = item.file.name;
+      const name = document.createElement('span');
+      name.className = 'row-name';
+      name.textContent = item.file.name;
+      name.title = item.file.name;
 
-      const statusSpan = document.createElement('span');
-      statusSpan.className = 'preview-status';
+      const status = document.createElement('span');
+      status.className = 'row-status';
 
       const meta = document.createElement('div');
-      meta.className = 'preview-meta';
-      meta.appendChild(nameSpan);
-      meta.appendChild(statusSpan);
+      meta.className = 'row-meta';
+      meta.appendChild(name);
+      meta.appendChild(status);
 
-      const actions = document.createElement('div');
-      actions.className = 'preview-actions hidden';
-      // Keep row actions from re-opening the file picker on the upload area.
-      actions.onclick = function (e) { e.stopPropagation(); };
+      row.appendChild(thumb);
+      row.appendChild(meta);
+      queueList.appendChild(row);
 
-      tile.appendChild(thumb);
-      tile.appendChild(meta);
-      tile.appendChild(actions);
-      previewList.appendChild(tile);
-
-      item.el        = tile;
-      item.badge     = badge;
-      item.statusEl  = statusSpan;
-      item.actionsEl = actions;
-      setTileState(item, 'pending', TXT.waiting);
+      item.el       = row;
+      item.badge    = badge;
+      item.statusEl = status;
+      queueItems.push(item);
+      setQueueState(item, 'pending', TXT.waiting);
     }
 
-    function setTileState(item, state, text) {
+    function setQueueState(item, state, text) {
       item.status = state;
       if (!item.el) { return; }
-      item.el.className = 'preview-item is-' + state;
+      item.el.className = 'queue-item is-' + state;
       item.statusEl.textContent = text || '';
       item.statusEl.title = text || '';
       item.badge.innerHTML = (state === 'working') ? '<div class="spinner-dark"></div>' : '';
     }
 
-    function buildTileActions(item) {
-      if (!item.actionsEl || !item.attachmentId) { return; }
-      item.actionsEl.innerHTML = '';
+    function removeQueueRow(item) {
+      if (item.el && item.el.parentNode) {
+        item.el.parentNode.removeChild(item.el);
+      }
+      const idx = queueItems.indexOf(item);
+      if (idx > -1) { queueItems.splice(idx, 1); }
+    }
 
-      const ICON_EDIT = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M13.6 2.6a1.4 1.4 0 012 2l-.9.9-2-2 .9-.9zM11.3 4.9l2 2L6.6 13.6l-2.4.4.4-2.4 6.7-6.7z"/></svg>';
-      const ICON_COPY = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7 2h7a2 2 0 012 2v9h-2V4H7V2zM4 5h7a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2zm0 2v9h7V7H4z"/></svg>';
+    /* ---------- Uploaded rows (below the drop area) ---------- */
 
-      const editLink = document.createElement('a');
-      editLink.className = 'tile-action';
-      // Build the query string here: escaping it through PHP would double-encode the ampersand.
-      editLink.href = EDIT_URL + '?post=' + encodeURIComponent(item.attachmentId) + '&action=edit';
-      editLink.target = '_blank';
-      editLink.rel = 'noopener';
-      editLink.innerHTML = ICON_EDIT;
-      editLink.appendChild(document.createTextNode(TXT.edit));
+    function addUploadedRow(entry) {
+      uploaded.push(entry);
 
-      const copyBtn = document.createElement('button');
-      copyBtn.type = 'button';
-      copyBtn.className = 'tile-action';
-      const setCopyLabel = function (text) {
-        copyBtn.innerHTML = ICON_COPY;
-        copyBtn.appendChild(document.createTextNode(text));
-      };
-      setCopyLabel(TXT.copyUrl);
-      copyBtn.onclick = function () {
-        copyText(item.attachmentUrl, function (ok) {
-          setCopyLabel(ok ? TXT.copied : TXT.copyFailed);
-          copyBtn.classList.toggle('is-copied', ok);
-          setTimeout(function () {
-            setCopyLabel(TXT.copyUrl);
-            copyBtn.classList.remove('is-copied');
-          }, 1500);
-        });
-      };
+      const row = document.createElement('div');
+      row.className = 'uploaded-item';
 
-      item.actionsEl.appendChild(editLink);
-      item.actionsEl.appendChild(copyBtn);
-      item.actionsEl.classList.remove('hidden');
+      const thumbLink = document.createElement('a');
+      thumbLink.className = 'row-thumb';
+      if (entry.url) {
+        thumbLink.href = entry.url;
+        thumbLink.target = '_blank';
+        thumbLink.rel = 'noopener';
+      }
+
+      const img = document.createElement('img');
+      img.src = entry.thumbnailUrl;
+      img.alt = '';
+      img.className = 'row-img';
+      thumbLink.appendChild(img);
+
+      const name = document.createElement('span');
+      name.className = 'row-name';
+      name.textContent = entry.name;
+      name.title = entry.name;
+
+      const detail = document.createElement('span');
+      detail.className = 'row-detail';
+      detail.appendChild(sizeFragment(entry));
+
+      const meta = document.createElement('div');
+      meta.className = 'row-meta';
+      meta.appendChild(name);
+      meta.appendChild(detail);
+
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      if (entry.id) {
+        const editLink = document.createElement('a');
+        editLink.className = 'tile-action';
+        // Built here rather than in PHP: esc_js() would double-encode the ampersand.
+        editLink.href = EDIT_URL + '?post=' + encodeURIComponent(entry.id) + '&action=edit';
+        editLink.target = '_blank';
+        editLink.rel = 'noopener';
+        editLink.innerHTML = ICON_EDIT;
+        editLink.appendChild(document.createTextNode(TXT.edit));
+        actions.appendChild(editLink);
+      }
+
+      if (entry.url) {
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'tile-action';
+        const setLabel = function (text) {
+          copyBtn.innerHTML = ICON_COPY;
+          copyBtn.appendChild(document.createTextNode(text));
+        };
+        setLabel(TXT.copyUrl);
+        copyBtn.onclick = function () {
+          copyText(entry.url, function (ok) {
+            setLabel(ok ? TXT.copied : TXT.copyFailed);
+            copyBtn.classList.toggle('is-copied', ok);
+            setTimeout(function () {
+              setLabel(TXT.copyUrl);
+              copyBtn.classList.remove('is-copied');
+            }, 1500);
+          });
+        };
+        actions.appendChild(copyBtn);
+      }
+
+      row.appendChild(thumbLink);
+      row.appendChild(meta);
+      row.appendChild(actions);
+      uploadedList.appendChild(row);
+      refreshLayout();
+    }
+
+    function sizeFragment(entry) {
+      const frag = document.createDocumentFragment();
+
+      const before = document.createElement('span');
+      before.className = 'size-before';
+      before.textContent = formatBytes(entry.originalSize);
+      frag.appendChild(before);
+
+      frag.appendChild(document.createTextNode(' → '));
+
+      const after = document.createElement('span');
+      after.className = 'size-after';
+      after.textContent = formatBytes(entry.newSize);
+      frag.appendChild(after);
+
+      if (entry.originalSize > 0 && entry.newSize < entry.originalSize) {
+        const saved = document.createElement('span');
+        saved.className = 'size-saved';
+        saved.textContent = '-' + Math.round((1 - entry.newSize / entry.originalSize) * 100) + '%';
+        frag.appendChild(saved);
+      }
+
+      if (entry.width && entry.height) {
+        const dims = document.createElement('span');
+        dims.className = 'row-dims';
+        dims.textContent = entry.width + ' × ' + entry.height;
+        frag.appendChild(dims);
+      }
+
+      return frag;
     }
 
     function copyText(text, callback) {
@@ -888,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showMessage(file.name + ' ' + TXT.notImage, 'error');
         return false;
       }
-      const duplicate = items.some(function (it) {
+      const duplicate = queueItems.some(function (it) {
         return it.file.name === file.name && it.file.size === file.size && it.status !== 'error';
       });
       if (duplicate) { return false; }
@@ -897,12 +1108,9 @@ document.addEventListener('DOMContentLoaded', function () {
         id: generateId(),
         file: file,
         thumbnailUrl: URL.createObjectURL(file),
-        status: 'pending',
-        blob: null,
-        outName: null
+        status: 'pending'
       };
-      items.push(item);
-      buildTile(item);
+      buildQueueRow(item);
       queue.push(item);
       return true;
     }
@@ -921,10 +1129,9 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ---------- Processing ---------- */
 
     function currentSettings() {
-      const width  = parseInt(resizeWidthInput.value, 10);
-      const format = currentFormat;
+      const width = parseInt(resizeWidthInput.value, 10);
       let quality;
-      if (format === 'image/png') {
+      if (currentFormat === 'image/png') {
         quality = undefined;
       } else {
         const q = parseInt(qualityInput.value, 10);
@@ -932,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       return {
         width: (!isNaN(width) && width > 0) ? width : null,
-        format: format,
+        format: currentFormat,
         quality: quality
       };
     }
@@ -941,13 +1148,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (isRunning) { return; }
       isRunning = true;
       batchTotal = batchDone + queue.length;
-      refreshLayout();
 
       while (queue.length > 0) {
         const item = queue.shift();
         const settings = currentSettings();
 
-        setTileState(item, 'working', TXT.optimizing);
+        setQueueState(item, 'working', TXT.optimizing);
         updateProgress();
 
         let converted = null;
@@ -960,27 +1166,35 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!converted) {
           batchFail++;
           batchDone++;
-          setTileState(item, 'error', TXT.convertFail);
+          setQueueState(item, 'error', TXT.convertFail);
           updateProgress();
           continue;
         }
 
-        item.blob = converted.blob;
-        item.outName = converted.name;
-
-        setTileState(item, 'working', TXT.uploading);
+        setQueueState(item, 'working', TXT.uploading);
         const result = await saveImageToMediaLibrary(converted.blob, converted.name);
 
         batchDone++;
         if (result && result.success) {
           batchOk++;
-          item.attachmentId  = result.data ? result.data.id : null;
-          item.attachmentUrl = result.data ? result.data.url : '';
-          setTileState(item, 'done', formatBytes(item.file.size) + ' -> ' + formatBytes(converted.blob.size));
-          buildTileActions(item);
+          // wp_send_json_success() nests the payload under "data"; fall back to the
+          // top level so a plain { success, id, url } response also works.
+          const payload = (result.data && typeof result.data === 'object') ? result.data : result;
+          removeQueueRow(item);
+          addUploadedRow({
+            name:         converted.name,
+            thumbnailUrl: item.thumbnailUrl,
+            blob:         converted.blob,
+            originalSize: item.file.size,
+            newSize:      converted.blob.size,
+            width:        converted.width,
+            height:       converted.height,
+            id:           payload.id || null,
+            url:          payload.url || ''
+          });
         } else {
           batchFail++;
-          setTileState(item, 'error', TXT.uploadFail);
+          setQueueState(item, 'error', TXT.uploadFail);
         }
         updateProgress();
 
@@ -1054,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', function () {
           if (!blob) { resolve(null); return; }
           const base = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
           const ext  = (settings.format === 'image/jpeg') ? 'jpg' : settings.format.split('/')[1];
-          resolve({ blob: blob, name: base + '.' + ext });
+          resolve({ blob: blob, name: base + '.' + ext, width: canvas.width, height: canvas.height });
         };
 
         const args = [done, settings.format];
@@ -1142,36 +1356,50 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     };
 
-    clearAllLink.onclick = function (e) {
-      e.preventDefault();
-      if (isRunning) { return; }
-      items.forEach(function (it) {
-        if (it.thumbnailUrl && it.thumbnailUrl.indexOf('blob:') === 0) {
-          URL.revokeObjectURL(it.thumbnailUrl);
-        }
+    copyAllButton.onclick = function () {
+      const urls = uploaded.filter(function (it) { return !!it.url; })
+                           .map(function (it) { return it.url; })
+                           .join('\n');
+      if (!urls) { return; }
+      copyText(urls, function (ok) {
+        copyAllButton.textContent = ok ? TXT.allCopied : TXT.copyFailed;
+        copyAllButton.classList.toggle('is-copied', ok);
+        setTimeout(function () {
+          copyAllButton.textContent = TXT.copyAll;
+          copyAllButton.classList.remove('is-copied');
+        }, 1500);
       });
-      items = [];
-      queue = [];
-      previewList.innerHTML = '';
-      messageArea.innerHTML = '';
-      refreshLayout();
     };
 
-    downloadAllLink.onclick = function (e) {
-      e.preventDefault();
-      const ready = items.filter(function (it) { return it.status === 'done' && it.blob; });
+    downloadAllButton.onclick = function () {
+      const ready = uploaded.filter(function (it) { return !!it.blob; });
       if (ready.length === 0) { return; }
-      if (ready.length > 5) {
+      if (ready.length > 5 && typeof JSZip !== 'undefined') {
         const zip = new JSZip();
-        ready.forEach(function (it) { zip.file(it.outName, it.blob); });
+        ready.forEach(function (it) { zip.file(it.name, it.blob); });
         zip.generateAsync({ type: 'blob' }).then(function (content) {
           saveAs(content, 'optimized-images.zip');
         });
       } else {
         ready.forEach(function (it, idx) {
-          setTimeout(function () { saveAs(it.blob, it.outName); }, idx * 200);
+          setTimeout(function () { saveAs(it.blob, it.name); }, idx * 200);
         });
       }
+    };
+
+    clearListButton.onclick = function () {
+      if (isRunning) { return; }
+      uploaded.forEach(function (it) {
+        if (it.thumbnailUrl && it.thumbnailUrl.indexOf('blob:') === 0) {
+          URL.revokeObjectURL(it.thumbnailUrl);
+        }
+      });
+      uploaded = [];
+      uploadedList.innerHTML = '';
+      queueItems.slice().forEach(removeQueueRow);
+      queue = [];
+      messageArea.innerHTML = '';
+      refreshLayout();
     };
 
     refreshLayout();
