@@ -76,24 +76,77 @@ function snn_render_wp_admin_image_optimization_section() {
   /* General & App Layout */
   .snn-wp-admin-image-optimize-container .app-container {
     margin: 20px 0;
+    max-width: 900px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    border-radius: 4px;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
   }
   .snn-wp-admin-image-optimize-container .hidden {
     display: none;
   }
 
-  /* Upload Area */
-  .snn-wp-admin-image-optimize-container #uploadAreaWrapper {
-    margin-bottom: 24px;
+  /* Settings Row */
+  .snn-wp-admin-image-optimize-container .settings-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 16px;
   }
+  @media (min-width: 768px) {
+    .snn-wp-admin-image-optimize-container .settings-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .snn-wp-admin-image-optimize-container .form-label {
+    display: block;
+    font-weight: 500;
+    color: #1d2327;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .snn-wp-admin-image-optimize-container .form-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    background: #fff;
+    color: #2c3338;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .snn-wp-admin-image-optimize-container .form-input:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+  }
+  .snn-wp-admin-image-optimize-container select.form-input {
+    max-width: 100%;
+  }
+  .snn-wp-admin-image-optimize-container .quality-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .snn-wp-admin-image-optimize-container .quality-row input[type="range"] {
+    flex: 1;
+    margin: 0;
+  }
+  .snn-wp-admin-image-optimize-container #qualityValue {
+    min-width: 42px;
+    font-size: 13px;
+    color: #50575e;
+    font-variant-numeric: tabular-nums;
+  }
+  .snn-wp-admin-image-optimize-container #qualityField.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* Upload Area */
   .snn-wp-admin-image-optimize-container #uploadArea {
     border: 2px dashed #c3c4c7;
     border-radius: 4px;
     cursor: pointer;
     background-color: #f6f7f7;
-    position: relative;
     min-height: 150px;
     display: flex;
     flex-direction: column;
@@ -101,7 +154,7 @@ function snn_render_wp_admin_image_optimization_section() {
     align-items: center;
     transition: border-color 200ms, background-color 200ms;
   }
-  .snn-wp-admin-image-optimize-container #uploadArea:hover, 
+  .snn-wp-admin-image-optimize-container #uploadArea:hover,
   .snn-wp-admin-image-optimize-container #uploadArea.drag-over {
     border-color: #2271b1;
     background-color: #f0f6fc;
@@ -111,33 +164,43 @@ function snn_render_wp_admin_image_optimization_section() {
     text-align: center;
   }
   .snn-wp-admin-image-optimize-container .upload-icon {
-    height: 48px;
-    width: 48px;
+    height: 44px;
+    width: 44px;
     margin: 0 auto 8px auto;
     color: #646970;
   }
   .snn-wp-admin-image-optimize-container .upload-text {
     color: #50575e;
     font-size: 14px;
+    margin: 0;
   }
   .snn-wp-admin-image-optimize-container .upload-text-highlight {
     font-weight: 600;
     color: #2271b1;
   }
-  .snn-wp-admin-image-optimize-container .upload-subtext {
-    font-size: 13px;
+  .snn-wp-admin-image-optimize-container .upload-hint {
+    font-size: 12px;
     color: #646970;
-    margin-top: 4px;
+    margin: 8px 2px 0 2px;
+  }
+  .snn-wp-admin-image-optimize-container .upload-hint a {
+    cursor: pointer;
+  }
+  .snn-wp-admin-image-optimize-container .upload-hint .sep {
+    margin: 0 6px;
+    color: #c3c4c7;
   }
 
   /* File Previews */
   .snn-wp-admin-image-optimize-container #selectedFilesPreview {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
     padding: 16px;
     overflow-y: auto;
-    max-height: 300px;
+    max-height: 340px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .snn-wp-admin-image-optimize-container .preview-item {
     position: relative;
@@ -148,19 +211,32 @@ function snn_render_wp_admin_image_optimization_section() {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 128px;
-    transition: box-shadow 150ms;
+    width: 124px;
   }
-  .snn-wp-admin-image-optimize-container .preview-item:hover {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+  .snn-wp-admin-image-optimize-container .preview-thumb {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin-bottom: 6px;
   }
   .snn-wp-admin-image-optimize-container .preview-img {
     width: 96px;
     height: 96px;
     object-fit: contain;
     border-radius: 2px;
-    margin-bottom: 4px;
     background-color: #f6f7f7;
+    display: block;
+  }
+  .snn-wp-admin-image-optimize-container .preview-item.is-pending .preview-img,
+  .snn-wp-admin-image-optimize-container .preview-item.is-working .preview-img {
+    opacity: 0.45;
+  }
+  .snn-wp-admin-image-optimize-container .thumb-badge {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .snn-wp-admin-image-optimize-container .preview-name {
     display: block;
@@ -172,171 +248,38 @@ function snn_render_wp_admin_image_optimization_section() {
     width: 100%;
     text-align: center;
   }
-  .snn-wp-admin-image-optimize-container .remove-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: #d63638;
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 150ms;
-    border: none;
-    cursor: pointer;
-  }
-  .snn-wp-admin-image-optimize-container .preview-item:hover .remove-btn, 
-  .snn-wp-admin-image-optimize-container .remove-btn:focus {
-    opacity: 1;
-  }
-  .snn-wp-admin-image-optimize-container .remove-btn:focus {
-     box-shadow: 0 0 0 2px #d63638;
-  }
-  
-  /* Clear All Button */
-  .snn-wp-admin-image-optimize-container #clearAllButton {
-    margin-top: 8px;
-    width: auto;
-    color: #d63638;
-    background-color: transparent;
-    font-weight: 500;
-    padding: 8px 12px;
-    border-radius: 3px;
-    border: 1px solid #d63638;
-    transition: color 150ms, background-color 150ms;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .snn-wp-admin-image-optimize-container #clearAllButton:hover {
-    color: #fff;
-    background-color: #d63638;
-  }
-  
-  /* Form & Inputs */
-  .snn-wp-admin-image-optimize-container #imageForm {
-    margin-bottom: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-  .snn-wp-admin-image-optimize-container .form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    align-items: end;
-  }
-  @media (min-width: 768px) {
-    .snn-wp-admin-image-optimize-container .form-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  .snn-wp-admin-image-optimize-container .form-label {
+  .snn-wp-admin-image-optimize-container .preview-status {
     display: block;
-    font-weight: 500;
-    color: #1d2327;
-    margin-bottom: 4px;
-    font-size: 14px;
-  }
-  .snn-wp-admin-image-optimize-container .form-input {
+    font-size: 11px;
+    text-align: center;
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #8c8f94;
-    border-radius: 3px;
-    transition: border-color 150ms, box-shadow 150ms;
-    background: #fff;
-    color: #2c3338;
-    font-size: 14px;
+    margin-top: 2px;
+    color: #646970;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .snn-wp-admin-image-optimize-container .form-input:focus {
-    outline: none;
-    border-color: #2271b1;
-    box-shadow: 0 0 0 1px #2271b1;
+  .snn-wp-admin-image-optimize-container .preview-item.is-done .preview-status {
+    color: #00812e;
   }
-  .snn-wp-admin-image-optimize-container select.form-input {
-    background-color: #fff;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><polygon fill='%23646970' points='6,8 14,8 10,12'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px 16px;
-    padding-right: 32px;
-    max-width:100%;
+  .snn-wp-admin-image-optimize-container .preview-item.is-error .preview-status {
+    color: #d63638;
   }
-  .snn-wp-admin-image-optimize-container #qualityInputContainer.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  /* Buttons */
-  .snn-wp-admin-image-optimize-container #convertButton {
-    width: 100%;
-    background-color: #2271b1;
-    color: white;
-    font-weight: 500;
-    padding: 12px 24px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 150ms ease-in-out;
-    font-size: 14px;
-  }
-  .snn-wp-admin-image-optimize-container #convertButton:hover {
-    background-color: #135e96;
-  }
-  .snn-wp-admin-image-optimize-container #convertButton:focus {
-    outline: 2px solid #2271b1;
-    outline-offset: 2px;
-  }
-  .snn-wp-admin-image-optimize-container #convertButton:disabled {
-    opacity: 0.7;
-    cursor: wait;
+  .snn-wp-admin-image-optimize-container .preview-item.is-error {
+    border-color: #d63638;
   }
 
-  /* Button Container */
-  .snn-wp-admin-image-optimize-container .button-container {
-    display: flex;
-    gap: 12px;
-    width: 100%;
+  /* Spinner */
+  .snn-wp-admin-image-optimize-container .spinner-dark {
+    border: 2px solid rgba(34, 113, 177, 0.25);
+    border-radius: 50%;
+    border-top-color: #2271b1;
+    width: 22px;
+    height: 22px;
+    animation: snnspin 0.9s linear infinite;
   }
-  .snn-wp-admin-image-optimize-container .button-container button {
-    flex: 1;
-  }
-
-  /* Save to Media Library Button */
-  .snn-wp-admin-image-optimize-container #saveToMediaButton {
-    background-color: #00a32a;
-    color: white;
-    font-weight: 500;
-    padding: 12px 24px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 150ms ease-in-out;
-    font-size: 14px;
-  }
-  .snn-wp-admin-image-optimize-container #saveToMediaButton:hover {
-    background-color: #008a20;
-  }
-  .snn-wp-admin-image-optimize-container #saveToMediaButton:focus {
-    outline: 2px solid #00a32a;
-    outline-offset: 2px;
-  }
-  .snn-wp-admin-image-optimize-container #saveToMediaButton:disabled {
-    opacity: 0.7;
-    cursor: wait;
+  @keyframes snnspin {
+    to { transform: rotate(360deg); }
   }
 
   /* Progress Bar */
@@ -350,28 +293,17 @@ function snn_render_wp_admin_image_optimization_section() {
     border: 1px solid #c3c4c7;
   }
   .snn-wp-admin-image-optimize-container .progress-bar {
-    height: 8px;
+    height: 6px;
     background-color: #2271b1;
-    transition: width 0.1s ease;
+    transition: width 0.15s ease;
     width: 0%;
   }
   .snn-wp-admin-image-optimize-container .progress-text {
     text-align: center;
-    margin-top: 8px;
+    margin: 6px 0 0;
     font-size: 13px;
     color: #2271b1;
     font-weight: 500;
-  }
-  .snn-wp-admin-image-optimize-container .spinner {
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    width: 16px;
-    height: 16px;
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
   }
 
   /* Message Area */
@@ -390,7 +322,7 @@ function snn_render_wp_admin_image_optimization_section() {
     border-left-color: #d63638;
   }
   .snn-wp-admin-image-optimize-container .message.success {
-    color: #00a32a;
+    color: #00812e;
     background-color: #f0f6fc;
     border-left-color: #00a32a;
   }
@@ -399,646 +331,520 @@ function snn_render_wp_admin_image_optimization_section() {
     background-color: #f0f6fc;
     border-left-color: #2271b1;
   }
-
-  /* WordPress admin responsive adjustments */
-  @media screen and (max-width: 782px) {
-    .snn-wp-admin-image-optimize-container .app-container {
-      padding: 15px;
-    }
-    .snn-wp-admin-image-optimize-container .form-grid {
-      grid-template-columns: 1fr;
-    }
-    .snn-wp-admin-image-optimize-container .button-container {
-      flex-direction: column;
-    }
-  }
 </style>
 
 <div class="app-container">
-  <div id="uploadAreaWrapper">
-    <div id="uploadArea">
-      <input type="file" id="imageInput" accept=".png, .jpg, .jpeg, .webp, .jfif" multiple class="hidden" />
 
-      <div id="uploadAreaInitialContent">
-        <svg xmlns="http://www.w3.org/2000/svg" class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-        </svg>
-        <p class="upload-text">
-          <span class="upload-text-highlight">Click to upload</span> or drag and drop images here.
-        </p>
-        <p class="upload-subtext">You can also paste images (Ctrl+V or CMD+V).</p>
-      </div>
-
-      <div id="selectedFilesPreview" class="hidden"></div>
+  <div class="settings-row">
+    <div>
+      <label for="formatSelect" class="form-label"><?php esc_html_e('Output format', 'snn'); ?></label>
+      <select id="formatSelect" class="form-input">
+        <option value="image/jpeg">JPG</option>
+        <option value="image/webp">WebP</option>
+        <option value="image/png">PNG</option>
+      </select>
     </div>
-    <button id="clearAllButton" class="hidden">
-      Clear All Selections
-    </button>
+    <div id="qualityField">
+      <label for="qualityInput" class="form-label"><?php esc_html_e('Quality', 'snn'); ?></label>
+      <div class="quality-row">
+        <input type="range" id="qualityInput" min="10" max="100" step="1" value="85">
+        <span id="qualityValue">85%</span>
+      </div>
+    </div>
+    <div>
+      <label for="resizeWidth" class="form-label"><?php esc_html_e('Max width (px)', 'snn'); ?></label>
+      <input type="number" id="resizeWidth" min="1" step="1" placeholder="<?php esc_attr_e('Original', 'snn'); ?>" class="form-input">
+    </div>
   </div>
 
-  <form id="imageForm">
-    <div class="form-grid">
-      <div>
-        <label for="resizeWidth" class="form-label">Resize Width (px):</label>
-        <input type="number" id="resizeWidth" placeholder="Original" class="form-input">
-      </div>
-      <div>
-        <label for="formatSelect" class="form-label">Output Format:</label>
-        <select id="formatSelect" class="form-input">
-          <option value="image/webp">WebP</option>
-          <option value="image/png">PNG</option>
-          <option value="image/jpeg">JPG</option>
-        </select>
-      </div>
-      <div id="qualityInputContainer">
-        <label for="qualityInput" class="form-label">Quality (0-1):</label>
-        <input type="number" id="qualityInput" min="0" max="1" step="0.01" value="0.85" class="form-input">
-      </div>
+  <div id="uploadArea">
+    <input type="file" id="imageInput" accept=".png, .jpg, .jpeg, .webp, .jfif" multiple class="hidden" />
+    <div id="uploadAreaInitialContent">
+      <svg xmlns="http://www.w3.org/2000/svg" class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+      </svg>
+      <p class="upload-text">
+        <span class="upload-text-highlight"><?php esc_html_e('Click to upload', 'snn'); ?></span> <?php esc_html_e('or drag and drop images', 'snn'); ?>
+      </p>
     </div>
-    <div class="button-container">
-      <button type="submit" id="convertButton">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor" id="convertButtonIcon">
-          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-        </svg>
-        <span id="convertButtonText">Convert and Optimize</span>
-      </button>
-      <button type="button" id="saveToMediaButton" class="hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor" id="saveToMediaButtonIcon">
-          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-        <span id="saveToMediaButtonText">Save to Media Library</span>
-      </button>
-    </div>
-    <div class="progress-container" id="progressContainer">
-      <div class="progress-bar" id="progressBar"></div>
-      <div class="progress-text" id="progressText"></div>
-    </div>
-  </form>
+    <div id="selectedFilesPreview" class="hidden"></div>
+  </div>
+
+  <p class="upload-hint">
+    <span><?php esc_html_e('Images are optimized and added to the Media Library right away. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></span>
+    <span id="resultActions" class="hidden"><span class="sep">|</span><a href="#" id="downloadAllLink"><?php esc_html_e('Download optimized copies', 'snn'); ?></a><span class="sep">|</span><a href="#" id="clearAllLink"><?php esc_html_e('Clear list', 'snn'); ?></a></span>
+  </p>
+
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="progress-text" id="progressText"></div>
 
   <div id="messageArea"></div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const imageInput = document.getElementById('imageInput');
-    const uploadArea = document.getElementById('uploadArea');
-    const uploadAreaInitialContent = document.getElementById('uploadAreaInitialContent');
-    const selectedFilesPreview = document.getElementById('selectedFilesPreview');
-    const clearAllButton = document.getElementById('clearAllButton');
-    const imageForm = document.getElementById('imageForm');
-    const resizeWidthInput = document.getElementById('resizeWidth');
-    const formatSelect = document.getElementById('formatSelect');
-    const qualityInput = document.getElementById('qualityInput');
-    const qualityInputContainer = document.getElementById('qualityInputContainer');
-    const messageArea = document.getElementById('messageArea');
-    const convertButton = document.getElementById('convertButton');
-    const convertButtonText = document.getElementById('convertButtonText');
-    const convertButtonIcon = document.getElementById('convertButtonIcon');
-    const saveToMediaButton = document.getElementById('saveToMediaButton');
-    const saveToMediaButtonText = document.getElementById('saveToMediaButtonText');
-    const saveToMediaButtonIcon = document.getElementById('saveToMediaButtonIcon');
+    const imageInput        = document.getElementById('imageInput');
+    const uploadArea        = document.getElementById('uploadArea');
+    const initialContent    = document.getElementById('uploadAreaInitialContent');
+    const previewList       = document.getElementById('selectedFilesPreview');
+    const formatSelect      = document.getElementById('formatSelect');
+    const qualityInput      = document.getElementById('qualityInput');
+    const qualityValue      = document.getElementById('qualityValue');
+    const qualityField      = document.getElementById('qualityField');
+    const resizeWidthInput  = document.getElementById('resizeWidth');
+    const messageArea       = document.getElementById('messageArea');
     const progressContainer = document.getElementById('progressContainer');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
+    const progressBar       = document.getElementById('progressBar');
+    const progressText      = document.getElementById('progressText');
+    const resultActions     = document.getElementById('resultActions');
+    const downloadAllLink   = document.getElementById('downloadAllLink');
+    const clearAllLink      = document.getElementById('clearAllLink');
 
-    let selectedFiles = [];
+    const STORAGE_KEY = 'snnOptimizeMediaSettings';
+    const AJAX_URL    = '<?php echo esc_js( admin_url('admin-ajax.php') ); ?>';
+    const NONCE       = '<?php echo esc_js( wp_create_nonce('snn_save_image_nonce') ); ?>';
+
+    const TXT = {
+        waiting:    '<?php echo esc_js( __('Waiting', 'snn') ); ?>',
+        optimizing: '<?php echo esc_js( __('Optimizing...', 'snn') ); ?>',
+        uploading:  '<?php echo esc_js( __('Uploading...', 'snn') ); ?>',
+        convertFail:'<?php echo esc_js( __('Could not optimize', 'snn') ); ?>',
+        uploadFail: '<?php echo esc_js( __('Upload failed', 'snn') ); ?>',
+        notImage:   '<?php echo esc_js( __('is not an image and was skipped.', 'snn') ); ?>',
+        processing: '<?php echo esc_js( __('Processing', 'snn') ); ?>',
+        allDone:    '<?php echo esc_js( __('image(s) optimized and added to the Media Library.', 'snn') ); ?>',
+        partial:    '<?php echo esc_js( __('image(s) added to the Media Library, failed:', 'snn') ); ?>',
+        noneDone:   '<?php echo esc_js( __('No images could be processed. Please try again.', 'snn') ); ?>'
+    };
+
+    let items     = [];
+    let queue     = [];
+    let isRunning = false;
+    let batchTotal = 0;
+    let batchDone  = 0;
+    let batchOk    = 0;
+    let batchFail  = 0;
+
+    /* ---------- Settings (remembered in localStorage) ---------- */
+
+    function loadSettings() {
+      let saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      } catch (err) {
+        saved = null;
+      }
+      if (saved) {
+        if (saved.format && formatSelect.querySelector('option[value="' + saved.format + '"]')) {
+          formatSelect.value = saved.format;
+        }
+        const q = parseInt(saved.quality, 10);
+        if (!isNaN(q) && q >= 10 && q <= 100) {
+          qualityInput.value = q;
+        }
+        const w = parseInt(saved.width, 10);
+        if (!isNaN(w) && w > 0) {
+          resizeWidthInput.value = w;
+        }
+      }
+      syncQualityUI();
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          format:  formatSelect.value,
+          quality: qualityInput.value,
+          width:   resizeWidthInput.value
+        }));
+      } catch (err) {
+        /* storage unavailable: settings simply are not remembered */
+      }
+    }
+
+    function syncQualityUI() {
+      qualityValue.textContent = qualityInput.value + '%';
+      qualityField.classList.toggle('disabled', formatSelect.value === 'image/png');
+    }
+
+    formatSelect.onchange     = function () { syncQualityUI(); saveSettings(); };
+    qualityInput.oninput      = syncQualityUI;
+    qualityInput.onchange     = saveSettings;
+    resizeWidthInput.onchange = saveSettings;
+
+    loadSettings();
+
+    /* ---------- Helpers ---------- */
 
     function generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
 
-    function showMessage(message, type = 'info') {
+    function formatBytes(bytes) {
+      if (bytes < 1024) { return bytes + ' B'; }
+      if (bytes < 1048576) { return Math.round(bytes / 1024) + ' KB'; }
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function showMessage(message, type) {
       messageArea.innerHTML = '';
       const p = document.createElement('p');
       p.textContent = message;
-      p.classList.add('message', type);
+      p.classList.add('message', type || 'info');
       messageArea.appendChild(p);
-      setTimeout(() => {
-        if (messageArea.contains(p)) {
-          messageArea.removeChild(p);
-        }
-      }, 7000);
     }
 
-    function updateUploadAreaDisplay() {
-      if (selectedFiles.length === 0) {
-        uploadAreaInitialContent.classList.remove('hidden');
-        selectedFilesPreview.classList.add('hidden');
-        selectedFilesPreview.innerHTML = '';
-        uploadArea.style.display = 'flex';
-        clearAllButton.classList.add('hidden');
-      } else {
-        uploadAreaInitialContent.classList.add('hidden');
-        selectedFilesPreview.classList.remove('hidden');
-        uploadArea.style.display = 'block';
-        clearAllButton.classList.remove('hidden');
-      }
+    function refreshLayout() {
+      const hasItems = items.length > 0;
+      initialContent.classList.toggle('hidden', hasItems);
+      previewList.classList.toggle('hidden', !hasItems);
+      uploadArea.style.display = hasItems ? 'block' : 'flex';
+      resultActions.classList.toggle('hidden', !hasItems || isRunning);
+      const hasBlobs = items.some(function (it) { return it.status === 'done' && it.blob; });
+      downloadAllLink.style.display = hasBlobs ? '' : 'none';
     }
 
-    function updateQualityInputState() {
-      if (formatSelect.value === 'image/png') {
-        qualityInput.disabled = true;
-        qualityInputContainer.classList.add('disabled');
-        qualityInput.value = '';
-        qualityInput.placeholder = 'N/A for PNG';
-      } else {
-        qualityInput.disabled = false;
-        qualityInputContainer.classList.remove('disabled');
-        qualityInput.placeholder = '0.0 - 1.0';
-        if (!qualityInput.value) {
-          qualityInput.value = '0.85';
-        }
-      }
+    /* ---------- Preview tiles ---------- */
+
+    function buildTile(item) {
+      const tile = document.createElement('div');
+      tile.className = 'preview-item is-pending';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'preview-thumb';
+
+      const img = document.createElement('img');
+      img.src = item.thumbnailUrl;
+      img.alt = item.file.name;
+      img.className = 'preview-img';
+
+      const badge = document.createElement('div');
+      badge.className = 'thumb-badge';
+
+      thumb.appendChild(img);
+      thumb.appendChild(badge);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'preview-name';
+      nameSpan.textContent = item.file.name;
+      nameSpan.title = item.file.name;
+
+      const statusSpan = document.createElement('span');
+      statusSpan.className = 'preview-status';
+
+      tile.appendChild(thumb);
+      tile.appendChild(nameSpan);
+      tile.appendChild(statusSpan);
+      previewList.appendChild(tile);
+
+      item.el        = tile;
+      item.badge     = badge;
+      item.statusEl  = statusSpan;
+      setTileState(item, 'pending', TXT.waiting);
     }
 
-    updateUploadAreaDisplay();
-    updateQualityInputState();
-
-    function renderPreviews() {
-      selectedFilesPreview.innerHTML = '';
-      if (selectedFiles.length === 0) {
-        updateUploadAreaDisplay();
-        return;
-      }
-
-      selectedFiles.forEach(fileObj => {
-        const previewElement = document.createElement('div');
-        previewElement.className = 'preview-item';
-        previewElement.setAttribute('aria-label', `Preview of ${fileObj.file.name}`);
-
-        const img = document.createElement('img');
-        img.src = fileObj.thumbnailUrl;
-        img.alt = `Preview of ${fileObj.file.name}`;
-        img.className = 'preview-img';
-        img.onerror = function() {
-          img.src = `https://placehold.co/96x96/f6f7f7/646970?text=Preview N/A`;
-          img.alt = `Preview not available for ${fileObj.file.name}`;
-        };
-
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = fileObj.file.name;
-        nameSpan.className = 'preview-name';
-
-        const removeButton = document.createElement('button');
-        removeButton.innerHTML = '&times;';
-        removeButton.className = 'remove-btn';
-        removeButton.setAttribute('aria-label', `Remove ${fileObj.file.name}`);
-        removeButton.dataset.id = fileObj.id;
-        removeButton.onclick = (e) => {
-          e.stopPropagation();
-          removeFile(fileObj.id);
-        };
-
-        previewElement.appendChild(img);
-        previewElement.appendChild(nameSpan);
-        previewElement.appendChild(removeButton);
-        selectedFilesPreview.appendChild(previewElement);
-      });
-      updateUploadAreaDisplay();
+    function setTileState(item, state, text) {
+      item.status = state;
+      if (!item.el) { return; }
+      item.el.className = 'preview-item is-' + state;
+      item.statusEl.textContent = text || '';
+      item.statusEl.title = text || '';
+      item.badge.innerHTML = (state === 'working') ? '<div class="spinner-dark"></div>' : '';
     }
+
+    /* ---------- File intake ---------- */
 
     function addFile(file) {
-      if (!file.type || !file.type.startsWith('image/')) {
-        showMessage(`Skipped non-image file or file with unknown type: ${file.name}`, 'error');
-        return;
+      if (!file.type || file.type.indexOf('image/') !== 0) {
+        showMessage(file.name + ' ' + TXT.notImage, 'error');
+        return false;
       }
-      if (selectedFiles.some(sf => sf.file.name === file.name && sf.file.size === file.size)) {
-        showMessage(`File "${file.name}" is already selected.`, 'info');
-        return;
-      }
-
-      const id = generateId();
-      const thumbnailUrl = URL.createObjectURL(file);
-
-      selectedFiles.push({
-        id: id,
-        file: file,
-        thumbnailUrl: thumbnailUrl
+      const duplicate = items.some(function (it) {
+        return it.file.name === file.name && it.file.size === file.size && it.status !== 'error';
       });
-      renderPreviews();
+      if (duplicate) { return false; }
+
+      const item = {
+        id: generateId(),
+        file: file,
+        thumbnailUrl: URL.createObjectURL(file),
+        status: 'pending',
+        blob: null,
+        outName: null
+      };
+      items.push(item);
+      buildTile(item);
+      queue.push(item);
+      return true;
     }
 
     function handleFiles(files) {
+      if (!files || files.length === 0) { return; }
       messageArea.innerHTML = '';
-      if (files.length === 0) {
-        return;
-      }
-      Array.from(files).forEach(addFile);
+      let added = 0;
+      Array.from(files).forEach(function (file) {
+        if (addFile(file)) { added++; }
+      });
+      refreshLayout();
+      if (added > 0) { runQueue(); }
     }
 
-    function removeFile(id) {
-      const fileIndex = selectedFiles.findIndex(fileObj => fileObj.id === id);
-      if (fileIndex > -1) {
-        const fileObj = selectedFiles[fileIndex];
-        if (fileObj.thumbnailUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(fileObj.thumbnailUrl);
-        }
-        selectedFiles.splice(fileIndex, 1);
-      }
-      renderPreviews();
-      if (selectedFiles.length === 0) {
-        showMessage('All files removed from selection.', 'info');
-      }
-    }
+    /* ---------- Processing ---------- */
 
-    function setConvertingState(isConverting) {
-      if (isConverting) {
-        convertButton.disabled = true;
-        convertButtonText.textContent = 'Converting...';
-        convertButtonIcon.innerHTML = '<div class="spinner"></div>';
+    function currentSettings() {
+      const width  = parseInt(resizeWidthInput.value, 10);
+      const format = formatSelect.value;
+      let quality;
+      if (format === 'image/png') {
+        quality = undefined;
       } else {
-        convertButton.disabled = false;
-        convertButtonText.textContent = 'Convert and Optimize';
-        convertButtonIcon.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-          </svg>`;
+        const q = parseInt(qualityInput.value, 10);
+        quality = (isNaN(q) ? 85 : q) / 100;
       }
+      return {
+        width: (!isNaN(width) && width > 0) ? width : null,
+        format: format,
+        quality: quality
+      };
     }
 
-    uploadArea.onclick = (e) => {
-      if (e.target.closest('button[data-id]')) {
-        return;
+    async function runQueue() {
+      if (isRunning) { return; }
+      isRunning = true;
+      batchTotal = batchDone + queue.length;
+      refreshLayout();
+
+      while (queue.length > 0) {
+        const item = queue.shift();
+        const settings = currentSettings();
+
+        setTileState(item, 'working', TXT.optimizing);
+        updateProgress();
+
+        let converted = null;
+        try {
+          converted = await convertFile(item.file, settings);
+        } catch (err) {
+          converted = null;
+        }
+
+        if (!converted) {
+          batchFail++;
+          batchDone++;
+          setTileState(item, 'error', TXT.convertFail);
+          updateProgress();
+          continue;
+        }
+
+        item.blob = converted.blob;
+        item.outName = converted.name;
+
+        setTileState(item, 'working', TXT.uploading);
+        const result = await saveImageToMediaLibrary(converted.blob, converted.name);
+
+        batchDone++;
+        if (result && result.success) {
+          batchOk++;
+          setTileState(item, 'done', formatBytes(item.file.size) + ' -> ' + formatBytes(converted.blob.size));
+        } else {
+          batchFail++;
+          setTileState(item, 'error', TXT.uploadFail);
+        }
+        updateProgress();
+
+        // Give the browser a breath between requests.
+        await new Promise(function (r) { setTimeout(r, 100); });
       }
+
+      isRunning = false;
+      finishBatch();
+    }
+
+    function updateProgress() {
+      if (batchTotal === 0) { return; }
+      progressContainer.style.display = 'block';
+      progressBar.style.width = Math.round((batchDone / batchTotal) * 100) + '%';
+      progressText.textContent = (batchDone < batchTotal)
+        ? TXT.processing + ' ' + Math.min(batchDone + 1, batchTotal) + '/' + batchTotal
+        : '';
+    }
+
+    function finishBatch() {
+      progressContainer.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressText.textContent = '';
+
+      if (batchOk > 0 && batchFail === 0) {
+        showMessage(batchOk + ' ' + TXT.allDone, 'success');
+      } else if (batchOk > 0) {
+        showMessage(batchOk + ' ' + TXT.partial + ' ' + batchFail, 'error');
+      } else if (batchFail > 0) {
+        showMessage(TXT.noneDone, 'error');
+      }
+
+      batchTotal = 0;
+      batchDone  = 0;
+      batchOk    = 0;
+      batchFail  = 0;
+      refreshLayout();
+    }
+
+    /* ---------- Conversion ---------- */
+
+    function convertFile(file, settings) {
+      return new Promise(function (resolve) {
+        const reader = new FileReader();
+        reader.onload  = function (event) { convertImage(event.target.result, file.name, settings, resolve); };
+        reader.onerror = function () { resolve(null); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function convertImage(imageUrl, originalFileName, settings, resolve) {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        let scale = 1;
+        if (settings.width && img.width > settings.width) {
+          scale = settings.width / img.width;
+        }
+        canvas.width  = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+
+        const ctx = canvas.getContext('2d');
+        if (settings.format === 'image/jpeg') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const done = function (blob) {
+          if (!blob) { resolve(null); return; }
+          const base = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
+          const ext  = (settings.format === 'image/jpeg') ? 'jpg' : settings.format.split('/')[1];
+          resolve({ blob: blob, name: base + '.' + ext });
+        };
+
+        const args = [done, settings.format];
+        if (settings.quality !== undefined && settings.format !== 'image/png') {
+          args.push(settings.quality);
+        }
+        try {
+          canvas.toBlob.apply(canvas, args);
+        } catch (error) {
+          resolve(null);
+        }
+      };
+      img.onerror = function () { resolve(null); };
+      img.src = imageUrl;
+    }
+
+    /* ---------- Upload ---------- */
+
+    function saveImageToMediaLibrary(blob, filename) {
+      return new Promise(function (resolve) {
+        const formData = new FormData();
+        formData.append('action', 'snn_save_optimized_image');
+        formData.append('image', blob, filename);
+        formData.append('filename', filename);
+        formData.append('skip_metadata', 'true');
+        formData.append('nonce', NONCE);
+
+        const controller = new AbortController();
+        const timeoutId  = setTimeout(function () { controller.abort(); }, 60000);
+
+        fetch(AJAX_URL, { method: 'POST', body: formData, signal: controller.signal })
+          .then(function (response) { clearTimeout(timeoutId); return response.json(); })
+          .then(function (data) { resolve(data); })
+          .catch(function (error) {
+            clearTimeout(timeoutId);
+            resolve({ success: false, error: error.name === 'AbortError' ? 'timeout' : error.message });
+          });
+      });
+    }
+
+    /* ---------- Interactions ---------- */
+
+    uploadArea.onclick = function () {
+      if (isRunning) { return; }
       imageInput.click();
     };
 
-    clearAllButton.onclick = () => {
-      selectedFiles.forEach(fileObj => {
-        if (fileObj.thumbnailUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(fileObj.thumbnailUrl);
-        }
-      });
-      selectedFiles = [];
-      renderPreviews();
-      showMessage('All selections cleared.', 'info');
-      imageInput.value = null;
-      onSelectionChange();
-    };
-
-    formatSelect.onchange = updateQualityInputState;
-
-    imageInput.onchange = (e) => {
+    imageInput.onchange = function (e) {
       handleFiles(e.target.files);
       imageInput.value = null;
-      onSelectionChange();
     };
 
-    uploadArea.ondragover = (e) => {
+    uploadArea.ondragover = function (e) {
       e.preventDefault();
       uploadArea.classList.add('drag-over');
     };
-    uploadArea.ondragleave = () => {
+    uploadArea.ondragleave = function () {
       uploadArea.classList.remove('drag-over');
     };
-    uploadArea.ondrop = (e) => {
+    uploadArea.ondrop = function (e) {
       e.preventDefault();
       uploadArea.classList.remove('drag-over');
       handleFiles(e.dataTransfer.files);
     };
 
-    document.onpaste = (e) => {
+    document.onpaste = function (e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
         return;
       }
-      const items = (e.clipboardData || window.clipboardData).items;
-      const filesToProcess = [];
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf("image") !== -1) {
-          const blob = items[i].getAsFile();
+      const clipboardItems = (e.clipboardData || window.clipboardData).items;
+      const files = [];
+      for (let i = 0; i < clipboardItems.length; i++) {
+        if (clipboardItems[i].type.indexOf('image') !== -1) {
+          const blob = clipboardItems[i].getAsFile();
           if (blob) {
             const type = blob.type || 'image/png';
-            const extension = type.split('/')[1] || 'png';
-            const fileName = `p-image-${generateId()}.${extension}`;
-            const file = new File([blob], fileName, { type: type });
-            filesToProcess.push(file);
+            const ext  = type.split('/')[1] || 'png';
+            files.push(new File([blob], 'pasted-image-' + generateId() + '.' + ext, { type: type }));
           }
         }
       }
-      if (filesToProcess.length > 0) {
+      if (files.length > 0) {
         e.preventDefault();
-        handleFiles(filesToProcess);
-        showMessage(`${filesToProcess.length} image(s) pasted.`, 'success');
+        handleFiles(files);
       }
     };
 
-    // Store converted blobs for download after conversion
-    let convertedBlobs = [];
-    let conversionDone = false;
-
-    function resetDownloadState() {
-        convertedBlobs = [];
-        conversionDone = false;
-        convertButtonText.textContent = 'Convert and Optimize';
-        convertButton.disabled = false;
-        saveToMediaButton.classList.add('hidden');
-        progressContainer.style.display = 'none';
-    }
-
-    function onSelectionChange() {
-        resetDownloadState();
-    }
-
-    // Convert and Optimize on first click, Download on second click
-    imageForm.onsubmit = (e) => {
+    clearAllLink.onclick = function (e) {
       e.preventDefault();
-      messageArea.innerHTML = '';
-
-      if (!conversionDone) {
-        // Start conversion
-        if (selectedFiles.length === 0) {
-          showMessage('Please select one or more images to convert.', 'error');
-          return;
+      if (isRunning) { return; }
+      items.forEach(function (it) {
+        if (it.thumbnailUrl && it.thumbnailUrl.indexOf('blob:') === 0) {
+          URL.revokeObjectURL(it.thumbnailUrl);
         }
-        setConvertingState(true);
-        const resizeWidth = resizeWidthInput.value ? parseInt(resizeWidthInput.value) : null;
-        if (resizeWidth !== null && (isNaN(resizeWidth) || resizeWidth <= 0)) {
-            showMessage('Invalid resize width. Please enter a positive number or leave blank.', 'error');
-            setConvertingState(false);
-            return;
-        }
-        const format = formatSelect.value;
-        let finalQuality;
-        if (format === 'image/png') {
-          finalQuality = undefined;
-        } else {
-          let parsedQuality = parseFloat(qualityInput.value);
-          if (isNaN(parsedQuality) || parsedQuality < 0 || parsedQuality > 1) {
-            showMessage('Invalid quality value. Using default. Please enter a number between 0.0 and 1.0.', 'error');
-            finalQuality = undefined;
-          } else {
-            finalQuality = parsedQuality;
-          }
-        }
-        let processedCount = 0;
-        let successCount = 0;
-        let errorCount = 0;
-        let collectedBlobs = [];
-        selectedFiles.forEach(fileObj => {
-          processAndConvertFile(fileObj.file, resizeWidth, format, finalQuality, (blob, name) => {
-            processedCount++;
-            if (blob && name) {
-              collectedBlobs.push({ name: name, blob: blob });
-              successCount++;
-            } else {
-              errorCount++;
-            }
-            if (processedCount === selectedFiles.length) {
-              setConvertingState(false);
-              if (successCount > 0) {
-                convertedBlobs = collectedBlobs;
-                conversionDone = true;
-                convertButtonText.textContent = 'Download';
-                convertButton.disabled = false;
-                saveToMediaButton.classList.remove('hidden');
-                showMessage(`Successfully converted ${successCount} image(s). Click 'Download' to save or 'Save to Media Library'.`, 'success');
-              } else {
-                convertedBlobs = [];
-                conversionDone = false;
-                convertButtonText.textContent = 'Convert and Optimize';
-                convertButton.disabled = false;
-                if (errorCount > 0) {
-                  showMessage(`${errorCount} image(s) failed to convert.`, 'error');
-                } else {
-                  showMessage('Conversion process completed, but no files were processed successfully or failed explicitly.', 'info');
-                }
-              }
-            }
-          });
-        });
-      } else {
-        // Download phase
-        if (convertedBlobs.length === 0) {
-          showMessage('No converted images to download.', 'error');
-          return;
-        }
-        if (convertedBlobs.length > 5) {
-          const zip = new JSZip();
-          convertedBlobs.forEach(item => {
-            zip.file(item.name, item.blob);
-          });
-          zip.generateAsync({ type: "blob" })
-            .then(function(content) {
-              saveAs(content, "converted_images.zip");
-              showMessage(`Downloaded ${convertedBlobs.length} images as ZIP.`, 'success');
-              resetDownloadState();
-            })
-            .catch(function (err) {
-              showMessage(`Error creating ZIP file: ${err.message}.`, 'error');
-            });
-        } else {
-          convertedBlobs.forEach((item, idx) => {
-            setTimeout(() => {
-              saveAs(item.blob, item.name);
-            }, idx * 200);
-          });
-          showMessage(`Downloaded ${convertedBlobs.length} image(s).`, 'success');
-          resetDownloadState();
-        }
-      }
-    };
-
-    function processAndConvertFile(file, targetWidth, format, qualityParam, callback) {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        convertImage(event.target.result, file.name, targetWidth, format, qualityParam, callback);
-      };
-      reader.onerror = function() {
-        showMessage(`Error reading file: ${file.name}. It might be corrupted or inaccessible.`, 'error');
-        callback(null, null);
-      }
-      reader.readAsDataURL(file);
-    }
-
-    function convertImage(imageUrl, originalFileName, targetWidth, format, qualityParam, callback) {
-      const img = new Image();
-      img.onload = function () {
-        const canvas = document.createElement('canvas');
-        let scale = 1;
-
-        if (targetWidth && targetWidth > 0 && img.width > 0) {
-          if (img.width > targetWidth) {
-            scale = targetWidth / img.width;
-          }
-        }
-
-        canvas.width = Math.max(1, Math.round(img.width * scale));
-        canvas.height = Math.max(1, Math.round(img.height * scale));
-
-        const ctx = canvas.getContext('2d');
-
-        if (format === 'image/jpeg') {
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const toBlobCallback = function(blobResult) {
-          if (!blobResult) {
-            showMessage(`Error converting ${originalFileName} to ${format}. The image might be too small after resize, corrupted, or the format/quality combination is problematic.`, 'error');
-            callback(null, null);
-            return;
-          }
-          const fileNameWithoutExtension = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
-          const extension = format.split('/')[1];
-          callback(blobResult, `${fileNameWithoutExtension}.${extension}`);
-        };
-
-        const args = [toBlobCallback, format];
-        if (qualityParam !== undefined && (format === 'image/jpeg' || format === 'image/webp')) {
-          args.push(qualityParam);
-        }
-
-        try {
-            if (canvas.width === 0 || canvas.height === 0) {
-                throw new Error("Canvas dimensions are zero.");
-            }
-            canvas.toBlob.apply(canvas, args);
-        } catch (error) {
-            showMessage(`Error during canvas.toBlob for ${originalFileName} (Format: ${format}): ${error.message}. This can happen with very large images, unsupported types, or if canvas dimensions are zero.`, 'error');
-            callback(null, null);
-        }
-      };
-      img.onerror = function() {
-        showMessage(`Could not load image: ${originalFileName}. It might be corrupted, an unsupported format, or a network issue if it was a data URL from a paste.`, 'error');
-        callback(null, null);
-      }
-      img.src = imageUrl;
-    }
-
-    // Save to Media Library functionality
-    saveToMediaButton.onclick = async () => {
-      if (convertedBlobs.length === 0) {
-        showMessage('No converted images to save to media library.', 'error');
-        return;
-      }
-
-      setSavingState(true);
-      showProgress(0, convertedBlobs.length);
-      
-      let successCount = 0;
-      let errorCount = 0;
-      
-      for (let i = 0; i < convertedBlobs.length; i++) {
-        const item = convertedBlobs[i];
-        
-        try {
-          const result = await saveImageToMediaLibrary(item.blob, item.name, i, true);
-          
-          if (result.success) {
-            successCount++;
-          } else {
-            errorCount++;
-            console.error(`Failed to save image ${i + 1}:`, result.error);
-          }
-        } catch (error) {
-          errorCount++;
-          console.error(`Failed to save image ${i + 1}:`, error);
-        }
-        
-        updateProgress(i + 1, convertedBlobs.length, successCount, errorCount);
-        
-        if (i < convertedBlobs.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      }
-      
-      setSavingState(false);
-      hideProgress();
-      
-      if (successCount > 0) {
-        const message = `Successfully saved ${successCount} image(s) to media library${errorCount > 0 ? ` (${errorCount} failed)` : ''}. Thumbnails are being generated in the background.`;
-        showMessage(message, 'success');
-        
-        // Reset the form after successful save
-        resetDownloadState();
-        
-        // Optionally clear selections
-        setTimeout(() => {
-          clearAllButton.click();
-        }, 2000);
-      } else {
-        showMessage(`Failed to save images to media library. Please check console for details.`, 'error');
-      }
-    };
-
-    function setSavingState(isSaving) {
-      saveToMediaButton.disabled = isSaving;
-      convertButton.disabled = isSaving;
-      
-      if (isSaving) {
-        saveToMediaButtonText.textContent = 'Saving...';
-        saveToMediaButtonIcon.innerHTML = '<div class="spinner"></div>';
-      } else {
-        saveToMediaButtonText.textContent = 'Save to Media Library';
-        saveToMediaButtonIcon.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-          </svg>`;
-      }
-    }
-
-    function showProgress(current, total) {
-      progressContainer.style.display = 'block';
-      updateProgress(current, total, 0, 0);
-    }
-
-    function updateProgress(current, total, successCount, errorCount) {
-      const percentage = (current / total) * 100;
-      progressBar.style.width = percentage + '%';
-      
-      if (current === total) {
-        progressText.textContent = `Completed! ${successCount} saved${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
-      } else {
-        progressText.textContent = `Saving ${current}/${total} images... (${successCount} saved${errorCount > 0 ? `, ${errorCount} failed` : ''})`;
-      }
-    }
-
-    function hideProgress() {
-      setTimeout(() => {
-        progressContainer.style.display = 'none';
-        progressBar.style.width = '0%';
-        progressText.textContent = '';
-      }, 2000);
-    }
-
-    async function saveImageToMediaLibrary(blob, filename, index, skipMetadata = false) {
-      return new Promise((resolve) => {
-        const formData = new FormData();
-        formData.append('action', 'snn_save_optimized_image');
-        formData.append('image', blob, filename);
-        formData.append('filename', filename);
-        formData.append('skip_metadata', skipMetadata ? 'true' : 'false');
-        formData.append('nonce', '<?php echo wp_create_nonce('snn_save_image_nonce'); ?>');
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-        fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
-          method: 'POST',
-          body: formData,
-          signal: controller.signal
-        })
-        .then(response => {
-          clearTimeout(timeoutId);
-          return response.json();
-        })
-        .then(data => {
-          resolve(data);
-        })
-        .catch(error => {
-          clearTimeout(timeoutId);
-          if (error.name === 'AbortError') {
-            resolve({ success: false, error: 'Request timeout' });
-          } else {
-            resolve({ success: false, error: error.message });
-          }
-        });
       });
-    }
+      items = [];
+      queue = [];
+      previewList.innerHTML = '';
+      messageArea.innerHTML = '';
+      refreshLayout();
+    };
+
+    downloadAllLink.onclick = function (e) {
+      e.preventDefault();
+      const ready = items.filter(function (it) { return it.status === 'done' && it.blob; });
+      if (ready.length === 0) { return; }
+      if (ready.length > 5) {
+        const zip = new JSZip();
+        ready.forEach(function (it) { zip.file(it.outName, it.blob); });
+        zip.generateAsync({ type: 'blob' }).then(function (content) {
+          saveAs(content, 'optimized-images.zip');
+        });
+      } else {
+        ready.forEach(function (it, idx) {
+          setTimeout(function () { saveAs(it.blob, it.outName); }, idx * 200);
+        });
+      }
+    };
+
+    refreshLayout();
 });
 </script>
 
