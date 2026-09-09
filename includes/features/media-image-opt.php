@@ -79,113 +79,268 @@ function snn_render_wp_admin_image_optimization_section() {
   .snn-wp-admin-image-optimize-container .hidden {
     display: none;
   }
-
-  /* Settings Row */
-  .snn-wp-admin-image-optimize-container .settings-row {
+  /* Settings Card */
+  .snn-wp-admin-image-optimize-container .settings-card {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 20px 28px;
     align-items: start;
-    margin-bottom: 16px;
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  @media (min-width: 768px) {
-    .snn-wp-admin-image-optimize-container .settings-row {
-      grid-template-columns: repeat(3, 1fr);
+  @media (min-width: 900px) {
+    .snn-wp-admin-image-optimize-container .settings-card {
+      grid-template-columns: auto 1fr auto;
     }
   }
-  .snn-wp-admin-image-optimize-container .form-label {
+  .snn-wp-admin-image-optimize-container .field-label {
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #1d2327;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .snn-wp-admin-image-optimize-container .field.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Segmented control */
+  .snn-wp-admin-image-optimize-container .segmented {
+    display: inline-flex;
+    background: #f0f0f1;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .snn-wp-admin-image-optimize-container .segmented button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: #50575e;
     font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 150ms, color 150ms, box-shadow 150ms;
   }
-  .snn-wp-admin-image-optimize-container .form-input {
-    width: 100%;
-    padding: 6px 10px;
-    border: 1px solid #8c8f94;
-    border-radius: 3px;
+  .snn-wp-admin-image-optimize-container .segmented button:hover {
+    color: #1d2327;
+  }
+  .snn-wp-admin-image-optimize-container .segmented button[aria-checked="true"] {
     background: #fff;
-    color: #2c3338;
-    font-size: 14px;
-    line-height: 1.6;
+    color: #2271b1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   }
-  .snn-wp-admin-image-optimize-container .form-input:focus {
-    outline: none;
-    border-color: #2271b1;
-    box-shadow: 0 0 0 1px #2271b1;
+  .snn-wp-admin-image-optimize-container .segmented button:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
   }
-  .snn-wp-admin-image-optimize-container select.form-input {
-    max-width: 100%;
-  }
-  .snn-wp-admin-image-optimize-container .quality-row {
+
+  /* Quality slider */
+  .snn-wp-admin-image-optimize-container .slider-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+    min-width: 200px;
   }
-  .snn-wp-admin-image-optimize-container .quality-row input[type="range"] {
+  .snn-wp-admin-image-optimize-container input[type="range"]#qualityInput {
+    -webkit-appearance: none;
+    appearance: none;
     flex: 1;
+    height: 6px;
     margin: 0;
+    border-radius: 999px;
+    background: #e2e4e7;
+    cursor: pointer;
   }
-  .snn-wp-admin-image-optimize-container #qualityValue {
-    min-width: 42px;
-    font-size: 13px;
-    color: #50575e;
+  .snn-wp-admin-image-optimize-container input[type="range"]#qualityInput::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2271b1;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    cursor: grab;
+    transition: transform 120ms;
+  }
+  .snn-wp-admin-image-optimize-container input[type="range"]#qualityInput::-webkit-slider-thumb:active {
+    transform: scale(1.15);
+    cursor: grabbing;
+  }
+  .snn-wp-admin-image-optimize-container input[type="range"]#qualityInput::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #2271b1;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    cursor: grab;
+  }
+  .snn-wp-admin-image-optimize-container input[type="range"]#qualityInput:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 3px;
+  }
+  .snn-wp-admin-image-optimize-container .value-chip {
+    min-width: 52px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2271b1;
+    background: #f0f6fc;
+    border: 1px solid #cfe3f5;
+    border-radius: 999px;
+    padding: 4px 8px;
     font-variant-numeric: tabular-nums;
   }
-  .snn-wp-admin-image-optimize-container #qualityField.disabled {
-    opacity: 0.45;
+
+  /* Width input + presets */
+  .snn-wp-admin-image-optimize-container .width-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .snn-wp-admin-image-optimize-container .width-input-wrap {
+    position: relative;
+  }
+  .snn-wp-admin-image-optimize-container #resizeWidth {
+    width: 108px;
+    padding: 7px 30px 7px 12px;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    background: #fff;
+    color: #2c3338;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: none;
+    -moz-appearance: textfield;
+  }
+  .snn-wp-admin-image-optimize-container #resizeWidth::-webkit-outer-spin-button,
+  .snn-wp-admin-image-optimize-container #resizeWidth::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .snn-wp-admin-image-optimize-container #resizeWidth:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.15);
+  }
+  .snn-wp-admin-image-optimize-container .width-suffix {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: #a7aaad;
     pointer-events: none;
+  }
+  .snn-wp-admin-image-optimize-container .preset {
+    appearance: none;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 999px;
+    color: #50575e;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: border-color 150ms, color 150ms, background-color 150ms;
+  }
+  .snn-wp-admin-image-optimize-container .preset:hover {
+    border-color: #2271b1;
+    color: #2271b1;
+    background: #f0f6fc;
+  }
+  .snn-wp-admin-image-optimize-container .preset.active {
+    border-color: #2271b1;
+    background: #2271b1;
+    color: #fff;
   }
 
   /* Upload Area */
   .snn-wp-admin-image-optimize-container #uploadArea {
-    border: 2px dashed #c3c4c7;
-    border-radius: 4px;
+    border: 2px dashed #dcdcde;
+    border-radius: 12px;
     cursor: pointer;
-    background-color: #f6f7f7;
+    background-color: #fafafa;
     min-height: 300px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    transition: border-color 200ms, background-color 200ms;
+    transition: border-color 200ms, background-color 200ms, box-shadow 200ms;
   }
-  .snn-wp-admin-image-optimize-container #uploadArea:hover,
+  .snn-wp-admin-image-optimize-container #uploadArea:hover {
+    border-color: #2271b1;
+    background-color: #f6fafd;
+  }
   .snn-wp-admin-image-optimize-container #uploadArea.drag-over {
     border-color: #2271b1;
     background-color: #f0f6fc;
+    box-shadow: inset 0 0 0 4px rgba(34, 113, 177, 0.08);
   }
   .snn-wp-admin-image-optimize-container #uploadAreaInitialContent {
     padding: 24px;
     text-align: center;
+    pointer-events: none;
+  }
+  .snn-wp-admin-image-optimize-container .upload-icon-circle {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 14px auto;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 200ms, border-color 200ms;
+  }
+  .snn-wp-admin-image-optimize-container #uploadArea:hover .upload-icon-circle,
+  .snn-wp-admin-image-optimize-container #uploadArea.drag-over .upload-icon-circle {
+    transform: translateY(-2px);
+    border-color: #cfe3f5;
   }
   .snn-wp-admin-image-optimize-container .upload-icon {
-    height: 44px;
-    width: 44px;
-    margin: 0 auto 8px auto;
-    color: #646970;
+    height: 30px;
+    width: 30px;
+    color: #2271b1;
   }
   .snn-wp-admin-image-optimize-container .upload-text {
-    color: #50575e;
-    font-size: 14px;
+    color: #1d2327;
+    font-size: 15px;
+    font-weight: 600;
     margin: 0;
   }
   .snn-wp-admin-image-optimize-container .upload-text-highlight {
-    font-weight: 600;
     color: #2271b1;
   }
   .snn-wp-admin-image-optimize-container .upload-hint {
     font-size: 12px;
-    color: #646970;
-    margin: 8px 2px 0 2px;
+    color: #787c82;
+    margin: 10px 2px 0 2px;
   }
   .snn-wp-admin-image-optimize-container .upload-hint a {
     cursor: pointer;
+    text-decoration: none;
+  }
+  .snn-wp-admin-image-optimize-container .upload-hint a:hover {
+    text-decoration: underline;
   }
   .snn-wp-admin-image-optimize-container .upload-hint .sep {
     margin: 0 6px;
-    color: #c3c4c7;
+    color: #dcdcde;
   }
 
   /* File Previews */
@@ -360,36 +515,47 @@ function snn_render_wp_admin_image_optimization_section() {
 
 <div class="app-container">
 
-  <div class="settings-row">
-    <div>
-      <label for="formatSelect" class="form-label"><?php esc_html_e('Output format', 'snn'); ?></label>
-      <select id="formatSelect" class="form-input">
-        <option value="image/jpeg">JPG</option>
-        <option value="image/webp">WebP</option>
-        <option value="image/png">PNG</option>
-      </select>
-    </div>
-    <div id="qualityField">
-      <label for="qualityInput" class="form-label"><?php esc_html_e('Quality', 'snn'); ?></label>
-      <div class="quality-row">
-        <input type="range" id="qualityInput" min="10" max="100" step="1" value="85">
-        <span id="qualityValue">85%</span>
+  <div class="settings-card">
+    <div class="field">
+      <span class="field-label"><?php esc_html_e('Format', 'snn'); ?></span>
+      <div class="segmented" id="formatControl" role="radiogroup" aria-label="<?php esc_attr_e('Output format', 'snn'); ?>">
+        <button type="button" role="radio" data-format="image/jpeg" aria-checked="true">JPG</button>
+        <button type="button" role="radio" data-format="image/webp" aria-checked="false">WebP</button>
+        <button type="button" role="radio" data-format="image/png" aria-checked="false">PNG</button>
       </div>
     </div>
-    <div>
-      <label for="resizeWidth" class="form-label"><?php esc_html_e('Max width (px)', 'snn'); ?></label>
-      <input type="number" id="resizeWidth" min="1" step="1" placeholder="<?php esc_attr_e('Original', 'snn'); ?>" class="form-input">
+    <div class="field" id="qualityField">
+      <label class="field-label" for="qualityInput"><?php esc_html_e('Quality', 'snn'); ?></label>
+      <div class="slider-row">
+        <input type="range" id="qualityInput" min="10" max="100" step="1" value="85">
+        <span class="value-chip" id="qualityValue">85%</span>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="resizeWidth"><?php esc_html_e('Max width', 'snn'); ?></label>
+      <div class="width-row">
+        <span class="width-input-wrap">
+          <input type="number" id="resizeWidth" min="1" step="1" placeholder="<?php esc_attr_e('Original', 'snn'); ?>">
+          <span class="width-suffix">px</span>
+        </span>
+        <button type="button" class="preset" data-width="2560">2560</button>
+        <button type="button" class="preset" data-width="1920">1920</button>
+        <button type="button" class="preset" data-width="1280">1280</button>
+        <button type="button" class="preset" data-width=""><?php esc_html_e('Full', 'snn'); ?></button>
+      </div>
     </div>
   </div>
 
   <div id="uploadArea">
     <input type="file" id="imageInput" accept=".png, .jpg, .jpeg, .webp, .jfif" multiple class="hidden" />
     <div id="uploadAreaInitialContent">
-      <svg xmlns="http://www.w3.org/2000/svg" class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-      </svg>
+      <div class="upload-icon-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg>
+      </div>
       <p class="upload-text">
-        <span class="upload-text-highlight"><?php esc_html_e('Click to upload', 'snn'); ?></span> <?php esc_html_e('or drag and drop images', 'snn'); ?>
+        <span class="upload-text-highlight"><?php esc_html_e('Drop images here', 'snn'); ?></span> <?php esc_html_e('or click to browse', 'snn'); ?>
       </p>
     </div>
     <div id="selectedFilesPreview" class="hidden"></div>
@@ -414,7 +580,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const uploadArea        = document.getElementById('uploadArea');
     const initialContent    = document.getElementById('uploadAreaInitialContent');
     const previewList       = document.getElementById('selectedFilesPreview');
-    const formatSelect      = document.getElementById('formatSelect');
+    const formatControl     = document.getElementById('formatControl');
+    const formatButtons     = Array.prototype.slice.call(formatControl.querySelectorAll('button'));
+    const presetButtons     = Array.prototype.slice.call(document.querySelectorAll('.snn-wp-admin-image-optimize-container .preset'));
     const qualityInput      = document.getElementById('qualityInput');
     const qualityValue      = document.getElementById('qualityValue');
     const qualityField      = document.getElementById('qualityField');
@@ -449,6 +617,7 @@ document.addEventListener('DOMContentLoaded', function () {
         copyFailed: '<?php echo esc_js( __('Copy failed', 'snn') ); ?>'
     };
 
+    let currentFormat = 'image/jpeg';
     let items     = [];
     let queue     = [];
     let isRunning = false;
@@ -467,8 +636,8 @@ document.addEventListener('DOMContentLoaded', function () {
         saved = null;
       }
       if (saved) {
-        if (saved.format && formatSelect.querySelector('option[value="' + saved.format + '"]')) {
-          formatSelect.value = saved.format;
+        if (saved.format && formatControl.querySelector('[data-format="' + saved.format + '"]')) {
+          currentFormat = saved.format;
         }
         const q = parseInt(saved.quality, 10);
         if (!isNaN(q) && q >= 10 && q <= 100) {
@@ -479,13 +648,13 @@ document.addEventListener('DOMContentLoaded', function () {
           resizeWidthInput.value = w;
         }
       }
-      syncQualityUI();
+      syncSettingsUI();
     }
 
     function saveSettings() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          format:  formatSelect.value,
+          format:  currentFormat,
           quality: qualityInput.value,
           width:   resizeWidthInput.value
         }));
@@ -494,14 +663,36 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    function syncQualityUI() {
+    function syncSettingsUI() {
+      formatButtons.forEach(function (btn) {
+        btn.setAttribute('aria-checked', btn.dataset.format === currentFormat ? 'true' : 'false');
+      });
       qualityValue.textContent = qualityInput.value + '%';
-      qualityField.classList.toggle('disabled', formatSelect.value === 'image/png');
+      qualityField.classList.toggle('disabled', currentFormat === 'image/png');
+      presetButtons.forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.width === resizeWidthInput.value);
+      });
     }
 
-    formatSelect.onchange     = function () { syncQualityUI(); saveSettings(); };
-    qualityInput.oninput      = syncQualityUI;
-    qualityInput.onchange     = saveSettings;
+    formatButtons.forEach(function (btn) {
+      btn.onclick = function () {
+        currentFormat = btn.dataset.format;
+        syncSettingsUI();
+        saveSettings();
+      };
+    });
+
+    presetButtons.forEach(function (btn) {
+      btn.onclick = function () {
+        resizeWidthInput.value = btn.dataset.width;
+        syncSettingsUI();
+        saveSettings();
+      };
+    });
+
+    qualityInput.oninput     = syncSettingsUI;
+    qualityInput.onchange    = saveSettings;
+    resizeWidthInput.oninput = syncSettingsUI;
     resizeWidthInput.onchange = saveSettings;
 
     loadSettings();
@@ -692,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function currentSettings() {
       const width  = parseInt(resizeWidthInput.value, 10);
-      const format = formatSelect.value;
+      const format = currentFormat;
       let quality;
       if (format === 'image/png') {
         quality = undefined;
