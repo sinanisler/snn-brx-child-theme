@@ -88,12 +88,30 @@ class SNN_Bricks_Chat_Overlay {
         // Get Bricks page context
         $page_context = $this->get_bricks_page_context();
 
+        // Stylesheets for the design-preview iframe.
+        //
+        // The preview used to ship its own "*{margin:0;padding:0}" reset plus a CDN
+        // FontAwesome, giving the designer a baseline the Bricks canvas never had —
+        // so a design could look right in the preview and wrong once built. Loading
+        // Bricks' OWN stylesheet instead means the preview inherits exactly the reset,
+        // typography and cascade layer the canvas uses. Mirror the site's cascade-layer
+        // setting too, so author CSS wins (or ties) in the preview the same way it will
+        // on the real page.
+        $bricks_css   = get_template_directory_uri() . '/assets/css/';
+        $layer_off    = class_exists( '\Bricks\Database' ) && \Bricks\Database::get_setting( 'disableBricksCascadeLayer' );
+        $preview_assets = array(
+            'frontendCss' => $bricks_css . ( $layer_off ? 'frontend.min.css' : 'frontend-layer.min.css' ),
+            'faCss'       => $bricks_css . 'libs/font-awesome-6.min.css',
+            'faBrandsCss' => $bricks_css . 'libs/font-awesome-6-brands.min.css',
+        );
+
         wp_localize_script( 'jquery', 'snnBricksChatConfig', array(
             'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
             'restUrl'          => rest_url( 'wp-abilities/v1/' ),
             'nonce'            => wp_create_nonce( 'wp_rest' ),
             'agentNonce'       => wp_create_nonce( 'snn_ai_agent_nonce' ),
             'pageContext'      => $page_context,
+            'previewAssets'    => $preview_assets,
             'ai'               => $ai_config,
             'settings'         => array(
                 'debugMode'        => $main_chat->is_debug_enabled(),
@@ -2757,10 +2775,12 @@ Output as a \`\`\`html block.`;
              * @param {number} sectionIndex - Section number (1-based)
              * @return {object} - Bricks JSON {content: [...]}
              */
-            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex, classNameToId = null) {
+            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex, classNameToId = null, ruleSet = null) {
                 try {
-                    // CLASS-BASED compiler — classNameToId is pre-computed from full HTML <style>
-                    const bricksData = compileHtmlToBricksJson(sectionHtml, classNameToId);
+                    // CLASS-BASED compiler — classNameToId and the cascade rule set are
+                    // pre-computed from the FULL HTML <style> blocks, so a section that
+                    // relies on a rule declared elsewhere still resolves correctly.
+                    const bricksData = compileHtmlToBricksJson(sectionHtml, classNameToId, ruleSet);
                     
                     if (!bricksData || !bricksData.content || !bricksData.content.length) {
                         throw new Error('Compiler returned empty content');
@@ -2836,6 +2856,18 @@ Output as a \`\`\`html block.`;
                         tempClassMap[className].css += cssBlock;
                     }
                 });
+
+                // Register class names that appear in the markup but have no CSS rule of
+                // their own. They used to be dropped, which silently broke every
+                // ".parent .child" selector written against them.
+                const bareCount = registerBareClasses(fullDoc, classNameToId, genClassId, tempClassMap);
+                if (bareCount) debugLog('Registered ' + bareCount + ' class name(s) that carry no CSS of their own');
+
+                // Flatten the full stylesheet into a cascade rule set once, so every
+                // section resolves its layout against the same rules the preview used.
+                const cssRuleSet = buildCssRuleSet(allStyleCSS);
+                debugLog('Cascade rule set: ' + cssRuleSet.base.length + ' base rules, breakpoints: ' +
+                         (Object.keys(cssRuleSet.breakpoints).join(', ') || 'none'));
 
                 // Build global classes array from extracted CSS
                 const allGlobalClasses = Object.entries(tempClassMap).map(([className, gc]) => ({
@@ -2916,6 +2948,14 @@ Output as a \`\`\`html block.`;
                 // :root variables like var(--font-header) and var(--primary).
                 // ALWAYS inject regardless of actionType — the old isFirst/replace-only
                 // logic was broken and fonts/root vars were NEVER injected.
+                //
+                // A 'replace' build has to clear the page HERE, before the CSS element
+                // lands. Doing the clear later (when the first section is written) wiped
+                // the CSS element that had just been injected, taking the fonts and
+                // :root variables with it.
+                if (actionType === 'replace') {
+                    BricksHelper.writeElementsToState([], 'replace');
+                }
                 if (cssInjectionElement) {
                     BricksHelper.writeElementsToState([cssInjectionElement], 'append');
                     debugLog('Injected CSS element (fonts + :root)');
@@ -2929,13 +2969,13 @@ Output as a \`\`\`html block.`;
                     setAgentState('compiling', 'Compiling "' + label + '" (' + (i + 1) + '/' + total + ')...');
                     let bricksData = null;
                     try {
-                        bricksData = await compileSingleSection(html, label, i + 1, classNameToId);
+                        bricksData = await compileSingleSection(html, label, i + 1, classNameToId, cssRuleSet);
                     } catch(compileErr) {
                         debugLog('Compilation failed for "' + label + '":', compileErr.message);
                         addMessage('assistant', '⚠️ "' + label + '" had issues. Auto-correcting...');
                         try {
                             const fixedHtml = await selfCorrectHTML(html, compileErr.message);
-                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1, classNameToId);
+                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1, classNameToId, cssRuleSet);
                         } catch(retryErr) {
                             debugLog('Self-correction failed for "' + label + '":', retryErr.message);
                             if (retryErr.name !== 'AbortError') {
@@ -2981,13 +3021,9 @@ Output as a \`\`\`html block.`;
                         }
                     });
 
-                    // CSS injection element (fonts + :root) is already injected in PHASE 1.5.
-                    // No need to depend on isFirst/replace — it always works.
-                    const isReplace = (index === 0 && actionType === 'replace');
-                    const success = BricksHelper.writeElementsToState(
-                        data.content,
-                        isReplace ? 'replace' : 'append'
-                    );
+                    // Always append: a 'replace' build already cleared the page in
+                    // PHASE 1.5, before the CSS element was injected.
+                    const success = BricksHelper.writeElementsToState(data.content, 'append');
                     if (success) {
                         builtCount++;
                         // Remember what we built here: root id + source HTML + theme.
@@ -3099,12 +3135,35 @@ Output as a \`\`\`html block.`;
                 return `<style id="snn-bricks-preview-vars">:root {\n${vars}}<\/style>`;
             }
 
+            /**
+             * Build the preview document.
+             *
+             * The preview must be judged against the SAME baseline as the Bricks canvas,
+             * otherwise a design can look correct here and land wrong. So we load Bricks'
+             * own frontend stylesheet (reset, typography, cascade layer) and Bricks' own
+             * FontAwesome build, rather than a hand-rolled reset and a CDN icon font.
+             *
+             * The small bridge below maps the element defaults Bricks applies through its
+             * .brxe-* classes onto the data-bricks attributes the preview markup uses.
+             * It sits in @layer bricks so authored CSS always outranks it — exactly how
+             * it behaves on the real page.
+             */
             function buildPreviewHTML(html) {
+                const assets = snnBricksChatConfig.previewAssets || {};
+                const sheet  = (href) => href ? '<link rel="stylesheet" href="' + href + '">' : '';
+                const bridge =
+                    '<style>@layer bricks{' +
+                        '[data-bricks="heading"]{margin:0}' +
+                        '[data-bricks="button"]{width:auto;height:auto}' +
+                        '[data-bricks="image"] img{max-width:100%;height:auto}' +
+                    '}<\/style>';
                 return '<!DOCTYPE html><html lang="en"><head>' +
                     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+                    sheet(assets.frontendCss) +
+                    sheet(assets.faCss) +
+                    sheet(assets.faBrandsCss) +
+                    bridge +
                     generateBricksRootCSS() +
-                    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">' +
-                    '<style>*{box-sizing:border-box;margin:0;padding:0}body{margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}<\/style>' +
                     '</head><body>' + html + '</body></html>';
             }
 
@@ -3225,9 +3284,9 @@ CSS RULES:
 - Define ALL styles as CSS classes in the <style> block at the top.
 - Use class="..." on elements. NO inline style="" attributes.
 - Write standard CSS — any property, pseudo-class (:hover), @keyframes, @media queries.
-- 🔴 FLEX DIRECTION: Always write flex-direction when using display: flex. Bricks defaults sections to flex-direction: column, which overrides the CSS standard default of row. Be explicit: "display: flex; flex-direction: row;" or "display: flex; flex-direction: column;". Never write "display: flex" alone.
+- LAYOUT: Write plain, standard CSS and assume it behaves exactly as it would in a browser. The compiler resolves the real cascade for every element (including descendant selectors like ".card p" and ".grid > div") and writes the layout back as native Bricks settings, so you do NOT need to work around any builder defaults. Being explicit about flex-direction is still good practice, but "display: flex" alone is now read as the CSS-standard row.
 - ⚠️ FORMAT: Write EACH CSS property on its OWN line with proper indentation:
-  ✅ .hero { background: #0f172a; padding: 80px 0; }     ← WRONG (one line)
+  ❌ .hero { background: #0f172a; padding: 80px 0; }     ← WRONG (one line)
   ✅ .hero {
        background: #0f172a;
        padding: 80px 0;
@@ -3243,8 +3302,8 @@ CSS RULES:
   .hero, .hero-container, .hero-heading, .hero-text, .hero-button
   .features, .features-grid, .features-card, .features-icon
   .testimonials, .testimonials-grid, .testimonials-card, .testimonials-quote
-- Include responsive @media queries for mobile.
-- Google Fonts: @import in the <style> tag.
+- Include responsive @media queries for mobile. Prefer max-width breakpoints at or near 991px, 767px and 478px — those map exactly onto Bricks' own breakpoints, so the responsive layout is carried across natively.
+- Descendant and child selectors (".card p", ".grid > div", "ul li") are fully supported — the compiler preserves each element's real HTML tag.
 
 HTML RULES:
 - Use data-bricks attributes on every structural element:
@@ -3260,8 +3319,15 @@ HTML RULES:
   data-bricks="icon"     — FontAwesome <i class="fas fa-icon"> (also fab, far)
   data-bricks="custom-html-css-script" — raw HTML/SVG/iframes
   data-bricks="divider" — <hr> or <div> with decorative line classes (short-line, long-line, divider, separator)
-- Icons: <i class="fas fa-star"> or <i class="fab fa-twitter"> — style with CSS class
+- Icons: <i class="fas fa-star"> or <i class="fab fa-twitter"> — style with a CSS class.
+  Nesting an icon inside a button or link is fine and preferred — write it as ordinary
+  HTML (<button class="btn"><i class="fas fa-arrow-right"></i> Get Started</button>) and
+  the compiler lifts it into the element's real icon setting, keeping its side. Use "fas"
+  or "fab"; avoid "far" unless you specifically want a FontAwesome Regular glyph, since
+  the free set contains very few of them.
 - Structure: section > container > content elements
+- Any tag the list above does not name (form, table, video, svg, input, details, ...) is
+  preserved verbatim — write normal HTML and it will survive intact.
 - Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS
 
 QUERY LOOPS (when listing posts):
@@ -4090,7 +4156,7 @@ IMPORTANT RULES:
                         if (result.success) {
                             saved++;
                             console.log('[Bricks AI] 📸 ✓ Saved:', url, '→', result.data.url, '(ID:', result.data.attachment_id + ')');
-                            updateImageUrlInBricks(url, result.data.url);
+                            updateImageUrlInBricks(url, result.data.url, result.data.attachment_id);
                             debugLog('Image saved to media library:', result.data.url);
                         } else {
                             failed++;
@@ -4110,13 +4176,29 @@ IMPORTANT RULES:
                     : '⚠️ Images could not be saved to media library (' + failed + ' failed). They still appear in Bricks using external URLs.');
             }
 
-            function updateImageUrlInBricks(oldUrl, newUrl) {
+            /**
+             * Point Bricks at the media-library copy of an image we just imported.
+             *
+             * Passing the attachment id matters: with only a url the image stays flagged
+             * as external, so Bricks never generates srcset/sizes for it and the Media
+             * panel shows no linked attachment. Setting id and clearing 'external' turns
+             * it into an ordinary library image.
+             */
+            function updateImageUrlInBricks(oldUrl, newUrl, attachmentId) {
                 const s = BricksHelper.getState();
                 if (!s || !s.content) return;
                 let updated = false;
+                const adopt = (img) => {
+                    img.url = newUrl;
+                    if (attachmentId) {
+                        img.id = attachmentId;
+                        delete img.external;
+                    }
+                    updated = true;
+                };
                 s.content.forEach(el => {
-                    if (el.settings.image?.url === oldUrl)              { el.settings.image.url = newUrl; updated = true; }
-                    if (el.settings._background?.image?.url === oldUrl) { el.settings._background.image.url = newUrl; updated = true; }
+                    if (el.settings.image?.url === oldUrl)              adopt(el.settings.image);
+                    if (el.settings._background?.image?.url === oldUrl) adopt(el.settings._background.image);
                 });
                 if (updated) s.content = [...s.content]; // Trigger Vue reactivity
             }
@@ -4640,4 +4722,60 @@ function snn_save_image_to_library_handler() {
         'url'           => wp_get_attachment_url( $attachment_id ),
         'original_url'  => $url,
     ) );
+}
+/**
+ * Front-end FontAwesome rescue for AI-generated pages.
+ *
+ * Bricks only enqueues FontAwesome on the front end when the saved page data
+ * contains a literal '"library":"fontawesomeSolid"' marker (see Bricks'
+ * includes/assets.php). That marker exists only for real icon elements.
+ *
+ * AI-written markup routinely nests an icon inside a heading, button label or
+ * rich text — <h2>Fast <i class="fas fa-bolt"></i></h2> — where the <i> ends up
+ * inside a text setting as raw HTML. No marker is produced, so the icon renders
+ * in the builder (where Bricks always loads FontAwesome) and on the design
+ * preview, then silently disappears on the published page.
+ *
+ * This scans the rendered Bricks data for FontAwesome class names and enqueues
+ * the styles Bricks already registered. Runs late so those handles exist.
+ */
+add_action( 'wp_enqueue_scripts', 'snn_bricks_rescue_fontawesome', 200 );
+
+function snn_bricks_rescue_fontawesome() {
+    // Builder already loads FontAwesome unconditionally.
+    if ( function_exists( 'bricks_is_builder' ) && bricks_is_builder() ) {
+        return;
+    }
+    if ( ! defined( 'BRICKS_DB_PAGE_CONTENT' ) || ! is_singular() ) {
+        return;
+    }
+
+    $post_id = get_the_ID();
+    if ( ! $post_id ) {
+        return;
+    }
+
+    $content = get_post_meta( $post_id, BRICKS_DB_PAGE_CONTENT, true );
+    if ( empty( $content ) ) {
+        return;
+    }
+
+    $haystack = wp_json_encode( $content );
+    if ( ! is_string( $haystack ) || strpos( $haystack, 'fa-' ) === false ) {
+        return;
+    }
+
+    // Solid/regular: any fa- glyph reference at all.
+    if ( preg_match( '/\b(fas|far|fa|fa-solid|fa-regular)\s+fa-|fontawesome(Solid|Regular)/i', $haystack ) ) {
+        if ( wp_style_is( 'bricks-font-awesome-6', 'registered' ) ) {
+            wp_enqueue_style( 'bricks-font-awesome-6' );
+        }
+    }
+
+    // Brands are a separate stylesheet.
+    if ( preg_match( '/\b(fab|fa-brands)\s+fa-|fontawesomeBrands/i', $haystack ) ) {
+        if ( wp_style_is( 'bricks-font-awesome-6-brands', 'registered' ) ) {
+            wp_enqueue_style( 'bricks-font-awesome-6-brands' );
+        }
+    }
 }
