@@ -375,7 +375,7 @@
             const STATE_SELECTOR = /::|:(hover|focus|focus-within|focus-visible|active|visited|target|checked|disabled|placeholder)\b/i;
 
             /** Flatten one CSS string into { selector, decls, spec, order } rules. */
-            function collectRules(css, into, orderStart) {
+            function collectRules(css, into, orderStart, stateInto = null) {
                 let order = orderStart;
                 let i = 0;
                 while (i < css.length) {
@@ -396,7 +396,15 @@
                         const decls = parseDeclarations(rawBody);
                         if (Object.keys(decls).length) {
                             selectorText.split(',').map(s => s.trim()).forEach(sel => {
-                                if (!sel || STATE_SELECTOR.test(sel)) return;
+                                if (!sel) return;
+                                if (STATE_SELECTOR.test(sel)) {
+                                    // Kept aside: they must not drive base settings, but pinned
+                                    // icon colours need them to stay reachable (see iconStateCss).
+                                    if (stateInto && !sel.includes('::')) {
+                                        stateInto.push({ selector: sel, decls: decls, spec: computeSpecificity(sel), order: order++ });
+                                    }
+                                    return;
+                                }
                                 into.push({ selector: sel, decls: decls, spec: computeSpecificity(sel), order: order++ });
                             });
                         }
@@ -439,19 +447,20 @@
                     cssCleaned = cssCleaned.substring(0, b.start) + cssCleaned.substring(b.end);
                 });
 
-                let order = collectRules(cssCleaned, base, 0);
+                const states = [];
+                let order = collectRules(cssCleaned, base, 0, states);
 
                 mediaBlocks.forEach(({ query, content }) => {
                     const mapped = mediaQueryToBreakpoint(query);
                     if (mapped.appliesAtDesktop) {
-                        order = collectRules(content, base, order);
+                        order = collectRules(content, base, order, states);
                     } else if (mapped.bp) {
                         if (!breakpoints[mapped.bp]) breakpoints[mapped.bp] = [];
                         collectRules(content, breakpoints[mapped.bp], 0);
                     }
                 });
 
-                return { base: base, breakpoints: breakpoints };
+                return { base: base, breakpoints: breakpoints, states: states };
             }
 
             /** Resolve the declarations that actually apply to one element. */
@@ -544,12 +553,26 @@
                 // Neither matches what a plain <div> does, so restore the HTML behaviour.
                 if (decls['width']) {
                     out._width = decls['width'].trim();
-                } else if (isLayout) {
+                } else if (bricksName === 'container') {
                     const pDisplay = ((parentDecls && parentDecls['display']) || '').toLowerCase();
                     const pDir     = ((parentDecls && parentDecls['flex-direction']) || 'row').toLowerCase();
                     const parentIsRowFlex = (pDisplay === 'flex' || pDisplay === 'inline-flex') && !pDir.startsWith('column');
-                    if (bricksName === 'container')   out._width = parentIsRowFlex ? 'auto' : '100%';
-                    else if (parentIsRowFlex)         out._width = 'auto';
+                    out._width = parentIsRowFlex ? 'auto' : '100%';
+                } else if (bricksName === 'block' || bricksName === 'div') {
+                    // auto is what a plain <div> has: it fills block flow and grid cells,
+                    // stretches in a stretch column, and shrinks in a row or a centred
+                    // column. Only auto reproduces all of those — Bricks' width:100%
+                    // blew up pills, badges and centred groups.
+                    out._width = 'auto';
+                }
+
+                // [class*=brxe-]{max-width:100%} caps EVERY element; HTML has no such cap.
+                // Pin a declared max-width natively, and lift the cap when a declared width
+                // is allowed to outgrow its parent (ticker tracks, fixed-px cards).
+                if (decls['max-width']) {
+                    out._widthMax = decls['max-width'].trim();
+                } else if (decls['width'] && canExceedParent(decls['width'])) {
+                    out._widthMax = 'none';
                 }
 
                 return out;
@@ -847,6 +870,101 @@
                     return scaleFontSize(fs, factor);
                 }
                 return scaleFontSize('16px', factor);   // browser default
+            }
+
+            // ================================================================
+            // ICON COLOUR + INTERACTION STATES
+            // Colour is pinned natively (iconColor), the same way as size: an icon's
+            // colour usually comes from a wrapper or a ".badge i" rule, and it did not
+            // survive into Bricks. Because iconColor is ID-level, it would also beat
+            // ".card:hover .card-icon { color: #fff }" — so those state rules are
+            // re-expressed as element custom CSS anchored on %root%.
+            // ================================================================
+
+            /** The colour an element really renders in: its own, or the nearest ancestor's. */
+            function resolveEffectiveColor(el, ruleSet, bpKey) {
+                for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
+                    const c = (declsAtBreakpoint(node, ruleSet, bpKey)['color'] || '').trim();
+                    if (!c || /^(inherit|unset|currentcolor)$/i.test(c)) continue;
+                    if (/^initial$/i.test(c)) return null;
+                    return c;
+                }
+                return null;
+            }
+
+            /** A declared width that may be wider than its parent, so max-width:100% would clip it. */
+            function canExceedParent(width) {
+                const w = String(width).trim().toLowerCase();
+                if (/^(auto|inherit|initial|unset)$/.test(w)) return false;
+                const pct = w.match(/^(\d*\.?\d+)%$/);
+                return !(pct && parseFloat(pct[1]) <= 100);
+            }
+
+            // Longer names first, so ":focus" never half-matches ":focus-within".
+            const STATE_PSEUDO = /:(hover|focus-within|focus-visible|focus|active|visited|target|checked|disabled)\b/gi;
+
+            /**
+             * Every state rule that reaches this icon's colour (or its own font-size),
+             * rewritten against %root% so it outranks the pinned base value:
+             *   .card:hover .card-icon { color }  →  :is(.card:hover .card-icon) %root% { color; fill }
+             *   .solo i:hover { color }           →  %root%:is(.solo i:hover) { color; fill }
+             * A rule on an ancestor is skipped when something closer sets its own colour,
+             * because in HTML it would never have reached the icon either.
+             */
+            function iconStateCss(el, ruleSet) {
+                const states = (ruleSet && ruleSet.states) || [];
+                if (!states.length) return '';
+                const chain = [];
+                for (let n = el; n && n.nodeType === 1; n = n.parentElement) chain.push(n);
+                const baseDecls = chain.map(n => resolveDeclsFor(n, ruleSet.base));
+                const rules = [];
+                let transition = null;
+                states.slice().sort((a, b) => (a.spec - b.spec) || (a.order - b.order)).forEach(r => {
+                    const structural = r.selector.replace(STATE_PSEUDO, '').trim() || '*';
+                    let depth = -1;
+                    for (let i = 0; i < chain.length; i++) {
+                        let hit = false;
+                        try { hit = chain[i].matches(structural); } catch (e) { hit = false; }
+                        if (hit) { depth = i; break; }
+                    }
+                    if (depth === -1) return;
+                    const decls = [];
+                    if (r.decls['color'] && !baseDecls.slice(0, depth).some(d => d['color'])) {
+                        decls.push('color: ' + r.decls['color'], 'fill: ' + r.decls['color']);
+                    }
+                    if (r.decls['font-size'] && depth === 0) decls.push('font-size: ' + r.decls['font-size']);
+                    if (!decls.length) return;
+                    const sel = depth === 0 ? '%root%:is(' + r.selector + ')' : ':is(' + r.selector + ') %root%';
+                    rules.push(sel + ' {\n  ' + decls.join(';\n  ') + ';\n}');
+                    // In HTML an inherited colour fades with the wrapper's transition; the
+                    // icon now switches its own colour, so it needs that transition too.
+                    const t = baseDecls[depth]['transition'];
+                    if (!transition && t && /color|all/i.test(t)) transition = t.trim();
+                });
+                if (!rules.length) return '';
+                return (transition ? '%root% {\n  transition: ' + transition + ';\n}\n' : '') + rules.join('\n');
+            }
+
+            /** Pin a font icon's size, colour and state styling as native settings. */
+            function pinIconAppearance(el, settings, ruleSet) {
+                const perBreakpoint = (key, resolve, convert) => {
+                    const base = resolve(null);
+                    if (base) settings[key] = convert(base);
+                    let prev = base;
+                    BRICKS_BREAKPOINTS.forEach(bp => {   // widest first, like Bricks' own cascade
+                        const v = resolve(bp.key);
+                        if (v && v !== prev) settings[key + ':' + bp.key] = convert(v);
+                        prev = v;
+                    });
+                };
+                if (el.getAttribute('data-icon-size')) {
+                    settings.iconSize = el.getAttribute('data-icon-size');
+                } else {
+                    perBreakpoint('iconSize', bp => resolveEffectiveFontSize(el, ruleSet, bp), v => v);
+                }
+                perBreakpoint('iconColor', bp => resolveEffectiveColor(el, ruleSet, bp), toBricksColor);
+                const stateCss = iconStateCss(el, ruleSet);
+                if (stateCss) settings._cssCustom = stateCss;
             }
 
             /**
@@ -1195,21 +1313,13 @@
                                 element.name = 'custom-html-css-script';
                                 element.settings.content = el.outerHTML;
                             }
-                            if (el.getAttribute('data-icon-size')) {
+                            if (element.name === 'icon') {
+                                // Pin what the icon really renders as. Size and colour usually
+                                // come from a wrapper in HTML; Bricks' .brxe-icon{font-size:60px}
+                                // cuts that inheritance, and the colour did not survive either.
+                                pinIconAppearance(el, element.settings, ruleSet);
+                            } else if (el.getAttribute('data-icon-size')) {
                                 element.settings.iconSize = el.getAttribute('data-icon-size');
-                            } else if (element.name === 'icon') {
-                                // Pin the size the icon really renders at — usually inherited
-                                // from a wrapper — or Bricks' .brxe-icon{font-size:60px} wins.
-                                // Colour is left to inheritance, which Bricks does not block,
-                                // so ".card:hover i { color }" rules keep working.
-                                const baseSize = resolveEffectiveFontSize(el, ruleSet, null);
-                                element.settings.iconSize = baseSize;
-                                let prevSize = baseSize;
-                                BRICKS_BREAKPOINTS.forEach(bp => {   // widest first, like Bricks' cascade
-                                    const size = resolveEffectiveFontSize(el, ruleSet, bp.key);
-                                    if (size !== prevSize) element.settings['iconSize:' + bp.key] = size;
-                                    prevSize = size;
-                                });
                             }
                             isLeaf = true;
                             break;
