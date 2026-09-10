@@ -300,11 +300,11 @@ Fitness</button>
                         <span class="snn-ctx-detail"></span>
                         <button class="snn-ctx-clear" title="<?php echo esc_attr__( 'Clear selection', 'snn' ); ?>">&times;</button>
                     </div>
-                    <select id="snn-bricks-scope-select" class="snn-bricks-scope-select" title="<?php echo esc_attr__( 'What the agent may change', 'snn' ); ?>">
-                        <option value="page"><?php echo esc_html__( 'Whole page', 'snn' ); ?></option>
-                        <option value="section"><?php echo esc_html__( 'This section', 'snn' ); ?></option>
-                        <option value="selection"><?php echo esc_html__( 'Selection', 'snn' ); ?></option>
-                    </select>
+                    <div id="snn-bricks-scope-group" class="snn-bricks-scope-group" role="group" aria-label="<?php echo esc_attr__( 'What the agent may change', 'snn' ); ?>">
+                        <button type="button" class="snn-bricks-scope-btn is-active" data-scope="page" aria-pressed="true" title="<?php echo esc_attr__( 'The agent may change anything on this page', 'snn' ); ?>"><?php echo esc_html__( 'Whole page', 'snn' ); ?></button>
+                        <button type="button" class="snn-bricks-scope-btn" data-scope="section" aria-pressed="false" title="<?php echo esc_attr__( 'Limit changes to the section holding the selected element', 'snn' ); ?>"><?php echo esc_html__( 'This section', 'snn' ); ?></button>
+                        <button type="button" class="snn-bricks-scope-btn" data-scope="selection" aria-pressed="false" title="<?php echo esc_attr__( 'Limit changes to the selected element only', 'snn' ); ?>"><?php echo esc_html__( 'Selection', 'snn' ); ?></button>
+                    </div>
                 </div>
 
                 <!-- Input -->
@@ -344,6 +344,9 @@ Fitness</button>
             const DEBUG_MODE        = snnBricksChatConfig.settings.debugMode   || false;
             const ENABLED_ABILITIES = snnBricksChatConfig.settings.enabledAbilities || [];
             const RECOVERY_CONFIG   = { maxRecoveryAttempts: 3, baseDelay: 2000, maxDelay: 30000, rateLimitDelay: 5000 };
+            // Extra max_tokens granted on top of a call's visible-output budget, to cover
+            // the hidden thinking tokens reasoning models charge against the same cap.
+            const REASONING_HEADROOM = 2000;
             const debugLog = (...a) => { if (DEBUG_MODE) console.log('[Bricks AI]', ...a); };
 
             const ChatState = {
@@ -1949,7 +1952,34 @@ RULES
             // Context chip + scope selector
             // ================================================================
 
+            /**
+             * Reflect the current scope on the segmented scope buttons.
+             *
+             * "This section" and "Selection" only mean something once an element is
+             * picked on the canvas, so they stay disabled until there is a selection.
+             * If a selection goes away while one of them is active, scope falls back to
+             * the whole page rather than quietly pointing at nothing.
+             */
+            function syncScopeButtons() {
+                const $group = $('#snn-bricks-scope-group');
+                if (!$group.length) return;
+                const hasSelection = !!PageContext.getSelectionId();
+                if (!hasSelection && ChatState.scope && ChatState.scope !== 'page') {
+                    ChatState.scope = 'page';
+                }
+                const active = ChatState.scope || 'page';
+                $group.find('.snn-bricks-scope-btn').each(function() {
+                    const $btn     = $(this);
+                    const scope    = $btn.attr('data-scope');
+                    const isActive = scope === active;
+                    $btn.toggleClass('is-active', isActive)
+                        .attr('aria-pressed', isActive ? 'true' : 'false')
+                        .prop('disabled', scope !== 'page' && !hasSelection);
+                });
+            }
+
             function renderContextChip() {
+                syncScopeButtons();
                 const $chip = $('#snn-bricks-context-chip');
                 if (!$chip.length) return;
                 const idx = PageContext.index();
@@ -1961,7 +1991,6 @@ RULES
                 $chip.find('.snn-ctx-detail').text(info.detail || '');
                 $chip.find('.snn-ctx-clear').toggle(!!ChatState.selectionId);
                 $chip.attr('data-target-id', info.id || '');
-                $('#snn-bricks-scope-select').val(ChatState.scope || 'page');
             }
 
             // ================================================================
@@ -2439,7 +2468,15 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                     const cleaned = response.trim().replace(/^```json\n?/, '').replace(/\n?```$/, '');
                     return JSON.parse(cleaned);
                 } catch(e) {
-                    debugLog('generateTheme parse error, using defaults:', e);
+                    // A truncated reply is the usual cause here, and it used to fail
+                    // silently — the design spec was dropped and every section then
+                    // invented its own palette.
+                    if (ChatState.lastResponseTruncated) {
+                        debugLog('generateTheme: response was truncated before the JSON closed.');
+                        addMessage('assistant', '⚠️ The theme spec came back truncated, so this design will not have a locked palette. Raise **Max tokens** in AI Settings if it keeps happening.');
+                    } else {
+                        debugLog('generateTheme parse error, using defaults:', e);
+                    }
                     return null;
                 }
             }
@@ -3847,8 +3884,10 @@ IMPORTANT RULES:
                 });
                 // ── Content awareness: scope, selection, change cards ──
                 ChatState.defaultQuickActions = $('.snn-bricks-chat-quick-actions').html();
-                $('#snn-bricks-scope-select').on('change', function() {
-                    ChatState.scope = $(this).val();
+                $('#snn-bricks-scope-group').on('click', '.snn-bricks-scope-btn', function() {
+                    const $btn = $(this);
+                    if ($btn.prop('disabled')) return;
+                    ChatState.scope = $btn.attr('data-scope');
                     renderContextChip();
                     renderQuickActions();
                 });
@@ -3951,6 +3990,19 @@ IMPORTANT RULES:
 
                 // Route through the server-side proxy — keeps API key out of the browser
                 // and supports localhost models (Ollama, LM Studio) regardless of HTTPS context.
+                // Reasoning models (Gemini 3, GPT-5/o-series, DeepSeek R1, Qwen thinking
+                // variants...) bill hidden thinking tokens against max_tokens. A tight
+                // per-call budget therefore gets eaten before any visible text is
+                // produced, and the reply is cut off mid-word — which is exactly how the
+                // 400-token plan came back as "1. Hero — Split-".
+                //
+                // So treat opts.maxTokens as the VISIBLE output budget and add room to
+                // think on top, never exceeding the user's configured global cap.
+                const globalCap = parseInt(cfg.maxTokens, 10) || 4000;
+                const maxTokens = opts.maxTokens
+                    ? Math.min(opts.maxTokens + REASONING_HEADROOM, Math.max(globalCap, opts.maxTokens))
+                    : globalCap;
+
                 const proxyPayload = new URLSearchParams({
                     action: 'snn_ai_proxy',
                     nonce: window.snnAiProxy.nonce,
@@ -3958,7 +4010,7 @@ IMPORTANT RULES:
                     payload: JSON.stringify({
                         messages: messages,
                         temperature: 0.7,
-                        max_tokens: opts.maxTokens || cfg.maxTokens || 4000
+                        max_tokens: maxTokens
                     })
                 });
 
@@ -3975,8 +4027,19 @@ IMPORTANT RULES:
                 }
                 if (!resp.ok) { const t = await resp.text(); throw new Error(`API error ${resp.status}: ${t.substring(0, 200)}`); }
                 const data = await resp.json();
-                if (!data?.choices?.[0]?.message?.content) throw new Error('Invalid API response');
-                return data.choices[0].message.content;
+                const choice = data?.choices?.[0];
+                if (!choice?.message?.content) throw new Error('Invalid API response');
+
+                // Truncation used to be invisible: the caller just got a short string and
+                // carried on, so a cut-off theme or intent JSON failed to parse and was
+                // swallowed by its try/catch. Record it so callers can react and the
+                // debug log says plainly what happened.
+                ChatState.lastResponseTruncated = (choice.finish_reason === 'length');
+                if (ChatState.lastResponseTruncated) {
+                    debugLog('⚠️ Response truncated: hit max_tokens (' + maxTokens + '). ' +
+                             'If the model is a reasoning model, thinking tokens consumed the budget.');
+                }
+                return choice.message.content;
             }
 
             // ================================================================
@@ -4415,14 +4478,22 @@ IMPORTANT RULES:
 .snn-bricks-chat-support a { font-size: 14px; font-weight:600; color: #666; text-decoration: none; transition: color 0.2s; }
 .snn-bricks-chat-support a:hover { color: #820808; }
 /* Context bar — what the agent is looking at, and what it may change */
-.snn-bricks-context-bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #fff; border-top: 1px solid #eee; }
+.snn-bricks-context-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 12px; background: #fff; border-top: 1px solid #eee; }
 .snn-bricks-context-chip { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; background: #f1f5f9; border: 1px solid #dbe3ec; border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 12px; color: #334155; }
 .snn-ctx-icon { font-size: 12px; flex-shrink: 0; }
 .snn-ctx-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .snn-ctx-detail { color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .snn-ctx-clear { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
 .snn-ctx-clear:hover { color: #dc2626; }
-.snn-bricks-scope-select { font-size: 12px; padding: 4px 6px; border: 1px solid #dbe3ec; border-radius: 6px; background: #fff; color: #334155; cursor: pointer; flex-shrink: 0; }
+/* Scope picker — segmented buttons styled to match the prompt presets */
+.snn-bricks-context-chip { flex: 1 1 100%; }
+.snn-bricks-scope-group { flex: 1 1 100%; display: flex; gap: 6px; flex-wrap: wrap; }
+.snn-bricks-scope-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; line-height: 1.2; color: #334155; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.snn-bricks-scope-btn:hover { background: #e6e9ec; }
+.snn-bricks-scope-btn.is-active { background: #161a1d; border-color: #161a1d; color: #fff; font-weight: 600; }
+.snn-bricks-scope-btn.is-active:hover { background: #161a1d; }
+.snn-bricks-scope-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.snn-bricks-scope-btn:disabled:hover { background: #f5f5f5; }
 /* Canvas highlight for element pills / disambiguation */
 .snn-ai-hl { outline: 2px solid #2271b1 !important; outline-offset: 2px !important; transition: outline-color 0.2s; }
 /* Execution checklist — live tool steps */
