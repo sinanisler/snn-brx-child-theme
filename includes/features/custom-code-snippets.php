@@ -37,6 +37,18 @@ define('SNN_SNIPPET_CRASH_MAX_STARTS', 3);
 define('SNN_UNATTRIBUTED_FATAL_OPTION', 'snn_unattributed_fatal_streak');
 define('SNN_UNATTRIBUTED_FATAL_LIMIT', 3);
 
+// Save -> test -> publish. An edit to a snippet that runs is stored as a draft
+// in this post meta key and only replaces the live code (post_content) after it
+// has survived real page loads of the site. The live version keeps running in
+// the meantime, so a broken edit never reaches visitors.
+define('SNN_SNIPPET_DRAFT_META', '_snn_snippet_draft');
+// Transient prefix for one test run: the code under test, the pages to load,
+// and the result each of those page loads records for itself.
+define('SNN_SNIPPET_TEST_TRANSIENT', 'snn_snippet_test_');
+// How long a test run stays valid. The browser drives the page loads, and some
+// environments (WordPress Studio, for one) serve a single request at a time.
+define('SNN_SNIPPET_TEST_TTL', 15 * MINUTE_IN_SECONDS);
+
 /**
  * Canonical snippet slug list, keyed by admin tab key.
  * Single source of truth for the slug <-> tab mapping.
@@ -105,6 +117,11 @@ function snn_update_snippet_state( $state ) {
  * Also drops its "verified" marker so the next save re-arms the crash guard.
  */
 function snn_snippet_record_error( $slug, $type, $message, $line = 0 ) {
+    // Test page loads are a sandbox: they report to the test run, never block.
+    if ( snn_snippet_test_context() ) {
+        return;
+    }
+
     $state = snn_get_snippet_state( true );
 
     $state['errors'][ $slug ] = array(
@@ -289,6 +306,12 @@ function snn_snippets_in_safe_mode() {
         return true;
     }
 
+    // Same for the page's own admin-ajax calls: finishing a test run, previewing
+    // a revision and dismissing the notice must work while a snippet is broken.
+    if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && in_array( $_REQUEST['action'], array( 'snn_snippet_test_finish', 'snn_get_revision_content', 'snn_dismiss_fatal_error_notice' ), true ) ) {
+        return true;
+    }
+
     if ( isset( $_GET['snn_safe_mode'] ) && '1' === $_GET['snn_safe_mode'] && current_user_can( 'manage_options' ) ) {
         return true;
     }
@@ -350,6 +373,458 @@ function snn_check_php_syntax( $code ) {
     }
 
     return true;
+}
+
+/**
+ * Next token index after $index that is not whitespace or a comment, or null.
+ */
+function snn_php_next_significant( $tokens, $index ) {
+    $count = count( $tokens );
+    for ( $i = $index + 1; $i < $count; $i++ ) {
+        if ( is_array( $tokens[ $i ] ) && in_array( $tokens[ $i ][0], array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT ), true ) ) {
+            continue;
+        }
+        return $i;
+    }
+    return null;
+}
+
+/**
+ * Record one declared name, or a duplicate of one already seen.
+ */
+function snn_php_add_declared_name( &$names, $kind, $namespace, $name, $line ) {
+    $label = ( '' !== $namespace ? $namespace . '\\' : '' ) . $name;
+    $key   = strtolower( $label );
+
+    if ( isset( $names[ $kind ][ $key ] ) ) {
+        $names['duplicates'][] = array(
+            'kind'       => $kind,
+            'key'        => $key,
+            'label'      => $label,
+            'line'       => (int) $line,
+            'first_line' => $names[ $kind ][ $key ]['line'],
+        );
+        return;
+    }
+
+    $names[ $kind ][ $key ] = array( 'label' => $label, 'line' => (int) $line );
+}
+
+/**
+ * Names a piece of snippet code declares when it runs: functions and
+ * class-like structures (classes, interfaces, traits, enums), namespaced and
+ * lower-cased the way PHP compares them.
+ *
+ * "Cannot redeclare" is a compile-time fatal that no try/catch can stop, so it
+ * has to be caught before the code ever runs. Names passed anywhere in the code
+ * to function_exists()/class_exists() and friends are collected as "guarded",
+ * so the conventional `if ( ! function_exists( 'x' ) )` pattern is not flagged.
+ *
+ * Tokenizes only; nothing is compiled or executed.
+ *
+ * @return array{function: array, class: array, guarded: array, duplicates: array}
+ */
+function snn_php_declared_names( $code ) {
+    $names = array(
+        'function'   => array(),
+        'class'      => array(),
+        'guarded'    => array(),
+        'duplicates' => array(),
+    );
+
+    if ( '' === trim( (string) $code ) || ! function_exists( 'token_get_all' ) ) {
+        return $names;
+    }
+
+    // Same prefix as the syntax check and the executor, so lines map 1:1.
+    $tokens = token_get_all( '<' . '?php ?' . '>' . $code );
+
+    $skip       = array( T_WHITESPACE, T_COMMENT, T_DOC_COMMENT );
+    $name_types = array( T_STRING, T_NS_SEPARATOR );
+    if ( defined( 'T_NAME_QUALIFIED' ) ) {
+        $name_types[] = T_NAME_QUALIFIED;
+        $name_types[] = T_NAME_FULLY_QUALIFIED;
+    }
+    $class_like = array( T_CLASS, T_INTERFACE, T_TRAIT );
+    if ( defined( 'T_ENUM' ) ) {
+        $class_like[] = T_ENUM;
+    }
+    $by_ref = array();
+    if ( defined( 'T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG' ) ) {
+        $by_ref = array( T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG, T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG );
+    }
+    $guards = array( 'function_exists', 'class_exists', 'interface_exists', 'trait_exists', 'enum_exists' );
+
+    $namespace   = '';
+    $depth       = 0;
+    $class_depth = array(); // Brace depths at which class-like bodies opened.
+    $open_body   = false;   // The next "{" opens a class-like body.
+    $previous    = null;    // Previous significant token.
+    $count       = count( $tokens );
+
+    for ( $i = 0; $i < $count; $i++ ) {
+        $token = $tokens[ $i ];
+
+        if ( is_string( $token ) ) {
+            if ( '{' === $token ) {
+                $depth++;
+                if ( $open_body ) {
+                    $class_depth[] = $depth;
+                    $open_body     = false;
+                }
+            } elseif ( '}' === $token ) {
+                if ( $class_depth && end( $class_depth ) === $depth ) {
+                    array_pop( $class_depth );
+                }
+                $depth--;
+            }
+            $previous = $token;
+            continue;
+        }
+
+        $id = $token[0];
+        if ( in_array( $id, $skip, true ) ) {
+            continue;
+        }
+
+        // "{$" and "${" inside strings open a brace that a plain "}" closes.
+        if ( T_CURLY_OPEN === $id || T_DOLLAR_OPEN_CURLY_BRACES === $id ) {
+            $depth++;
+        } elseif ( T_NAMESPACE === $id ) {
+            $j = snn_php_next_significant( $tokens, $i );
+            // namespace\foo() on PHP 7 is the namespace operator, not a declaration.
+            if ( null === $j || ! is_array( $tokens[ $j ] ) || T_NS_SEPARATOR !== $tokens[ $j ][0] ) {
+                $declared = '';
+                while ( null !== $j && is_array( $tokens[ $j ] ) && in_array( $tokens[ $j ][0], $name_types, true ) ) {
+                    $declared .= $tokens[ $j ][1];
+                    $i         = $j;
+                    $j         = snn_php_next_significant( $tokens, $j );
+                }
+                $namespace = trim( $declared, '\\' );
+            }
+        } elseif ( T_STRING === $id && in_array( strtolower( $token[1] ), $guards, true ) ) {
+            $j = snn_php_next_significant( $tokens, $i );
+            $k = ( null !== $j && '(' === $tokens[ $j ] ) ? snn_php_next_significant( $tokens, $j ) : null;
+            if ( null !== $k && is_array( $tokens[ $k ] ) && T_CONSTANT_ENCAPSED_STRING === $tokens[ $k ][0] ) {
+                $guarded = str_replace( '\\\\', '\\', substr( $tokens[ $k ][1], 1, -1 ) );
+                $names['guarded'][ strtolower( ltrim( $guarded, '\\' ) ) ] = true;
+            }
+        } elseif ( T_FUNCTION === $id ) {
+            // "use function foo;" imports a function, it does not declare one.
+            $is_import = is_array( $previous ) && T_USE === $previous[0];
+            $j         = snn_php_next_significant( $tokens, $i );
+            if ( null !== $j && ( '&' === $tokens[ $j ] || ( is_array( $tokens[ $j ] ) && in_array( $tokens[ $j ][0], $by_ref, true ) ) ) ) {
+                $j = snn_php_next_significant( $tokens, $j );
+            }
+            // Methods live inside class bodies; closures have no name.
+            if ( ! $is_import && ! $class_depth && null !== $j && is_array( $tokens[ $j ] ) && T_STRING === $tokens[ $j ][0] ) {
+                snn_php_add_declared_name( $names, 'function', $namespace, $tokens[ $j ][1], $tokens[ $j ][2] );
+            }
+        } elseif ( in_array( $id, $class_like, true ) ) {
+            if ( is_array( $previous ) && T_DOUBLE_COLON === $previous[0] ) {
+                // Foo::class is a constant, not a declaration.
+            } elseif ( is_array( $previous ) && T_NEW === $previous[0] ) {
+                $open_body = true; // Anonymous class: skip its methods, declare nothing.
+            } else {
+                $j = snn_php_next_significant( $tokens, $i );
+                if ( null !== $j && is_array( $tokens[ $j ] ) && T_STRING === $tokens[ $j ][0] ) {
+                    snn_php_add_declared_name( $names, 'class', $namespace, $tokens[ $j ][1], $tokens[ $j ][2] );
+                    $open_body = true;
+                }
+            }
+        }
+
+        $previous = $token;
+    }
+
+    return $names;
+}
+
+/**
+ * Would running this code redeclare a function or class that already exists?
+ *
+ * Checked against three sources:
+ *  - everything WordPress, plugins and the theme have declared in this request.
+ *    The snippets page never runs snippets, so this never includes the
+ *    snippet's own previous version;
+ *  - the other snippets that run, scanned from their code, because they are not
+ *    loaded on the snippets page;
+ *  - the snippet itself, which may declare the same name twice.
+ *
+ * @return true|array True when clean, otherwise array( message, line ).
+ */
+function snn_check_php_redeclarations( $code, $slug ) {
+    $mine     = snn_php_declared_names( $code );
+    $problems = array();
+    $kinds    = array(
+        'function' => __( 'function', 'snn' ),
+        'class'    => __( 'class', 'snn' ),
+    );
+
+    foreach ( $mine['duplicates'] as $duplicate ) {
+        if ( isset( $mine['guarded'][ $duplicate['key'] ] ) ) {
+            continue;
+        }
+        $problems[] = array(
+            /* translators: 1: "function" or "class", 2: name, 3: first line, 4: second line */
+            'message' => sprintf( __( 'Cannot redeclare %1$s %2$s: it is declared twice in this snippet (lines %3$d and %4$d).', 'snn' ), $kinds[ $duplicate['kind'] ], $duplicate['label'], $duplicate['first_line'], $duplicate['line'] ),
+            'line'    => $duplicate['line'],
+        );
+    }
+
+    foreach ( $kinds as $kind => $kind_label ) {
+        foreach ( $mine[ $kind ] as $key => $info ) {
+            if ( isset( $mine['guarded'][ $key ] ) ) {
+                continue;
+            }
+            if ( 'function' === $kind ) {
+                $exists = function_exists( $key );
+            } else {
+                $exists = class_exists( $key, false ) || interface_exists( $key, false ) || trait_exists( $key, false )
+                    || ( function_exists( 'enum_exists' ) && enum_exists( $key, false ) );
+            }
+            if ( $exists ) {
+                $problems[] = array(
+                    /* translators: 1: "function" or "class", 2: name */
+                    'message' => sprintf( __( 'Cannot redeclare %1$s %2$s: it already exists (declared by WordPress, a plugin or the theme). Rename it, or wrap it in a function_exists()/class_exists() check.', 'snn' ), $kind_label, $info['label'] ),
+                    'line'    => $info['line'],
+                );
+            }
+        }
+    }
+
+    foreach ( snn_snippet_slugs() as $other ) {
+        if ( $other === $slug || ! snn_snippet_is_enabled( $other ) || snn_snippet_get_error( $other ) ) {
+            continue;
+        }
+        $theirs = snn_php_declared_names( snn_get_code_snippet_content( $other ) );
+        foreach ( $kinds as $kind => $kind_label ) {
+            foreach ( $mine[ $kind ] as $key => $info ) {
+                if ( isset( $theirs[ $kind ][ $key ] ) && ! isset( $mine['guarded'][ $key ] ) && ! isset( $theirs['guarded'][ $key ] ) ) {
+                    $problems[] = array(
+                        /* translators: 1: "function" or "class", 2: name, 3: other snippet title */
+                        'message' => sprintf( __( 'Cannot redeclare %1$s %2$s: the "%3$s" snippet already declares it.', 'snn' ), $kind_label, $info['label'], snn_snippet_title( $other ) ),
+                        'line'    => $info['line'],
+                    );
+                }
+            }
+        }
+    }
+
+    if ( ! $problems ) {
+        return true;
+    }
+
+    $first = $problems[0];
+    if ( count( $problems ) > 1 ) {
+        /* translators: %d: number of further problems */
+        $first['message'] .= ' ' . sprintf( _n( '(%d more name conflict.)', '(%d more name conflicts.)', count( $problems ) - 1, 'snn' ), count( $problems ) - 1 );
+    }
+    return $first;
+}
+
+/**
+ * Everything that can be checked without running the code: syntax, then
+ * function/class redeclarations.
+ *
+ * @return true|array True when clean, otherwise array( type, message, line, target ).
+ */
+function snn_snippet_static_check( $code, $slug ) {
+    $syntax = snn_check_php_syntax( $code );
+    if ( is_array( $syntax ) ) {
+        return array(
+            'type'    => __( 'Parse error', 'snn' ),
+            'message' => $syntax['message'],
+            'line'    => (int) $syntax['line'],
+            'target'  => '',
+        );
+    }
+
+    $redeclared = snn_check_php_redeclarations( $code, $slug );
+    if ( is_array( $redeclared ) ) {
+        return array(
+            'type'    => __( 'Name conflict', 'snn' ),
+            'message' => $redeclared['message'],
+            'line'    => (int) $redeclared['line'],
+            'target'  => '',
+        );
+    }
+
+    return true;
+}
+
+/**
+ * The pages a test run can load, keyed by target.
+ */
+function snn_snippet_test_target_defs() {
+    return array(
+        'admin'    => array(
+            'label'   => __( 'Admin area (logged in)', 'snn' ),
+            'url'     => admin_url( 'profile.php' ),
+            'cookies' => true,
+        ),
+        'home_in'  => array(
+            'label'   => __( 'Front end (logged in)', 'snn' ),
+            'url'     => home_url( '/' ),
+            'cookies' => true,
+        ),
+        'home_out' => array(
+            'label'   => __( 'Front end (logged out)', 'snn' ),
+            'url'     => home_url( '/' ),
+            'cookies' => false,
+        ),
+    );
+}
+
+/**
+ * Pages that must load cleanly before a snippet's draft may go live: the places
+ * that snippet actually executes.
+ */
+function snn_snippet_test_targets_for( $slug ) {
+    switch ( $slug ) {
+        case 'snn-snippet-functions-php':
+            return array( 'admin', 'home_in', 'home_out' );
+        case 'snn-snippet-admin-head':
+            return array( 'admin' );
+        default: // Frontend head and footer.
+            return array( 'home_in', 'home_out' );
+    }
+}
+
+/**
+ * The test run this request belongs to, or false.
+ *
+ * A test page load is an ordinary request to the site carrying a single-use
+ * token. Every live snippet runs as usual, except that the snippet under test
+ * runs its draft instead of its live code. Resolved from the query string and a
+ * transient only - no user or post lookups - because it is needed at load time,
+ * before any snippet executes.
+ *
+ * @return array|false array( token, target, slug, code ), or false.
+ */
+function snn_snippet_test_context() {
+    static $context = null;
+    if ( null !== $context ) {
+        return $context;
+    }
+    $context = false;
+
+    if ( ! isset( $_GET['snn_snippet_test'], $_GET['snn_snippet_target'] )
+        || ! is_string( $_GET['snn_snippet_test'] ) || ! is_string( $_GET['snn_snippet_target'] ) ) {
+        return $context;
+    }
+
+    $token  = preg_replace( '/[^A-Za-z0-9]/', '', wp_unslash( $_GET['snn_snippet_test'] ) );
+    $target = preg_replace( '/[^a-z_]/', '', wp_unslash( $_GET['snn_snippet_target'] ) );
+    if ( 32 !== strlen( $token ) ) {
+        return $context;
+    }
+
+    $test = get_transient( SNN_SNIPPET_TEST_TRANSIENT . $token );
+    // Each target reports once; a result already on record means this token is spent.
+    if ( ! is_array( $test ) || empty( $test['targets'] ) || ! in_array( $target, $test['targets'], true ) || isset( $test['results'][ $target ] ) ) {
+        return $context;
+    }
+
+    $context = array(
+        'token'  => $token,
+        'target' => $target,
+        'slug'   => (string) $test['slug'],
+        'code'   => (string) $test['code'],
+    );
+    return $context;
+}
+
+/**
+ * Everything that went wrong during a test page load. Test loads never write to
+ * the error log or the safety state; problems are collected here and stored
+ * with the test run's result.
+ */
+function snn_snippet_test_log( $entry = null ) {
+    static $entries = array();
+    if ( null !== $entry && count( $entries ) < 50 ) {
+        $entries[] = $entry;
+    }
+    return $entries;
+}
+
+/**
+ * Turn this request into a test page load when it carries a valid token.
+ * Called at load time, before any snippet can run.
+ */
+function snn_snippet_test_boot() {
+    if ( ! snn_snippet_test_context() ) {
+        return;
+    }
+
+    // WordPress' own sandbox flag: a fatal here must not show the "critical
+    // error" screen, send the recovery-mode email or pause the theme.
+    if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
+        define( 'WP_SANDBOX_SCRAPING', true );
+    }
+    // Never let a page cache keep a page rendered with unpublished code.
+    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+        define( 'DONOTCACHEPAGE', true );
+    }
+    add_action( 'send_headers', 'snn_snippet_test_headers' );
+    register_shutdown_function( 'snn_snippet_test_record_result' );
+}
+
+/** No caching, no indexing for test page loads. */
+function snn_snippet_test_headers() {
+    nocache_headers();
+    header( 'X-Robots-Tag: noindex, nofollow' );
+}
+
+/**
+ * Shutdown: store how this test page load went with its test run. Runs after a
+ * fatal error and after exit(), so a page that dies still reports.
+ */
+function snn_snippet_test_record_result() {
+    $context = snn_snippet_test_context();
+    if ( ! $context ) {
+        return;
+    }
+
+    $fatal = null;
+    $error = error_get_last();
+    if ( $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+        $error_file   = wp_normalize_path( (string) $error['file'] );
+        $from_snippet = ( 0 === strpos( $error_file, wp_normalize_path( __FILE__ ) ) ) && ( false !== strpos( $error_file, "eval()'d code" ) );
+        $slug         = snn_snippet_active_slug();
+        $executed     = snn_snippet_executed_slugs();
+        if ( $from_snippet && '' === $slug && 1 === count( $executed ) ) {
+            $slug = $executed[0];
+        }
+        $root    = array( ABSPATH, wp_normalize_path( ABSPATH ) );
+        $message = str_replace( $root, '', (string) $error['message'] );
+        // An uncaught exception's message carries its file, line and a stack
+        // trace. The line is reported on its own, so keep just the error.
+        $message = preg_replace( '/\s*Stack trace:.*$/s', '', $message );
+        $message = preg_replace( '/ in (?!.* in ).*:\d+$/s', '', $message );
+        $fatal   = array(
+            'type'         => snn_get_php_error_type_string( $error['type'] ),
+            'message'      => $message,
+            'line'         => $from_snippet ? (int) $error['line'] : 0,
+            'file'         => $from_snippet ? '' : str_replace( $root, '', $error_file ) . ':' . (int) $error['line'],
+            'from_snippet' => $from_snippet,
+            'slug'         => $from_snippet ? $slug : '',
+        );
+    }
+
+    $key  = SNN_SNIPPET_TEST_TRANSIENT . $context['token'];
+    $test = get_transient( $key );
+    if ( ! is_array( $test ) ) {
+        return;
+    }
+
+    $test['results'][ $context['target'] ] = array(
+        'user'  => function_exists( 'get_current_user_id' ) ? get_current_user_id() : 0,
+        'ran'   => in_array( $context['slug'], snn_snippet_executed_slugs(), true ),
+        'fatal' => $fatal,
+        'log'   => snn_snippet_test_log(),
+    );
+    set_transient( $key, $test, max( 60, (int) $test['expires'] - time() ) );
 }
 
 /**
@@ -474,7 +949,7 @@ jQuery(document).ready(function($) {
         preview_text: '" . esc_js(__( 'Preview in Editor', 'snn' )) . "',
         error_text: '" . esc_js(__( 'Error', 'snn' )) . "',
         ajax_error_text: '" . esc_js(__( 'AJAX error fetching revision.', 'snn' )) . "',
-        confirm_restore_text: '" . esc_js(__('Are you sure you want to restore this revision and save? The current content in the editor will be overwritten, saved, and then executed. This could break your site if the revision contains errors.', 'snn')) . "',
+        confirm_restore_text: '" . esc_js(__('Load this revision as a draft and test it? It only goes live if it passes the test; until then the current version keeps running.', 'snn')) . "',
         confirm_clear_revisions_text: '" . esc_js(__('Are you absolutely sure you want to delete all revisions for this snippet? This action cannot be undone.', 'snn')) . "',
         confirm_clear_logs_text: '" . esc_js(__('Are you absolutely sure you want to delete all error logs? This action cannot be undone.', 'snn')) . "'
     };
@@ -698,6 +1173,11 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-setting-row-error label { /* Ensure label text is clearly visible */
              color: #333;
         }
+
+        /* Draft / test-before-publish notices */
+        .snn-draft-notice pre { max-height: 300px; overflow: auto; background: #f6f7f7; border: 1px solid #dcdcde; padding: 10px; font-size: 12px; white-space: pre-wrap; }
+        .snn-draft-notice details { margin: 8px 0; }
+        .snn-draft-notice .spinner { float: none; margin: 0 6px; }
     </style>';
 }
 add_action( 'admin_head', 'snn_custom_codes_snippets_admin_styles' );
@@ -770,6 +1250,11 @@ function snn_get_function_context( $code, $error_line ) {
  * Helper function to log an error event.
  */
 function snn_log_error_event( $type, $message, $snippet_slug, $file = '', $line = 0, $code_context = '', $function_context = '' ) {
+    // Test page loads report to their test run, not to the error log.
+    if ( snn_snippet_test_context() ) {
+        return;
+    }
+
     $logs = get_option( SNN_CUSTOM_CODES_LOG_OPTION, array() );
     if ( ! is_array( $logs ) ) { // Ensure logs is an array
         $logs = array();
@@ -873,6 +1358,17 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
             case E_DEPRECATED: case E_USER_DEPRECATED: $error_type_str = 'PHP Deprecated'; break;
         }
 
+        if ( snn_snippet_test_context() ) {
+            snn_snippet_test_log( array(
+                'kind'    => 'warning',
+                'type'    => $error_type_str,
+                'message' => $errstr,
+                'line'    => (int) $errline,
+                'slug'    => $snippet_location_slug,
+            ) );
+            return true;
+        }
+
         $code_context = snn_get_code_context( $code_to_execute, $errline );
         $function_context = snn_get_function_context( $code_to_execute, $errline );
 
@@ -895,36 +1391,48 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
         $function_context = snn_get_function_context( $code_to_execute, $error_line );
         $type             = ( $e instanceof ParseError ) ? 'PHP Parse Error' : get_class( $e );
 
-        snn_log_error_event(
-            $type,
-            $e->getMessage(),
-            $snippet_location_slug,
-            'eval()\'d code',
-            $error_line,
-            $code_context,
-            $function_context
-        );
-
-        // An Error (which includes ParseError) means this snippet cannot run.
-        // Block just this snippet - the others are unaffected. A plain Exception
-        // is the snippet's own business and is only logged.
-        if ( $e instanceof Error ) {
-            $fatal_thrown = true;
-
-            snn_snippet_record_error(
-                $snippet_location_slug,
+        if ( snn_snippet_test_context() ) {
+            // Test page load: report to the test run instead of logging and blocking.
+            snn_snippet_test_log( array(
+                'kind'    => ( $e instanceof Error ) ? 'error' : 'exception',
+                'type'    => $type,
+                'message' => $e->getMessage(),
+                'line'    => (int) $error_line,
+                'slug'    => $snippet_location_slug,
+            ) );
+            $fatal_thrown = ( $e instanceof Error );
+        } else {
+            snn_log_error_event(
                 $type,
-                $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
-                $error_line
+                $e->getMessage(),
+                $snippet_location_slug,
+                'eval()\'d code',
+                $error_line,
+                $code_context,
+                $function_context
             );
 
-            set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
-                'message' => $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
-                'file'    => 'Tab: ' . snn_snippet_title( $snippet_location_slug ),
-                'line'    => $error_line,
-                'type'    => $type,
-                'slug'    => $snippet_location_slug,
-            ), DAY_IN_SECONDS );
+            // An Error (which includes ParseError) means this snippet cannot run.
+            // Block just this snippet - the others are unaffected. A plain Exception
+            // is the snippet's own business and is only logged.
+            if ( $e instanceof Error ) {
+                $fatal_thrown = true;
+
+                snn_snippet_record_error(
+                    $snippet_location_slug,
+                    $type,
+                    $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
+                    $error_line
+                );
+
+                set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
+                    'message' => $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
+                    'file'    => 'Tab: ' . snn_snippet_title( $snippet_location_slug ),
+                    'line'    => $error_line,
+                    'type'    => $type,
+                    'slug'    => $snippet_location_slug,
+                ), DAY_IN_SECONDS );
+            }
         }
     } finally {
         // Unwind any buffers the snippet opened and forgot to close, then take
@@ -957,6 +1465,12 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
  * exhaustion, execution timeouts - and costs one pair of writes, once.
  */
 function snn_snippet_run( $code, $slug ) {
+    // Test page loads never touch the crash guard's state: they are a sandbox
+    // whose outcome is reported to the test run.
+    if ( snn_snippet_test_context() ) {
+        return snn_execute_php_snippet( $code, $slug );
+    }
+
     // Deliberately fresh: another request may have recorded an error for this
     // snippet since our in-process cache was filled, and writing a stale copy of
     // the whole state array back would silently un-block a snippet that is
@@ -1065,6 +1579,11 @@ function snn_snippet_finalize_pending() {
  * request died inside the named snippet. Block it and let the site come back up.
  */
 function snn_snippet_recover_from_crash() {
+    // Recovery writes state; test page loads leave the safety state alone.
+    if ( snn_snippet_test_context() ) {
+        return;
+    }
+
     // Fresh read: this is the path that brings a dead site back up, so it must
     // never act on a state snapshot taken earlier in the request.
     $state = snn_get_snippet_state( true );
@@ -1204,6 +1723,562 @@ function snn_apply_syntax_check_result( $slug, $title, $syntax, $code ) {
 }
 
 /**
+ * The "Run this snippet" checkbox as submitted for one tab: true/false, or null
+ * when the submission did not include that tab's checkbox. Only the tab on
+ * screen renders it, so a hidden marker says which tab the submission owns -
+ * otherwise the absent checkboxes would read as "switch everything off".
+ */
+function snn_snippet_posted_toggle( $key ) {
+    if ( ! isset( $_POST['snn_snippet_toggle_present'] ) || sanitize_key( wp_unslash( $_POST['snn_snippet_toggle_present'] ) ) !== $key ) {
+        return null;
+    }
+    return isset( $_POST['snn_snippet_enabled'] );
+}
+
+/**
+ * Switch one snippet on or off.
+ */
+function snn_snippet_set_enabled( $slug, $on ) {
+    $map          = snn_get_snippet_enabled_map();
+    $map[ $slug ] = $on ? 1 : 0;
+    update_option( SNN_SNIPPET_ENABLED_OPTION, $map, true );
+}
+
+/**
+ * Can snippets execute at all right now: global switch on, no kill constant?
+ */
+function snn_snippets_execution_possible() {
+    if ( ( defined( 'SNN_CODE_DISABLE' ) && SNN_CODE_DISABLE ) || ( defined( 'SNN_CODE_SAFE_MODE' ) && SNN_CODE_SAFE_MODE ) ) {
+        return false;
+    }
+    return (bool) get_option( 'snn_codes_snippets_enabled', 0 );
+}
+
+/**
+ * The unpublished draft stored for a snippet post, or false.
+ *
+ * Shape: code, hash, status ('pending' | 'failed'), token, switch_on, time,
+ * user, error (array( type, message, line, target ) once failed).
+ */
+function snn_snippet_get_draft( $post_id ) {
+    if ( ! $post_id ) {
+        return false;
+    }
+    $draft = get_post_meta( $post_id, SNN_SNIPPET_DRAFT_META, true );
+    return ( is_array( $draft ) && isset( $draft['code'], $draft['status'] ) ) ? $draft : false;
+}
+
+/**
+ * Store a draft. update_post_meta() unslashes its input, so the draft is
+ * slashed first - the same trap that used to eat backslashes in saved code.
+ */
+function snn_snippet_save_draft( $post_id, $draft ) {
+    update_post_meta( $post_id, SNN_SNIPPET_DRAFT_META, wp_slash( $draft ) );
+}
+
+/**
+ * Forget a snippet's draft, and void its test run if one is in progress.
+ */
+function snn_snippet_delete_draft( $post_id ) {
+    $draft = snn_snippet_get_draft( $post_id );
+    if ( ! $draft ) {
+        return;
+    }
+    if ( ! empty( $draft['token'] ) ) {
+        delete_transient( SNN_SNIPPET_TEST_TRANSIENT . $draft['token'] );
+    }
+    delete_post_meta( $post_id, SNN_SNIPPET_DRAFT_META );
+}
+
+/**
+ * Post ID for a snippet, creating an empty private post on first use so a
+ * draft has somewhere to live.
+ *
+ * @return int|WP_Error
+ */
+function snn_snippet_ensure_post( $def ) {
+    $post_id = snn_get_code_snippet_id( $def['slug'] );
+    if ( $post_id ) {
+        return (int) $post_id;
+    }
+    return wp_insert_post( array(
+        'post_title'   => $def['title'],
+        'post_content' => '',
+        'post_status'  => 'private',
+        'post_type'    => 'snn_code_snippet',
+        'post_name'    => $def['slug'],
+    ), true );
+}
+
+/**
+ * Make code live: it becomes the post content (creating a revision), any draft
+ * is dropped, any block is lifted, and the snippet is switched on if asked.
+ * The runtime crash guard re-arms itself against the new code.
+ *
+ * @return true|WP_Error
+ */
+function snn_snippet_publish( $def, $post_id, $code, $switch_on ) {
+    $result = wp_update_post( array(
+        'ID'           => $post_id,
+        'post_title'   => $def['title'],
+        // wp_update_post() expects slashed input and unslashes internally.
+        // Passing unslashed code ate one level of backslashes on every save,
+        // silently turning \WP_Query into WP_Query and '/\d+/' into '/d+/'.
+        'post_content' => wp_slash( $code ),
+    ), true );
+    if ( is_wp_error( $result ) ) {
+        return $result;
+    }
+
+    snn_snippet_delete_draft( $post_id );
+    snn_snippet_clear_error( $def['slug'] );
+    if ( $switch_on ) {
+        snn_snippet_set_enabled( $def['slug'], true );
+    }
+    return true;
+}
+
+/**
+ * Keep code as a draft and open a test run for it. The admin page then loads
+ * the test pages from the browser - after this request has finished, so it
+ * works on servers that handle one request at a time - and asks the server
+ * to publish once every page has reported back.
+ */
+function snn_snippet_start_test( $slug, $post_id, $code, $switch_on ) {
+    snn_snippet_delete_draft( $post_id ); // Voids an earlier run's token.
+
+    $token = wp_generate_password( 32, false, false );
+    set_transient( SNN_SNIPPET_TEST_TRANSIENT . $token, array(
+        'slug'    => $slug,
+        'code'    => $code,
+        'hash'    => md5( $code ),
+        'user'    => get_current_user_id(),
+        'targets' => snn_snippet_test_targets_for( $slug ),
+        'results' => array(),
+        'expires' => time() + SNN_SNIPPET_TEST_TTL,
+    ), SNN_SNIPPET_TEST_TTL );
+
+    snn_snippet_save_draft( $post_id, array(
+        'code'      => $code,
+        'hash'      => md5( $code ),
+        'status'    => 'pending',
+        'token'     => $token,
+        'switch_on' => (bool) $switch_on,
+        'time'      => time(),
+        'user'      => get_current_user_id(),
+        'error'     => null,
+    ) );
+}
+
+/**
+ * Keep code as a draft that failed its checks, and log why. Nothing about the
+ * live snippet changes.
+ *
+ * @param array $error array( type, message, line, target ).
+ */
+function snn_snippet_fail_draft( $slug, $post_id, $code, $switch_on, $error ) {
+    snn_snippet_delete_draft( $post_id );
+    snn_snippet_save_draft( $post_id, array(
+        'code'      => $code,
+        'hash'      => md5( $code ),
+        'status'    => 'failed',
+        'token'     => '',
+        'switch_on' => (bool) $switch_on,
+        'time'      => time(),
+        'user'      => get_current_user_id(),
+        'error'     => $error,
+    ) );
+
+    $line = (int) $error['line'];
+    snn_log_error_event(
+        'Not published: ' . $error['type'],
+        $error['message'] . ( ! empty( $error['target'] ) ? ' [' . $error['target'] . ']' : '' ),
+        $slug,
+        'Check before publishing',
+        $line,
+        $line ? snn_get_code_context( $code, $line ) : '',
+        $line ? snn_get_function_context( $code, $line ) : ''
+    );
+}
+
+/**
+ * Save one snippet from the admin page.
+ *
+ * Code that cannot execute - empty code, a snippet that is switched off, or
+ * snippet execution being off entirely - is published as soon as it passes the
+ * static checks. Code that would execute is kept as a draft and tested on real
+ * page loads first; the live version keeps running until the test passes.
+ * Switching a snippet on counts as a change to test; switching one off is
+ * always safe and happens immediately.
+ *
+ * @param array     $def        Snippet definition (slug, title).
+ * @param string    $code       Submitted code, unslashed.
+ * @param bool|null $desired_on The "Run this snippet" checkbox, or null if not submitted.
+ */
+function snn_snippet_process_save( $def, $code, $desired_on ) {
+    $slug  = $def['slug'];
+    $title = $def['title'];
+
+    $post_id = snn_snippet_ensure_post( $def );
+    if ( is_wp_error( $post_id ) ) {
+        add_settings_error( 'snn-custom-codes', 'save_failed_' . $slug, sprintf(
+            /* translators: 1: snippet title, 2: error message */
+            __( 'Could not save "%1$s": %2$s', 'snn' ),
+            esc_html( $title ),
+            esc_html( $post_id->get_error_message() )
+        ), 'error' );
+        return;
+    }
+
+    $is_on     = snn_snippet_is_enabled( $slug );
+    $switch_on = false;
+    if ( false === $desired_on && $is_on ) {
+        snn_snippet_set_enabled( $slug, false );
+        $is_on = false;
+    } elseif ( true === $desired_on && ! $is_on ) {
+        $switch_on = true;
+    }
+
+    $live    = snn_get_code_snippet_content( $slug );
+    $changed = ( $code !== $live );
+    $runs    = ( $is_on || $switch_on ) && snn_snippets_execution_possible();
+    $blocked = (bool) snn_snippet_get_error( $slug );
+
+    // Nothing new to publish, nothing to switch on, no block to retry: drop any
+    // stale draft (the editor was reverted to the live code) and stop here.
+    if ( ! $changed && ! $switch_on && ! ( $runs && $blocked ) ) {
+        snn_snippet_delete_draft( $post_id );
+        return;
+    }
+
+    $empty = ( '' === trim( $code ) );
+    $check = $empty ? true : snn_snippet_static_check( $code, $slug );
+    if ( true !== $check ) {
+        snn_snippet_fail_draft( $slug, $post_id, $code, $switch_on, $check );
+        add_settings_error( 'snn-custom-codes', 'not_published_' . $slug, sprintf(
+            /* translators: 1: snippet title, 2: error message, 3: line number */
+            __( '"%1$s" was NOT published: %2$s (line %3$d). Your edit is kept as a draft and the live version keeps running. Fix the code and save again.', 'snn' ),
+            esc_html( $title ),
+            esc_html( $check['message'] ),
+            absint( $check['line'] )
+        ), 'error' );
+        return;
+    }
+
+    if ( $empty || ! $runs ) {
+        $published = snn_snippet_publish( $def, $post_id, $code, $switch_on );
+        if ( is_wp_error( $published ) ) {
+            add_settings_error( 'snn-custom-codes', 'save_failed_' . $slug, sprintf(
+                /* translators: 1: snippet title, 2: error message */
+                __( 'Could not save "%1$s": %2$s', 'snn' ),
+                esc_html( $title ),
+                esc_html( $published->get_error_message() )
+            ), 'error' );
+        } elseif ( $empty ) {
+            /* translators: %s: snippet title */
+            add_settings_error( 'snn-custom-codes', 'saved_' . $slug, sprintf( __( '"%s" saved.', 'snn' ), esc_html( $title ) ), 'updated' );
+        } elseif ( ! $is_on && ! $switch_on ) {
+            /* translators: %s: snippet title */
+            add_settings_error( 'snn-custom-codes', 'saved_' . $slug, sprintf( __( '"%s" saved. It is switched off, so it was not test-loaded; switching it on will test it first.', 'snn' ), esc_html( $title ) ), 'updated' );
+        } else {
+            /* translators: %s: snippet title */
+            add_settings_error( 'snn-custom-codes', 'saved_' . $slug, sprintf( __( '"%s" saved. Snippet execution is off (globally or by a constant), so it was not test-loaded.', 'snn' ), esc_html( $title ) ), 'updated' );
+        }
+        return;
+    }
+
+    snn_snippet_start_test( $slug, $post_id, $code, $switch_on );
+    add_settings_error( 'snn-custom-codes', 'testing_' . $slug, sprintf(
+        /* translators: %s: snippet title */
+        __( '"%s" was saved as a draft and is being tested on your site. It goes live only if the test passes; until then the current version keeps running.', 'snn' ),
+        esc_html( $title )
+    ), 'info' );
+}
+
+/**
+ * Judge a test run from the results its page loads recorded.
+ *
+ * Anything missing counts against the draft: a page that never reported back
+ * may have been killed outright, and that is exactly what must not go live.
+ *
+ * @return array{problems: array, warnings: array}
+ */
+function snn_snippet_evaluate_test( $test ) {
+    $defs     = snn_snippet_test_target_defs();
+    $slug     = $test['slug'];
+    $problems = array();
+    $warnings = array();
+    $ran      = false;
+
+    foreach ( $test['targets'] as $target ) {
+        $label = isset( $defs[ $target ] ) ? $defs[ $target ]['label'] : $target;
+
+        if ( empty( $test['results'][ $target ] ) ) {
+            $problems[] = array(
+                'type'    => __( 'No result', 'snn' ),
+                'message' => __( 'This test page never reported back. It may have crashed hard, timed out, redirected before WordPress loaded, or been served from a page cache.', 'snn' ),
+                'line'    => 0,
+                'target'  => $label,
+            );
+            continue;
+        }
+
+        $result = $test['results'][ $target ];
+        if ( ! empty( $result['ran'] ) ) {
+            $ran = true;
+        }
+
+        // Logged-in targets must really have loaded as the person who saved.
+        if ( 'home_out' !== $target && (int) $result['user'] !== (int) $test['user'] ) {
+            $problems[] = array(
+                'type'    => __( 'Not logged in', 'snn' ),
+                'message' => __( 'This test page did not load as your logged-in account, so its result cannot be trusted.', 'snn' ),
+                'line'    => 0,
+                'target'  => $label,
+            );
+            continue;
+        }
+
+        if ( ! empty( $result['fatal'] ) ) {
+            $fatal = $result['fatal'];
+            $line  = 0;
+            if ( $fatal['from_snippet'] && '' !== $fatal['slug'] && $fatal['slug'] !== $slug ) {
+                /* translators: 1: other snippet title, 2: error message */
+                $message = sprintf( __( 'Another snippet ("%1$s") crashed during the test, so this one could not be verified: %2$s', 'snn' ), snn_snippet_title( $fatal['slug'] ), $fatal['message'] );
+            } elseif ( $fatal['from_snippet'] ) {
+                $message = $fatal['message'];
+                $line    = (int) $fatal['line'];
+            } else {
+                /* translators: 1: error message, 2: file and line */
+                $message = sprintf( __( '%1$s (in %2$s)', 'snn' ), $fatal['message'], $fatal['file'] );
+            }
+            $problems[] = array(
+                'type'    => $fatal['type'],
+                'message' => $message,
+                'line'    => $line,
+                'target'  => $label,
+            );
+        }
+
+        foreach ( (array) $result['log'] as $entry ) {
+            if ( ! isset( $entry['slug'] ) || $entry['slug'] !== $slug ) {
+                continue; // Other snippets' problems are not this draft's fault.
+            }
+            if ( 'error' === $entry['kind'] ) {
+                $problems[] = array(
+                    'type'    => $entry['type'],
+                    'message' => $entry['message'],
+                    'line'    => (int) $entry['line'],
+                    'target'  => $label,
+                );
+            } else {
+                $warnings[ $entry['type'] . '|' . $entry['message'] . '|' . $entry['line'] ] = sprintf(
+                    /* translators: 1: warning type, 2: message, 3: line, 4: test page */
+                    __( '%1$s: %2$s (line %3$d, %4$s)', 'snn' ),
+                    $entry['type'],
+                    $entry['message'],
+                    (int) $entry['line'],
+                    $label
+                );
+            }
+        }
+    }
+
+    if ( ! $problems && ! $ran ) {
+        $problems[] = array(
+            'type'    => __( 'Did not run', 'snn' ),
+            'message' => __( 'The snippet never ran on any test page, so it could not be verified. Check that snippet execution is on and that the test pages are not redirecting.', 'snn' ),
+            'line'    => 0,
+            'target'  => '',
+        );
+    }
+
+    return array(
+        'problems' => $problems,
+        'warnings' => array_values( $warnings ),
+    );
+}
+
+/**
+ * Queue a notice for the current user's next view of the snippets page. Test
+ * runs finish over AJAX, then the page reloads to show the outcome.
+ *
+ * @param string $type    settings_errors() type.
+ * @param string $message Already-escaped HTML.
+ */
+function snn_snippet_flash( $type, $message ) {
+    $key   = 'snn_snippet_flash_' . get_current_user_id();
+    $queue = get_transient( $key );
+    $queue = is_array( $queue ) ? $queue : array();
+    $queue[] = array( $type, $message );
+    set_transient( $key, $queue, 5 * MINUTE_IN_SECONDS );
+}
+
+/**
+ * Move queued notices into this page view's settings errors.
+ */
+function snn_snippet_consume_flash() {
+    $key   = 'snn_snippet_flash_' . get_current_user_id();
+    $queue = get_transient( $key );
+    if ( ! is_array( $queue ) ) {
+        return;
+    }
+    delete_transient( $key );
+    foreach ( $queue as $i => $item ) {
+        add_settings_error( 'snn-custom-codes', 'snn_flash_' . $i, $item[1], $item[0] );
+    }
+}
+
+/**
+ * Live code and the discard button, shown under every draft notice.
+ */
+function snn_snippet_render_draft_footer( $key, $live ) {
+    ?>
+    <details>
+        <summary><?php esc_html_e( 'Show the live version', 'snn' ); ?></summary>
+        <pre><?php echo '' === trim( $live ) ? esc_html__( '(empty)', 'snn' ) : esc_html( $live ); ?></pre>
+    </details>
+    <p>
+        <button type="submit" name="snn_discard_draft_button" value="<?php echo esc_attr( $key ); ?>" class="button"
+                onclick="return confirm('<?php echo esc_js( __( 'Discard this draft? The editor goes back to the live version.', 'snn' ) ); ?>');">
+            <?php esc_html_e( 'Discard draft', 'snn' ); ?>
+        </button>
+    </p>
+    <?php
+}
+
+/**
+ * The notice above the editor while a snippet has an unpublished draft: the
+ * test in progress (with the script that drives it), a failed check, or a test
+ * that never finished.
+ */
+function snn_snippet_render_draft_notice( $key, $def, $draft ) {
+    $live = snn_get_code_snippet_content( $def['slug'] );
+    $test = ( 'pending' === $draft['status'] && ! empty( $draft['token'] ) ) ? get_transient( SNN_SNIPPET_TEST_TRANSIENT . $draft['token'] ) : false;
+
+    if ( is_array( $test ) ) {
+        $defs    = snn_snippet_test_target_defs();
+        $targets = array();
+        foreach ( $test['targets'] as $target ) {
+            $targets[] = array(
+                'label'   => $defs[ $target ]['label'],
+                'url'     => add_query_arg( array(
+                    'snn_snippet_test'   => $draft['token'],
+                    'snn_snippet_target' => $target,
+                ), $defs[ $target ]['url'] ),
+                'cookies' => $defs[ $target ]['cookies'],
+            );
+        }
+        $config = array(
+            'targets'   => $targets,
+            'token'     => $draft['token'],
+            'slug'      => $def['slug'],
+            'nonce'     => wp_create_nonce( 'snn_snippet_test_finish' ),
+            'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+            'returnUrl' => admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=' . $key ),
+            'timeout'   => 60000,
+            'i18n'      => array(
+                /* translators: %s: test page, e.g. "Front end (logged out)" */
+                'testing'  => __( 'Loading: %s', 'snn' ),
+                'checking' => __( 'Checking the results…', 'snn' ),
+                'failed'   => __( 'Could not reach the site to finish the test. Reload this page, or save again to test again.', 'snn' ),
+            ),
+        );
+        ?>
+        <div class="notice notice-info inline snn-draft-notice" id="snn-snippet-test-runner" data-config="<?php echo esc_attr( wp_json_encode( $config ) ); ?>">
+            <p><strong><?php esc_html_e( 'Testing your changes before they go live…', 'snn' ); ?></strong><span class="spinner is-active"></span><span class="snn-test-status"></span></p>
+            <p><?php esc_html_e( 'Your site is being loaded in the background with this draft. The current version keeps running until the test passes. Keep this page open; it reloads with the result.', 'snn' ); ?></p>
+            <noscript><p><?php esc_html_e( 'Testing needs JavaScript. Until it runs, these changes stay unpublished.', 'snn' ); ?></p></noscript>
+            <?php snn_snippet_render_draft_footer( $key, $live ); ?>
+        </div>
+        <script>
+        ( function () {
+            var box = document.getElementById( 'snn-snippet-test-runner' );
+            if ( ! box || ! window.fetch ) {
+                return;
+            }
+            var cfg    = JSON.parse( box.getAttribute( 'data-config' ) );
+            var status = box.querySelector( '.snn-test-status' );
+            var index  = 0;
+
+            // One page at a time: some servers handle a single request at once.
+            // Only what each page load records on the server counts, so the
+            // responses are ignored and failures simply move on.
+            function next() {
+                if ( index >= cfg.targets.length ) {
+                    finish();
+                    return;
+                }
+                var target     = cfg.targets[ index++ ];
+                var controller = window.AbortController ? new AbortController() : null;
+                var timer      = controller ? setTimeout( function () { controller.abort(); }, cfg.timeout ) : null;
+                status.textContent = cfg.i18n.testing.replace( '%s', target.label );
+                fetch( target.url, {
+                    credentials: target.cookies ? 'include' : 'omit',
+                    cache: 'no-store',
+                    redirect: 'manual',
+                    signal: controller ? controller.signal : undefined
+                } ).catch( function () {} ).then( function () {
+                    if ( timer ) {
+                        clearTimeout( timer );
+                    }
+                    next();
+                } );
+            }
+
+            function finish() {
+                status.textContent = cfg.i18n.checking;
+                var body = new FormData();
+                body.append( 'action', 'snn_snippet_test_finish' );
+                body.append( 'nonce', cfg.nonce );
+                body.append( 'token', cfg.token );
+                body.append( 'slug', cfg.slug );
+                fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+                    .then( function ( response ) { return response.json(); } )
+                    .then( function () { window.location.href = cfg.returnUrl; } )
+                    .catch( function () { status.textContent = cfg.i18n.failed; } );
+            }
+
+            next();
+        } )();
+        </script>
+        <?php
+        return;
+    }
+
+    $error = ( 'failed' === $draft['status'] && ! empty( $draft['error'] ) && is_array( $draft['error'] ) ) ? $draft['error'] : null;
+    ?>
+    <div class="notice <?php echo $error ? 'notice-error' : 'notice-warning'; ?> inline snn-draft-notice">
+        <?php if ( $error ) : ?>
+            <p><strong><?php esc_html_e( 'These changes are NOT live: they failed the check before publishing.', 'snn' ); ?></strong> <?php esc_html_e( 'The live version is still running unchanged.', 'snn' ); ?></p>
+            <p>
+                <code><?php echo esc_html( $error['type'] ); ?></code>
+                <?php echo esc_html( $error['message'] ); ?>
+                <?php if ( ! empty( $error['line'] ) ) : ?>
+                    <?php printf( esc_html__( '(line %d)', 'snn' ), absint( $error['line'] ) ); ?>
+                <?php endif; ?>
+                <?php if ( ! empty( $error['target'] ) ) : ?>
+                    <em>&mdash; <?php echo esc_html( $error['target'] ); ?></em>
+                <?php endif; ?>
+            </p>
+            <?php if ( ! empty( $error['line'] ) ) : ?>
+                <pre><?php echo esc_html( snn_get_code_context( $draft['code'], (int) $error['line'] ) ); ?></pre>
+            <?php endif; ?>
+        <?php else : ?>
+            <p><strong><?php esc_html_e( 'These changes are NOT live: their test did not finish.', 'snn' ); ?></strong> <?php esc_html_e( 'The page was closed or the test expired. Save again to test them; the live version keeps running until then.', 'snn' ); ?></p>
+        <?php endif; ?>
+        <p class="description">
+            <?php
+            /* translators: %s: human readable time difference */
+            printf( esc_html__( 'Draft saved %s ago.', 'snn' ), esc_html( human_time_diff( (int) $draft['time'], time() ) ) );
+            ?>
+        </p>
+        <?php snn_snippet_render_draft_footer( $key, $live ); ?>
+    </div>
+    <?php
+}
+
+/**
  * Display the admin page for managing custom code snippets.
  */
 function snn_custom_codes_snippets_page() {
@@ -1270,6 +2345,21 @@ function snn_custom_codes_snippets_page() {
                 $_GET['tab'] = $unblock_key;
             }
         }
+        // Handle "Discard draft": forget an unpublished edit, keep the live code
+        elseif ( isset( $_POST['snn_discard_draft_button'] ) ) {
+            $discard_key = sanitize_key( wp_unslash( $_POST['snn_discard_draft_button'] ) );
+            if ( isset( $snippet_defs[ $discard_key ] ) ) {
+                snn_snippet_delete_draft( snn_get_code_snippet_id( $snippet_defs[ $discard_key ]['slug'] ) );
+                add_settings_error(
+                    'snn-custom-codes',
+                    'draft_discarded',
+                    /* translators: %s: snippet title */
+                    sprintf( __( '"%s": draft discarded. The editor shows the live version again.', 'snn' ), esc_html( $snippet_defs[ $discard_key ]['title'] ) ),
+                    'updated'
+                );
+                $_GET['tab'] = $discard_key;
+            }
+        }
         // Handle Clear Revisions Action for a specific snippet
         elseif ( isset( $_POST['snn_clear_revisions_button'] ) && ! empty( $_POST['snn_clear_revisions_button'] ) ) {
             $snippet_key_to_clear = isset( $_POST['snn_snippet_key_to_clear'] ) ? sanitize_key( $_POST['snn_snippet_key_to_clear'] ) : '';
@@ -1308,10 +2398,10 @@ function snn_custom_codes_snippets_page() {
                     $revision = wp_get_post_revision( $revision_id );
 
                     if ( $target_post_id && $revision && $revision->post_parent == $target_post_id && current_user_can( 'edit_post', $target_post_id ) ) {
-                        wp_restore_post_revision( $revision_id );
-                        $_POST[ $target_snippet_def['field_id'] ] = $revision->post_content;
+                        // Restoring is saving old code: it takes the same
+                        // draft -> test -> publish path as any other edit.
                         $_GET['tab'] = $snippet_key_for_restore;
-                        add_settings_error('snn-custom-codes', 'revision_restored', sprintf(__('Revision for "%s" has been loaded into the editor. Click "Save All Snippets & Settings" to make it live.', 'snn'), esc_html($target_snippet_def['title'])), 'updated');
+                        snn_snippet_process_save( $target_snippet_def, $revision->post_content, snn_snippet_posted_toggle( $snippet_key_for_restore ) );
                     } else {
                         add_settings_error('snn-custom-codes', 'restore_failed', __('Failed to restore revision. Invalid ID or permissions.', 'snn'), 'error');
                         $settings_saved_message_type = 'error';
@@ -1335,85 +2425,18 @@ function snn_custom_codes_snippets_page() {
                 update_option( SNN_UNATTRIBUTED_FATAL_OPTION, 0, true );
             }
 
-            // Per-snippet on/off switch. Only the tab currently on screen renders a
-            // checkbox, so a hidden marker tells us which key this submission owns -
-            // otherwise the four absent checkboxes would read as "disable everything".
-            if ( isset( $_POST['snn_snippet_toggle_present'] ) ) {
-                $toggle_key = sanitize_key( wp_unslash( $_POST['snn_snippet_toggle_present'] ) );
-                $all_slugs  = snn_snippet_slugs();
-                if ( isset( $all_slugs[ $toggle_key ] ) ) {
-                    $enabled_map = snn_get_snippet_enabled_map();
-                    $enabled_map[ $all_slugs[ $toggle_key ] ] = isset( $_POST['snn_snippet_enabled'] ) ? 1 : 0;
-                    update_option( SNN_SNIPPET_ENABLED_OPTION, $enabled_map, true );
-                }
-            }
-
-            // Save standard snippets.
-            // Syntax is validated here, once, using PHP's own parser - not on every
-            // page load. Code is always stored so the user never loses work; if it
-            // does not parse, the snippet is blocked from executing until a valid
-            // version is saved.
-            $all_snippets_processed_successfully = true;
-            $any_syntax_error                    = false;
+            // Save the snippet on screen (only the current tab renders its
+            // textarea). Syntax and name conflicts are checked here, once; an
+            // edit to a snippet that runs is then kept as a draft and tested on
+            // real page loads before it replaces the live code.
             foreach ( $snippet_defs as $key => $def ) {
                 if ( isset( $_POST[ $def['field_id'] ] ) ) {
-                    $new_code_content = wp_unslash( $_POST[ $def['field_id'] ] );
-
-                    // Check before writing anything: if the parser were ever to take
-                    // down this request, nothing has been saved and the site keeps
-                    // running the previous, known-good code.
-                    $syntax = snn_check_php_syntax( $new_code_content );
-
-                    $snippet_post_id = snn_get_code_snippet_id( $def['slug'] );
-                    $post_data = array(
-                        'post_title'   => $def['title'],
-                        // wp_insert_post()/wp_update_post() expect slashed input and
-                        // unslash internally. Passing already-unslashed code here ate
-                        // one level of backslashes on every save, silently turning
-                        // \WP_Query into WP_Query and '/\d+/' into '/d+/'.
-                        'post_content' => wp_slash( $new_code_content ),
-                        'post_status'  => 'private',
-                        'post_type'    => 'snn_code_snippet',
-                        'post_name'    => $def['slug'],
-                    );
-                    if ( $snippet_post_id ) { // Existing snippet, update it
-                        $post_data['ID'] = $snippet_post_id;
-                        $updated_id = wp_update_post( $post_data, true );
-                        if ( is_wp_error( $updated_id ) ) {
-                            add_settings_error('snn-custom-codes', 'update_failed_' . $key, sprintf(__('Failed to update snippet: %s - %s', 'snn'), esc_html($def['title']), esc_html($updated_id->get_error_message())), 'error');
-                            $all_snippets_processed_successfully = false;
-                            continue;
-                        }
-                    } else { // New snippet, insert it
-                        $inserted_id = wp_insert_post( $post_data, true );
-                        if ( is_wp_error( $inserted_id ) ) {
-                            add_settings_error('snn-custom-codes', 'insert_failed_' . $key, sprintf(__('Failed to create snippet: %s - %s', 'snn'), esc_html($def['title']), esc_html($inserted_id->get_error_message())), 'error');
-                            $all_snippets_processed_successfully = false;
-                            continue;
-                        }
-                    }
-
-                    snn_apply_syntax_check_result( $def['slug'], $def['title'], $syntax, $new_code_content );
-                    if ( is_array( $syntax ) ) {
-                        $any_syntax_error = true;
-                    }
+                    snn_snippet_process_save( $def, wp_unslash( $_POST[ $def['field_id'] ] ), snn_snippet_posted_toggle( $key ) );
                 }
             }
 
-            // Determine overall success message
-            $notices = get_settings_errors('snn-custom-codes');
-            $has_specific_action_message = false;
-            foreach ($notices as $notice) {
-                if (in_array($notice['code'], ['revision_restored', 'revisions_cleared', 'no_revisions_to_clear', 'logs_cleared'])) {
-                    $has_specific_action_message = true;
-                    break;
-                }
-            }
-
-            if ( $all_snippets_processed_successfully && !$any_syntax_error && !$has_specific_action_message && $settings_saved_message_type === 'updated' ) {
-                add_settings_error('snn-custom-codes', 'settings_saved', __('All snippets and settings saved.', 'snn'), 'updated');
-            } elseif (!$all_snippets_processed_successfully && $settings_saved_message_type !== 'error') {
-                add_settings_error('snn-custom-codes', 'save_errors', __('Some snippets could not be saved. Please check messages above.', 'snn'), 'error');
+            if ( ! get_settings_errors( 'snn-custom-codes' ) ) {
+                add_settings_error( 'snn-custom-codes', 'settings_saved', __( 'Settings saved.', 'snn' ), 'updated' );
             }
         }
     } // End of POST handling
@@ -1431,17 +2454,16 @@ function snn_custom_codes_snippets_page() {
     }
 
 
-    // Fetch current code for each snippet for display
+    // What each editor shows: the unpublished draft when there is one (the
+    // latest work), otherwise the live code.
     $codes_for_display = array();
+    $drafts            = array();
     foreach ( $snippet_defs as $key => $def ) {
-        if ($key === $current_tab_key && isset($_POST[$def['field_id']]) && isset($_POST['snn_restore_submit_button'])) {
-            $codes_for_display[ $key ] = wp_unslash($_POST[$def['field_id']]);
-        } else {
-            $codes_for_display[ $key ] = snn_get_code_snippet_content( $def['slug'] );
-        }
+        $drafts[ $key ]            = snn_snippet_get_draft( snn_get_code_snippet_id( $def['slug'] ) );
+        $codes_for_display[ $key ] = $drafts[ $key ] ? $drafts[ $key ]['code'] : snn_get_code_snippet_content( $def['slug'] );
     }
 
-
+    snn_snippet_consume_flash(); // Outcome of a test run that finished over AJAX.
     settings_errors('snn-custom-codes'); // Display any admin notices queued
     ?>
     <div class="wrap">
@@ -1507,7 +2529,8 @@ function snn_custom_codes_snippets_page() {
                 foreach ( $snippet_defs as $key => $def ) {
                     $active_class = ( $current_tab_key === $key ) ? 'nav-tab-active' : '';
                     $tab_url = admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=' . $key );
-                    echo '<a href="' . esc_url( $tab_url ) . '" class="nav-tab ' . esc_attr( $active_class ) . '">' . esc_html( $def['title'] ) . '</a>';
+                    $tab_label = $def['title'] . ( ! empty( $drafts[ $key ] ) ? ' ' . __( '(draft)', 'snn' ) : '' );
+                    echo '<a href="' . esc_url( $tab_url ) . '" class="nav-tab ' . esc_attr( $active_class ) . '">' . esc_html( $tab_label ) . '</a>';
                 }
                 // Add Error Logs tab link
                 $logs_tab_active_class = ( $current_tab_key === 'error_logs' ) ? 'nav-tab-active' : '';
@@ -1576,12 +2599,9 @@ function snn_custom_codes_snippets_page() {
                 $active_snippet_def = $snippet_defs[ $current_tab_key ];
                 $current_code_value = isset($codes_for_display[ $current_tab_key ]) ? $codes_for_display[ $current_tab_key ] : '';
 
-                if( $current_tab_key === sanitize_key( (isset($_POST['snn_snippet_key_to_clear']) ? $_POST['snn_snippet_key_to_clear'] : '') ) ||
-                    ( isset($_POST['snn_restore_submit_button']) && explode('_', sanitize_text_field(wp_unslash($_POST['snn_restore_submit_button'])))[2] === $current_tab_key )
-                ){
-                    if(isset($_POST[$active_snippet_def['field_id']])){
-                         $current_code_value = wp_unslash($_POST[$active_snippet_def['field_id']]);
-                    }
+                // Clearing revisions submits the form without saving: keep what was typed.
+                if ( isset( $_POST['snn_clear_revisions_button'], $_POST[ $active_snippet_def['field_id'] ] ) ) {
+                    $current_code_value = wp_unslash( $_POST[ $active_snippet_def['field_id'] ] );
                 }
 
                 $active_snippet_post_id = snn_get_code_snippet_id( $active_snippet_def['slug'] );
@@ -1621,12 +2641,23 @@ function snn_custom_codes_snippets_page() {
                                 </div>
                             <?php endif; ?>
 
+                            <?php
+                            $active_draft     = $drafts[ $current_tab_key ];
+                            $pending_switch_on = $active_draft && ! empty( $active_draft['switch_on'] );
+                            if ( $active_draft ) {
+                                snn_snippet_render_draft_notice( $current_tab_key, $active_snippet_def, $active_draft );
+                            }
+                            ?>
+
                             <p>
                                 <input type="hidden" name="snn_snippet_toggle_present" value="<?php echo esc_attr( $current_tab_key ); ?>">
                                 <label for="snn_snippet_enabled">
-                                    <input type="checkbox" id="snn_snippet_enabled" name="snn_snippet_enabled" value="1" <?php checked( true, snn_snippet_is_enabled( $active_snippet_def['slug'] ) ); ?>>
+                                    <input type="checkbox" id="snn_snippet_enabled" name="snn_snippet_enabled" value="1" <?php checked( true, snn_snippet_is_enabled( $active_snippet_def['slug'] ) || $pending_switch_on ); ?>>
                                     <?php esc_html_e( 'Run this snippet', 'snn' ); ?>
                                 </label>
+                                <?php if ( $pending_switch_on ) : ?>
+                                    <span class="description"><?php esc_html_e( '(switches on once the draft passes its test)', 'snn' ); ?></span>
+                                <?php endif; ?>
                             </p>
                             <textarea id="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
                                       name="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
@@ -1668,7 +2699,7 @@ function snn_custom_codes_snippets_page() {
                                                     name="snn_restore_submit_button"
                                                     value="restore_<?php echo esc_attr( $revision->ID ) . '_' . esc_attr( $current_tab_key ); ?>"
                                                     class="button button-primary button-small snn-restore-revision-button"
-                                                    style="display:none;"> <?php esc_html_e( 'Load Revision & Save', 'snn' ); ?>
+                                                    style="display:none;"> <?php esc_html_e( 'Load Revision & Test', 'snn' ); ?>
                                             </button>
                                         </div>
                                     </li>
@@ -1693,6 +2724,7 @@ function snn_custom_codes_snippets_page() {
             <?php endif; ?>
 
             <?php if ($current_tab_key !== 'error_logs'): ?>
+                <p class="description"><?php esc_html_e( 'Changes to a snippet that runs are kept as a draft and tested on your site (admin area and front end) before they go live. The live version keeps running until the test passes.', 'snn' ); ?></p>
                 <?php submit_button( __( 'Save All Snippets & Settings', 'snn' ), 'primary large', 'snn_save_all_settings_button' ); ?>
             <?php endif; ?>
 
@@ -1730,23 +2762,35 @@ function snn_custom_codes_snippets_init_execution() {
     }
 
     // Execute "Direct PHP (functions.php style)" snippet
-    $direct_code = snn_get_code_snippet_content( 'snn-snippet-functions-php' );
+    $direct_code = snn_snippet_code_for_request( 'snn-snippet-functions-php' );
     if ( snn_snippet_should_run( 'snn-snippet-functions-php', $direct_code ) ) {
         echo snn_snippet_run( $direct_code, 'snn-snippet-functions-php' );
     }
 
     // Add hooks for other snippets only if they have content
-    if ( snn_snippet_should_run( 'snn-snippet-frontend-head', snn_get_code_snippet_content( 'snn-snippet-frontend-head' ) ) ) {
+    if ( snn_snippet_should_run( 'snn-snippet-frontend-head', snn_snippet_code_for_request( 'snn-snippet-frontend-head' ) ) ) {
         add_action( 'wp_head', 'snn_custom_codes_snippets_frontend_output', 1 );
     }
-    if ( snn_snippet_should_run( 'snn-snippet-footer', snn_get_code_snippet_content( 'snn-snippet-footer' ) ) ) {
+    if ( snn_snippet_should_run( 'snn-snippet-footer', snn_snippet_code_for_request( 'snn-snippet-footer' ) ) ) {
         add_action( 'wp_footer', 'snn_custom_codes_snippets_footer_output', 9999 );
     }
-    if ( is_admin() && snn_snippet_should_run( 'snn-snippet-admin-head', snn_get_code_snippet_content( 'snn-snippet-admin-head' ) ) ) {
+    if ( is_admin() && snn_snippet_should_run( 'snn-snippet-admin-head', snn_snippet_code_for_request( 'snn-snippet-admin-head' ) ) ) {
         add_action( 'admin_head', 'snn_custom_codes_snippets_admin_output', 1 );
     }
 }
 add_action( 'init', 'snn_custom_codes_snippets_init_execution', 10 );
+
+/**
+ * The code a snippet runs in this request: its live code or, on a test page
+ * load for this snippet, the draft under test.
+ */
+function snn_snippet_code_for_request( $slug ) {
+    $context = snn_snippet_test_context();
+    if ( $context && $context['slug'] === $slug ) {
+        return $context['code'];
+    }
+    return snn_get_code_snippet_content( $slug );
+}
 
 /**
  * Whether a snippet has content, is switched on, and is not blocked by a
@@ -1755,6 +2799,12 @@ add_action( 'init', 'snn_custom_codes_snippets_init_execution', 10 );
 function snn_snippet_should_run( $slug, $code ) {
     if ( '' === trim( (string) $code ) ) {
         return false;
+    }
+    // The draft under test runs whatever its switch or block says: running it
+    // is the whole point of the test page load.
+    $context = snn_snippet_test_context();
+    if ( $context && $context['slug'] === $slug ) {
+        return true;
     }
     if ( ! snn_snippet_is_enabled( $slug ) ) {
         return false;
@@ -1767,17 +2817,17 @@ function snn_snippet_should_run( $slug, $code ) {
 
 /** Output callback for frontend head snippet */
 function snn_custom_codes_snippets_frontend_output() {
-    $code = snn_get_code_snippet_content( 'snn-snippet-frontend-head' );
+    $code = snn_snippet_code_for_request( 'snn-snippet-frontend-head' );
     echo snn_snippet_run( $code, 'snn-snippet-frontend-head' );
 }
 /** Output callback for frontend footer snippet */
 function snn_custom_codes_snippets_footer_output()    {
-    $code = snn_get_code_snippet_content( 'snn-snippet-footer' );
+    $code = snn_snippet_code_for_request( 'snn-snippet-footer' );
     echo snn_snippet_run( $code, 'snn-snippet-footer' );
 }
 /** Output callback for admin head snippet */
 function snn_custom_codes_snippets_admin_output()     {
-    $code = snn_get_code_snippet_content( 'snn-snippet-admin-head' );
+    $code = snn_snippet_code_for_request( 'snn-snippet-admin-head' );
     echo snn_snippet_run( $code, 'snn-snippet-admin-head' );
 }
 
@@ -1826,6 +2876,89 @@ function snn_ajax_dismiss_fatal_error_notice_callback() {
     }
     delete_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT );
     wp_send_json_success();
+}
+
+/**
+ * AJAX: the browser has loaded every test page for a draft. Judge what those
+ * page loads recorded and publish the draft only if all of them came through
+ * clean. The outcome is queued as a notice and the page reloads to show it.
+ */
+add_action( 'wp_ajax_snn_snippet_test_finish', 'snn_ajax_snippet_test_finish' );
+function snn_ajax_snippet_test_finish() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'snn_snippet_test_finish' ) ) {
+        wp_send_json_error( array( 'message' => __( 'Nonce verification failed.', 'snn' ) ), 403 );
+    }
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( array( 'message' => __( 'Permission denied.', 'snn' ) ), 403 );
+    }
+
+    $token = isset( $_POST['token'] ) ? preg_replace( '/[^A-Za-z0-9]/', '', (string) wp_unslash( $_POST['token'] ) ) : '';
+    $slug  = isset( $_POST['slug'] ) ? sanitize_key( wp_unslash( $_POST['slug'] ) ) : '';
+    if ( 32 !== strlen( $token ) || ! in_array( $slug, snn_snippet_slugs(), true ) ) {
+        wp_send_json_error( array( 'message' => __( 'Invalid test run.', 'snn' ) ), 400 );
+    }
+
+    $def     = array( 'slug' => $slug, 'title' => snn_snippet_title( $slug ) );
+    $post_id = snn_get_code_snippet_id( $slug );
+    $draft   = snn_snippet_get_draft( $post_id );
+    $test    = get_transient( SNN_SNIPPET_TEST_TRANSIENT . $token );
+
+    // The run must belong to the draft as it is now: a newer save or a discard
+    // replaces the token, and the code tested must be the code to publish.
+    if ( ! is_array( $test ) || ! $draft || 'pending' !== $draft['status'] || $draft['token'] !== $token
+        || $test['slug'] !== $slug || $test['hash'] !== $draft['hash'] ) {
+        snn_snippet_flash( 'error', sprintf(
+            /* translators: %s: snippet title */
+            __( '"%s": this test run is no longer valid (it expired, or the draft changed). Save again to test the current draft.', 'snn' ),
+            esc_html( $def['title'] )
+        ) );
+        wp_send_json_error( array( 'message' => 'stale' ) );
+    }
+
+    delete_transient( SNN_SNIPPET_TEST_TRANSIENT . $token ); // Single use.
+    $verdict   = snn_snippet_evaluate_test( $test );
+    $switch_on = ! empty( $draft['switch_on'] );
+
+    if ( ! $verdict['problems'] ) {
+        $published = snn_snippet_publish( $def, $post_id, $draft['code'], $switch_on );
+        if ( is_wp_error( $published ) ) {
+            snn_snippet_flash( 'error', sprintf(
+                /* translators: 1: snippet title, 2: error message */
+                __( '"%1$s" passed the test but could not be saved: %2$s', 'snn' ),
+                esc_html( $def['title'] ),
+                esc_html( $published->get_error_message() )
+            ) );
+            wp_send_json_error( array( 'message' => 'save_failed' ) );
+        }
+
+        snn_snippet_flash( 'success', sprintf(
+            /* translators: %s: snippet title */
+            __( '"%s" passed the test on every page and is now live.', 'snn' ),
+            esc_html( $def['title'] )
+        ) . ( $switch_on ? ' ' . esc_html__( 'It has been switched on.', 'snn' ) : '' ) );
+
+        if ( $verdict['warnings'] ) {
+            snn_snippet_flash( 'warning', sprintf(
+                /* translators: %s: snippet title */
+                __( 'Warnings while testing "%s" (they did not stop it from going live):', 'snn' ),
+                esc_html( $def['title'] )
+            ) . '<br>' . implode( '<br>', array_map( 'esc_html', array_slice( $verdict['warnings'], 0, 10 ) ) ) );
+        }
+        wp_send_json_success( array( 'published' => true ) );
+    }
+
+    $problem = $verdict['problems'][0];
+    snn_snippet_fail_draft( $slug, $post_id, $draft['code'], $switch_on, $problem );
+    snn_snippet_flash( 'error', sprintf(
+        /* translators: 1: snippet title, 2: test page, 3: error type, 4: error message */
+        __( '"%1$s" was NOT published: it failed the test (%2$s). %3$s: %4$s', 'snn' ),
+        esc_html( $def['title'] ),
+        esc_html( '' !== $problem['target'] ? $problem['target'] : __( 'all pages', 'snn' ) ),
+        esc_html( $problem['type'] ),
+        esc_html( $problem['message'] )
+    ) . ( $problem['line'] ? ' ' . sprintf( esc_html__( '(line %d)', 'snn' ), absint( $problem['line'] ) ) : '' )
+      . ' ' . esc_html__( 'The live version keeps running unchanged.', 'snn' ) );
+    wp_send_json_success( array( 'published' => false ) );
 }
 
 
@@ -1910,6 +3043,11 @@ function snn_record_unattributed_fatal( $error ) {
  * Fatal error shutdown handler.
  */
 function snn_fatal_error_shutdown_handler() {
+    // A test page load reports its own fatal to the test run and blocks nothing.
+    if ( snn_snippet_test_context() ) {
+        return;
+    }
+
     $error = error_get_last();
 
     if ( ! $error || ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
@@ -2123,5 +3261,8 @@ function snn_custom_codes_feature_activate() {
 function snn_custom_codes_feature_deactivate() {
     flush_rewrite_rules();
 }
+
+// Recognise a test page load now, at load time, before any snippet can run.
+snn_snippet_test_boot();
 
 ?>
