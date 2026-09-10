@@ -555,6 +555,300 @@
                 return out;
             }
 
+            // ================================================================
+            // DECORATIVE LINES → BRICKS DIVIDER
+            // A Bricks divider draws its line as border-top on an inner .line child,
+            // sized by its own settings: height = thickness, width = length (the two
+            // swap for vertical). So a line has to be recognised by what its CSS
+            // DRAWS, not by its class name — "hero-eyebrow-line" with
+            // data-bricks="block" slipped past the old name list and came out as a
+            // plain block with the line painted as a background.
+            // ================================================================
+
+            const MAX_LINE_THICKNESS_PX = 8;   // thicker than this is a bar or shape, not a rule
+            const BORDER_STYLES = new Set(['solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset', 'none', 'hidden']);
+
+            /** "1px" → 1, "0.125rem" → 2, "0" → 0; relative or computed values → null. */
+            function cssLengthToPx(v) {
+                const m = String(v || '').trim().match(/^(-?\d*\.?\d+)(px|rem)?$/i);
+                if (!m) return null;
+                const n = parseFloat(m[1]);
+                if (!m[2]) return n === 0 ? 0 : null;
+                return m[2].toLowerCase() === 'rem' ? n * 16 : n;
+            }
+
+            /** Split a CSS value on whitespace, keeping var()/rgb() groups intact. */
+            function splitCssTokens(v) {
+                const out = [];
+                let buf = '', depth = 0;
+                for (const ch of String(v || '').trim()) {
+                    if (ch === '(') depth++;
+                    if (ch === ')') depth--;
+                    if (/\s/.test(ch) && depth === 0) { if (buf) out.push(buf); buf = ''; continue; }
+                    buf += ch;
+                }
+                if (buf) out.push(buf);
+                return out;
+            }
+
+            function isColorToken(t) {
+                return /^(#[0-9a-f]{3,8}|(rgb|hsl|hwb|lab|lch|oklab|oklch|color)a?\(.*\)|var\(.*\)|[a-z]+)$/i.test(t)
+                    && !/^(none|transparent|inherit|initial|unset|auto)$/i.test(t);
+            }
+
+            function borderWidthPx(w) {
+                if (!w) return 3;                          // initial border-width is "medium"
+                const k = { thin: 1, medium: 3, thick: 5 }[String(w).toLowerCase()];
+                return k !== undefined ? k : cssLengthToPx(w);
+            }
+
+            /** One side's border as { width, style, color }; the most specific declaration wins. */
+            function resolveBorderSide(decls, side) {
+                const out = { width: null, style: null, color: null };
+                const idx = { top: 0, right: 1, bottom: 2, left: 3 }[side];
+                const boxPart = (v) => {
+                    const p = splitCssTokens(v);
+                    if (p.length === 1) return p[0];
+                    if (p.length === 2) return p[idx % 2];
+                    if (p.length === 3) return idx === 3 ? p[1] : p[idx];
+                    return p[idx];
+                };
+                // A shorthand resets all three parts, exactly as the browser does.
+                const take = (shorthand) => {
+                    if (!shorthand) return;
+                    out.width = null; out.style = null; out.color = null;
+                    splitCssTokens(shorthand).forEach(t => {
+                        const lower = t.toLowerCase();
+                        if (BORDER_STYLES.has(lower)) out.style = lower;
+                        else if (/^(thin|medium|thick)$/i.test(t) || /^-?\d*\.?\d+(px|rem|em)?$/i.test(t)) out.width = t;
+                        else if (isColorToken(t)) out.color = t;
+                    });
+                };
+                take(decls['border']);
+                if (decls['border-width']) out.width = boxPart(decls['border-width']);
+                if (decls['border-style']) out.style = boxPart(decls['border-style']).toLowerCase();
+                if (decls['border-color']) out.color = boxPart(decls['border-color']);
+                take(decls['border-' + side]);
+                if (decls['border-' + side + '-width']) out.width = decls['border-' + side + '-width'].trim();
+                if (decls['border-' + side + '-style']) out.style = decls['border-' + side + '-style'].trim().toLowerCase();
+                if (decls['border-' + side + '-color']) out.color = decls['border-' + side + '-color'].trim();
+                return out;
+            }
+
+            function isVisibleBorder(b) {
+                if (!b.style || b.style === 'none' || b.style === 'hidden') return false;
+                const px = borderWidthPx(b.width);
+                return px === null || px > 0;
+            }
+
+            /** Solid background colour: { color }, { gradient: true } for images/gradients, or null. */
+            function resolveBackgroundPaint(decls) {
+                const image = decls['background-image'];
+                if (image && !/^none$/i.test(image.trim())) return { gradient: true };
+                const shorthand = decls['background'];
+                if (shorthand && /(url|gradient)\s*\(/i.test(shorthand)) return { gradient: true };
+                const value = decls['background-color'] || shorthand;
+                if (!value) return null;
+                const tokens = splitCssTokens(value);
+                // Anything beyond a single colour (position, repeat, ...) is not a plain line.
+                if (tokens.length !== 1 || !isColorToken(tokens[0])) return null;
+                return { color: tokens[0] };
+            }
+
+            /**
+             * Does this element's resolved CSS draw a straight line? If so, describe it
+             * in divider terms. Returns null for everything else — gradients, dots,
+             * bars, boxes — so those keep their exact CSS on a block.
+             */
+            function analyzeLine(decls) {
+                const w = (decls['width']  || '').trim();
+                const h = (decls['height'] || '').trim();
+                const wPx = cssLengthToPx(w), hPx = cssLengthToPx(h);
+                const hasLength = (v) => !!v && !/^(auto|0|0px)$/i.test(v);
+
+                const paint = resolveBackgroundPaint(decls);
+                if (paint && paint.gradient) return null;   // fade lines need their real CSS
+
+                if (paint && paint.color) {
+                    // Horizontal: thin, and longer than it is thick
+                    if (hPx !== null && hPx > 0 && hPx <= MAX_LINE_THICKNESS_PX && !(wPx !== null && wPx <= hPx)) {
+                        return { direction: 'horizontal', thickness: hPx + 'px', length: hasLength(w) ? w : '100%', color: paint.color, style: 'solid' };
+                    }
+                    // Vertical: thin, and taller than it is wide
+                    if (wPx !== null && wPx > 0 && wPx <= MAX_LINE_THICKNESS_PX && hasLength(h) && !(hPx !== null && hPx <= wPx)) {
+                        return { direction: 'vertical', thickness: wPx + 'px', length: h, color: paint.color, style: 'solid' };
+                    }
+                    return null;
+                }
+
+                // Border-drawn: exactly one visible side, on an otherwise empty box.
+                const sides = ['top', 'right', 'bottom', 'left']
+                    .map(s => ({ side: s, b: resolveBorderSide(decls, s) }))
+                    .filter(x => isVisibleBorder(x.b));
+                if (sides.length !== 1) return null;
+                const { side, b } = sides[0];
+                const thickness = borderWidthPx(b.width);
+                if (thickness === null || thickness > MAX_LINE_THICKNESS_PX) return null;
+                const style = BORDER_STYLES.has(b.style) ? b.style : 'solid';
+                const color = b.color && !/^currentcolor$/i.test(b.color) ? b.color : null;
+                if (side === 'top' || side === 'bottom') {
+                    if (hPx !== null && hPx > 0) return null;   // a box with a rule under it, not a bare line
+                    return { direction: 'horizontal', thickness: thickness + 'px', length: hasLength(w) ? w : '100%', color: color, style: style };
+                }
+                if (!hasLength(h) || (wPx !== null && wPx > 0)) return null;
+                return { direction: 'vertical', thickness: thickness + 'px', length: h, color: color, style: style };
+            }
+
+            /** An empty div/span/hr the markup did not pin to some unrelated element type. */
+            function isLineCandidate(el) {
+                const tag = el.tagName.toLowerCase();
+                if (!['div', 'span', 'hr'].includes(tag)) return false;
+                const explicit = el.getAttribute('data-bricks');
+                if (explicit && !['block', 'div', 'text-basic', 'divider'].includes(explicit)) return false;
+                if (el.children.length || el.textContent.trim()) return false;
+                if (parseFaIcon(el.getAttribute('class') || '')) return false;   // an icon, not a line
+                return true;
+            }
+
+            /**
+             * Class names worn ONLY by elements that compile to dividers, mapped to the
+             * line direction. Their line paint moves into the divider's own settings, so
+             * it is stripped from the class — otherwise a border-drawn rule renders twice
+             * (once on the divider root, once on Bricks' inner .line).
+             */
+            function findLineOnlyClasses(doc, ruleSet) {
+                const lineClasses = {};
+                const otherClasses = new Set();
+                const rules = (ruleSet && ruleSet.base) || [];
+                doc.body.querySelectorAll('*').forEach(el => {
+                    const classes = (el.getAttribute('class') || '').split(/\s+/).filter(c => c && !isFaToken(c));
+                    if (!classes.length) return;
+                    const line = isLineCandidate(el) ? analyzeLine(resolveDeclsFor(el, rules)) : null;
+                    classes.forEach(c => {
+                        if (!line) { otherClasses.add(c); return; }
+                        if (!lineClasses[c]) lineClasses[c] = line.direction;
+                    });
+                });
+                otherClasses.forEach(c => { delete lineClasses[c]; });
+                return lineClasses;
+            }
+
+            function isLinePaintProp(prop, direction) {
+                if (/^background(-color|-image)?$/.test(prop)) return true;
+                if (/^border(-(top|right|bottom|left))?(-(width|style|color))?$/.test(prop)) return true;
+                return direction === 'vertical' ? prop === 'width' : prop === 'height';
+            }
+
+            /**
+             * Remove line-drawing declarations from a class's base ".name {}" rule.
+             * Margins, positioning, width, @media blocks and keyframes stay untouched.
+             */
+            function stripLinePaintFromCss(css, className, direction) {
+                const target = '.' + className;
+                let out = '', i = 0;
+                while (i < css.length) {
+                    const brace = css.indexOf('{', i);
+                    if (brace === -1) { out += css.slice(i); break; }
+                    const selector = css.slice(i, brace);
+                    let depth = 1, end = brace + 1;
+                    while (depth > 0 && end < css.length) {
+                        if (css[end] === '{') depth++;
+                        else if (css[end] === '}') depth--;
+                        end++;
+                    }
+                    if (selector.trim() === target) {
+                        const kept = splitDeclarations(css.slice(brace + 1, end - 1)).filter(d => {
+                            const at = d.indexOf(':');
+                            return at === -1 || !isLinePaintProp(d.slice(0, at).trim().toLowerCase(), direction);
+                        });
+                        out += selector + '{\n' + kept.map(d => '  ' + d + ';').join('\n') + (kept.length ? '\n' : '') + '}';
+                    } else {
+                        out += css.slice(i, end);
+                    }
+                    i = end;
+                }
+                return out;
+            }
+
+            /**
+             * CSS colour → Bricks colour object. A var() naming a palette colour links
+             * to that swatch ({id, raw, light} — the shape Bricks itself saves), so the
+             * colour picker shows it selected rather than a loose value.
+             */
+            function toBricksColor(value) {
+                const v = String(value || '').trim();
+                const vm = v.match(/^var\(\s*(--[\w-]+)\s*(?:,[^)]*)?\)$/);
+                if (vm) {
+                    const swatch = findPaletteColor(vm[1]);
+                    return swatch ? { id: swatch.id, raw: swatch.raw, light: swatch.light } : { raw: v };
+                }
+                if (/^#[0-9a-f]{3,8}$/i.test(v)) return { hex: v };
+                if (/^rgba?\(/i.test(v)) return { rgb: v };
+                return { raw: v };
+            }
+
+            function findPaletteColor(cssVar) {
+                try {
+                    if (typeof BricksHelper === 'undefined') return null;
+                    const s = BricksHelper.getState();
+                    const raw = 'var(' + cssVar + ')';
+                    for (const palette of Array.from((s && s.colorPalette) || [])) {
+                        for (const c of Array.from(palette.colors || [])) {
+                            if (c.raw === raw) return c;
+                        }
+                    }
+                } catch (e) { /* palette unavailable — fall back to a raw value */ }
+                return null;
+            }
+
+            // ================================================================
+            // ICON SIZE
+            // Bricks ships .brxe-icon{font-size:60px}. The usual markup is
+            //   <div class="feature-icon"><i class="fas fa-leaf"></i></div>
+            // with the size on the WRAPPER. In HTML the <i> inherits it; in Bricks
+            // the direct 60px rule cuts inheritance, so every such icon came out at
+            // 60px. Resolve the size the icon really renders at and pin it as iconSize.
+            // ================================================================
+
+            /** Declarations for a node at a breakpoint: base, then every breakpoint at least as wide, widest first. */
+            function declsAtBreakpoint(node, ruleSet, bpKey) {
+                const out = Object.assign({}, resolveDeclsFor(node, ruleSet.base));
+                if (!bpKey) return out;
+                const limit = (BRICKS_BREAKPOINTS.find(b => b.key === bpKey) || {}).width;
+                BRICKS_BREAKPOINTS
+                    .filter(b => b.width >= limit)
+                    .sort((a, b) => b.width - a.width)
+                    .forEach(b => Object.assign(out, resolveDeclsFor(node, (ruleSet.breakpoints || {})[b.key])));
+                return out;
+            }
+
+            function roundCss(n) { return String(Math.round(n * 1000) / 1000); }
+
+            function scaleFontSize(value, factor) {
+                if (Math.abs(factor - 1) < 1e-9) return value;
+                const abs = value.match(/^(-?\d*\.?\d+)(px|rem)$/i);
+                if (abs) return roundCss(parseFloat(abs[1]) * factor) + abs[2];
+                if (/^[a-z-]+$/i.test(value)) return value;        // keyword: keep as written
+                return 'calc(' + value + ' * ' + roundCss(factor) + ')';
+            }
+
+            /**
+             * The font-size an element actually renders at: its own declaration or the
+             * nearest ancestor's, compounding em/% steps on the way up.
+             */
+            function resolveEffectiveFontSize(el, ruleSet, bpKey) {
+                let factor = 1;
+                for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
+                    const fs = (declsAtBreakpoint(node, ruleSet, bpKey)['font-size'] || '').trim();
+                    const lower = fs.toLowerCase();
+                    if (!fs || lower === 'inherit' || lower === 'unset') continue;
+                    const rel = lower.match(/^(-?\d*\.?\d+)(em|%)$/);
+                    if (rel) { factor *= parseFloat(rel[1]) / (rel[2] === '%' ? 100 : 1); continue; }
+                    return scaleFontSize(fs, factor);
+                }
+                return scaleFontSize('16px', factor);   // browser default
+            }
+
             /**
              * Extract CSS custom properties from :root { ... } block.
              * Uses brace counting (not regex [^}]*) to correctly handle
@@ -739,6 +1033,11 @@
                     });
                     registerBareClasses(doc, classNameToId, genId, classMap);
                     if (!ruleSet) ruleSet = buildCssRuleSet(localCss);
+                    // Same as the main build: line paint moves into divider settings.
+                    const lineOnly = findLineOnlyClasses(doc, ruleSet);
+                    Object.keys(lineOnly).forEach(cn => {
+                        if (classMap[cn]) classMap[cn].css = stripLinePaintFromCss(classMap[cn].css, cn, lineOnly[cn]);
+                    });
                 }
                 if (!ruleSet) ruleSet = { base: [], breakpoints: {} };
                 const breakpointKeys = Object.keys(ruleSet.breakpoints || {});
@@ -780,16 +1079,28 @@
                     if (['script', 'style', 'meta', 'link', 'title', 'br', 'wbr'].includes(tag)) return null;
 
                     let bricksName = el.getAttribute('data-bricks') || tagMap[tag] || 'block';
+                    const explicitName = el.getAttribute('data-bricks');
 
-                    // ── Auto-detect divider elements from class names ─────
-                    // If a block element has a divider-related class but no explicit
-                    // data-bricks or <hr> tag, override to 'divider' so decorative
-                    // lines don't incorrectly become 'block'.
-                    if (bricksName === 'block' && !el.getAttribute('data-bricks')) {
-                        const cls = el.getAttribute('class');
-                        if (cls && /(?:^|\s)(?:short-?line|long-?line|divider|separator|hr|line-?decorative|decorative-?line)(?:\s|$)/i.test(cls)) {
-                            bricksName = 'divider';
-                        }
+                    // Resolve the cascade once, up front — element-type detection needs it.
+                    const ownDecls = resolveDeclsFor(el, ruleSet.base);
+
+                    // ── Decorative lines → Bricks divider, judged by what the CSS draws ──
+                    let lineInfo = null;
+                    if (isLineCandidate(el)) {
+                        lineInfo = analyzeLine(ownDecls);
+                        if (lineInfo) bricksName = 'divider';
+                    }
+                    // An <hr> or explicit divider painted with a gradient cannot be expressed
+                    // through divider settings — keep its exact CSS on a block instead.
+                    if (bricksName === 'divider' && !lineInfo && (resolveBackgroundPaint(ownDecls) || {}).gradient) {
+                        bricksName = 'block';
+                    }
+
+                    // ── A bare <span class="fas fa-..."> is an icon, not empty text ──
+                    if (bricksName === 'text-basic' && (!explicitName || explicitName === 'text-basic')
+                        && !el.children.length && !el.textContent.trim()
+                        && parseFaIcon(el.getAttribute('class') || '')) {
+                        bricksName = 'icon';
                     }
 
                     const id = genId();  // Every element MUST have a unique 6-letter ID
@@ -816,10 +1127,9 @@
                         }
                     }
 
-                    // ── Resolve the cascade for this element, then translate the
-                    //    layout-critical part into native Bricks settings so it wins
-                    //    against Bricks' own .brxe-* defaults (ID beats class).
-                    const ownDecls = resolveDeclsFor(el, ruleSet.base);
+                    // ── Translate the layout-critical part of the resolved cascade into
+                    //    native Bricks settings so it wins against Bricks' own .brxe-*
+                    //    defaults (ID beats class).
                     const baseSettings = deriveNativeSettings(ownDecls, bricksName, parentDecls);
                     Object.assign(element.settings, baseSettings);
 
@@ -887,6 +1197,19 @@
                             }
                             if (el.getAttribute('data-icon-size')) {
                                 element.settings.iconSize = el.getAttribute('data-icon-size');
+                            } else if (element.name === 'icon') {
+                                // Pin the size the icon really renders at — usually inherited
+                                // from a wrapper — or Bricks' .brxe-icon{font-size:60px} wins.
+                                // Colour is left to inheritance, which Bricks does not block,
+                                // so ".card:hover i { color }" rules keep working.
+                                const baseSize = resolveEffectiveFontSize(el, ruleSet, null);
+                                element.settings.iconSize = baseSize;
+                                let prevSize = baseSize;
+                                BRICKS_BREAKPOINTS.forEach(bp => {   // widest first, like Bricks' cascade
+                                    const size = resolveEffectiveFontSize(el, ruleSet, bp.key);
+                                    if (size !== prevSize) element.settings['iconSize:' + bp.key] = size;
+                                    prevSize = size;
+                                });
                             }
                             isLeaf = true;
                             break;
@@ -935,12 +1258,26 @@
                         }
 
                         case 'divider': {
-                            // Minimal defaults — the CSS class handles all styling.
-                            // Never clobber a width the stylesheet actually declared
-                            // (a short decorative rule is usually 40-80px, not full width).
-                            element.settings.height = '2';
-                            element.settings.style = 'solid';
-                            if (!element.settings._width) element.settings._width = '100%';
+                            // The line lives in the divider's own settings: height = thickness,
+                            // width = length (the two swap for vertical). The root's display
+                            // is Bricks' business — it must stay flex for .line to lay out.
+                            Object.keys(element.settings).forEach(k => {
+                                if (k === '_display' || k.startsWith('_display:')) delete element.settings[k];
+                            });
+                            const line = lineInfo || analyzeLine(ownDecls);
+                            const vertical = !!line && line.direction === 'vertical';
+                            if (line) {
+                                if (vertical) element.settings.direction = 'vertical';
+                                element.settings.height = vertical ? line.length : line.thickness;
+                                element.settings.width  = vertical ? line.thickness : line.length;
+                                element.settings.style  = line.style;
+                                if (line.color) element.settings.color = toBricksColor(line.color);
+                            } else {
+                                element.settings.style = 'solid';
+                            }
+                            // Never clobber a width the stylesheet declared — a short decorative
+                            // rule is usually 40-80px, not full width.
+                            if (!element.settings._width && !vertical) element.settings._width = '100%';
                             isLeaf = true;
                             break;
                         }

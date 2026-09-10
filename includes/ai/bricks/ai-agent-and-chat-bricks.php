@@ -2906,6 +2906,17 @@ Output as a \`\`\`html block.`;
                 debugLog('Cascade rule set: ' + cssRuleSet.base.length + ' base rules, breakpoints: ' +
                          (Object.keys(cssRuleSet.breakpoints).join(', ') || 'none'));
 
+                // Decorative lines compile to Bricks dividers, which draw the line from
+                // their own settings. Strip the line paint from classes only those lines
+                // wear, or a border-drawn rule would render twice.
+                const lineOnlyClasses = findLineOnlyClasses(fullDoc, cssRuleSet);
+                Object.keys(lineOnlyClasses).forEach(cn => {
+                    if (tempClassMap[cn]) tempClassMap[cn].css = stripLinePaintFromCss(tempClassMap[cn].css, cn, lineOnlyClasses[cn]);
+                });
+                if (Object.keys(lineOnlyClasses).length) {
+                    debugLog('Line paint moved into divider settings for: ' + Object.keys(lineOnlyClasses).join(', '));
+                }
+
                 // Build global classes array from extracted CSS
                 const allGlobalClasses = Object.entries(tempClassMap).map(([className, gc]) => ({
                     id: gc.id,
