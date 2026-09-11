@@ -10,20 +10,26 @@
 .snn-rich-text-editor-toolbar {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    padding: 10px;
+    gap: 3px;
+    padding: 6px;
     background: #f8f9fa;
     border-radius: 5px 5px 0 0;
 }
 
 .snn-rich-text-editor-toolbar-group {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     align-items: center;
+}
+.snn-rich-text-editor-toolbar-group label {
+    font-size: 12px;
 }
 
 .snn-rich-text-editor-btn {
-    padding: 6px 10px;
+    padding: 4px 6px;
+    min-width: 14px;
+    text-align: center;
+    line-height: 1.2;
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -42,7 +48,7 @@
     padding: 0 5px !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
-    min-width: 60px;
+    min-width: 0;
     margin:0 !important;
 }
 
@@ -51,8 +57,8 @@
 }
 
 .snn-rich-text-editor-color-picker {
-    width: 40px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: none;
     cursor: pointer;

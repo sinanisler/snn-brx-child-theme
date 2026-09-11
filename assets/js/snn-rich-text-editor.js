@@ -103,12 +103,12 @@ function initSnnRichTextEditor(textarea) {
                 <div class="snn-rich-text-editor-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></div>
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
-                <div class="snn-rich-text-editor-btn" data-command="insertUnorderedList" title="Bulleted list">• List</div>
-                <div class="snn-rich-text-editor-btn" data-command="insertOrderedList" title="Numbered list">1. List</div>
+                <div class="snn-rich-text-editor-btn" data-command="insertUnorderedList" title="Bulleted list">•</div>
+                <div class="snn-rich-text-editor-btn" data-command="insertOrderedList" title="Numbered list">1.</div>
                 <div class="snn-rich-text-editor-btn" data-command="outdent" title="Outdent">⇠</div>
                 <div class="snn-rich-text-editor-btn" data-command="indent" title="Indent / nest list item">⇢</div>
-                <div class="snn-rich-text-editor-btn" data-command="blockquote" title="Quote">❝ Quote</div>
-                <div class="snn-rich-text-editor-btn" data-command="insertHorizontalRule" title="Horizontal divider">― HR</div>
+                <div class="snn-rich-text-editor-btn" data-command="blockquote" title="Quote">❝</div>
+                <div class="snn-rich-text-editor-btn" data-command="insertHorizontalRule" title="Horizontal divider">―</div>
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
                 <div class="snn-rich-text-editor-btn" data-command="justifyLeft"  title="Left">⇤</div>
@@ -118,16 +118,16 @@ function initSnnRichTextEditor(textarea) {
             <div class="snn-rich-text-editor-toolbar-group">
                 <label>Text</label>
                 <input type="color" class="snn-rich-text-editor-text-color snn-rich-text-editor-color-picker" value="#000000">
-                <label style="margin-left:10px;">BG</label>
+                <label style="margin-left:4px;">BG</label>
                 <input type="color" class="snn-rich-text-editor-bg-color snn-rich-text-editor-color-picker" value="#FFFFFF">
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
-                <div class="snn-rich-text-editor-btn" data-command="createLink">Link</div>
+                <div class="snn-rich-text-editor-btn" data-command="createLink" title="Insert link">Link</div>
                 <div class="snn-rich-text-editor-btn" data-command="unlink" title="Remove link">Unlink</div>
-                <div class="snn-rich-text-editor-btn" data-command="removeFormat" title="Clear">Clear X</div>
+                <div class="snn-rich-text-editor-btn" data-command="removeFormat" title="Clear formatting">✕</div>
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
-                <div class="snn-rich-text-editor-btn snn-rich-text-editor-source-btn" title="Edit HTML source">&lt;/&gt; HTML</div>
+                <div class="snn-rich-text-editor-btn snn-rich-text-editor-source-btn" title="Edit HTML source">&lt;/&gt;</div>
             </div>
         </div>
 
