@@ -21,6 +21,12 @@
 .snn-rich-text-editor-toolbar-group {
     display: contents;
 }
+/* Keep each color label next to its swatch. */
+.snn-rich-text-editor-toolbar-group:has(.snn-rich-text-editor-color-picker) {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
 .snn-rich-text-editor-toolbar-group label {
     font-size: 12px;
 }
@@ -59,7 +65,10 @@
     background-size: 12px 12px !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
+    width: auto !important;
+    max-width: none !important;
     min-width: 0;
+    flex: 0 0 auto;
     margin:0 !important;
 }
 
