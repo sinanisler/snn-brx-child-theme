@@ -87,13 +87,13 @@ function initSnnRichTextEditor(textarea) {
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
                 <select class="snn-rich-text-editor-block-format snn-rich-text-editor-select" title="Block format">
-                    <option value="p">Paragraph</option>
-                    <option value="h2">Heading 2</option>
-                    <option value="h3">Heading 3</option>
-                    <option value="h4">Heading 4</option>
-                    <option value="h5">Heading 5</option>
-                    <option value="h6">Heading 6</option>
-                    <option value="pre">Preformatted</option>
+                    <option value="p">P</option>
+                    <option value="h2">H2</option>
+                    <option value="h3">H3</option>
+                    <option value="h4">H4</option>
+                    <option value="h5">H5</option>
+                    <option value="h6">H6</option>
+                    <option value="pre">PRE</option>
                 </select>
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
@@ -307,6 +307,8 @@ function initSnnRichTextEditor(textarea) {
         sourceMode = !sourceMode;
         if (sourceMode) {
             sync();
+            // Match the visual editor's height so the source view fills the same area.
+            textarea.style.height = Math.max(editor.offsetHeight, 200) + 'px';
             textarea.classList.add('snn-rich-text-editor-source');
             textarea.style.display = '';
             editor.style.display = 'none';

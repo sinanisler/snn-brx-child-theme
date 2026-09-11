@@ -10,26 +10,30 @@
 .snn-rich-text-editor-toolbar {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 3px;
     padding: 6px;
     background: #f8f9fa;
     border-radius: 5px 5px 0 0;
 }
 
+/* Groups dissolve so every control wraps on its own and rows fill up evenly. */
 .snn-rich-text-editor-toolbar-group {
-    display: flex;
-    gap: 2px;
-    align-items: center;
+    display: contents;
 }
 .snn-rich-text-editor-toolbar-group label {
     font-size: 12px;
 }
 
 .snn-rich-text-editor-btn {
-    padding: 4px 6px;
-    min-width: 14px;
-    text-align: center;
-    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 26px;
+    min-width: 26px;
+    padding: 0 6px;
+    line-height: 1;
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -45,7 +49,14 @@
 }
 
 .snn-rich-text-editor-select {
-    padding: 0 5px !important;
+    box-sizing: border-box;
+    height: 26px !important;
+    min-height: 26px !important;
+    line-height: 1 !important;
+    font-size: 13px !important;
+    padding: 0 20px 0 6px !important;
+    background-position: right 4px top 55% !important;
+    background-size: 12px 12px !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
     min-width: 0;
@@ -57,8 +68,8 @@
 }
 
 .snn-rich-text-editor-color-picker {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     padding: 0;
     border: none;
     cursor: pointer;
@@ -86,8 +97,8 @@
 .snn-rich-text-editor-image-tools {
     display: none;
     flex-wrap: wrap;
-    gap: 10px;
-    padding: 8px;
+    gap: 3px;
+    padding: 6px;
     background: #f0f0f0;
     border-bottom: 1px solid #eee;
 }
@@ -185,14 +196,18 @@
 .snn-rich-text-editor-source-mode {
     margin-bottom: 0;
 }
-.snn-rich-text-editor-source-mode .snn-rich-text-editor-toolbar-group:not(:last-child) {
+.snn-rich-text-editor-source-mode .snn-rich-text-editor-toolbar-group:not(:last-child) > * {
     opacity: .4;
     pointer-events: none;
 }
 textarea.snn-rich-text-editor-source {
     width: 100%;
     max-width: 100% !important;
-    min-height: 200px;
+    min-height: 200px !important;
+    box-sizing: border-box;
+    display: block;
+    margin: 0;
+    resize: vertical;
     font-family: Consolas, Monaco, monospace;
     font-size: 13px;
     background: #f8f9fa;
