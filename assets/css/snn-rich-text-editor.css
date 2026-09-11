@@ -114,3 +114,80 @@
 .snn-rich-text-editor-main p {
     margin: 0 0 1em 0;
 }
+
+/* Restore content styles that wp-admin's common.css resets (lists, quotes, headings). */
+.snn-rich-text-editor-main ul,
+.snn-rich-text-editor-main ol {
+    margin: 0 0 1em 0;
+    padding-left: 1.8em;
+}
+.snn-rich-text-editor-main ul { list-style: disc outside; }
+.snn-rich-text-editor-main ul ul { list-style-type: circle; }
+.snn-rich-text-editor-main ul ul ul { list-style-type: square; }
+.snn-rich-text-editor-main ol { list-style: decimal outside; }
+.snn-rich-text-editor-main ol ol { list-style-type: lower-alpha; }
+.snn-rich-text-editor-main ol ol ol { list-style-type: lower-roman; }
+.snn-rich-text-editor-main li {
+    display: list-item;
+    margin: 0 0 .3em 0;
+}
+.snn-rich-text-editor-main li > ul,
+.snn-rich-text-editor-main li > ol {
+    margin: .3em 0 0 0;
+}
+.snn-rich-text-editor-main blockquote {
+    margin: 0 0 1em 0;
+    padding: .5em 1em;
+    border-left: 4px solid #c3c4c7;
+    background: #fff;
+    color: #50575e;
+    font-style: italic;
+}
+.snn-rich-text-editor-main blockquote p:last-child { margin-bottom: 0; }
+.snn-rich-text-editor-main hr {
+    border: 0;
+    border-top: 1px solid #c3c4c7;
+    margin: 1.2em 0;
+}
+.snn-rich-text-editor-main h2,
+.snn-rich-text-editor-main h3,
+.snn-rich-text-editor-main h4,
+.snn-rich-text-editor-main h5,
+.snn-rich-text-editor-main h6 {
+    margin: 0 0 .6em 0;
+    line-height: 1.3;
+    font-weight: 600;
+    color: inherit;
+}
+.snn-rich-text-editor-main h2 { font-size: 1.6em; }
+.snn-rich-text-editor-main h3 { font-size: 1.35em; }
+.snn-rich-text-editor-main h4 { font-size: 1.15em; }
+.snn-rich-text-editor-main h5 { font-size: 1em; }
+.snn-rich-text-editor-main h6 { font-size: .9em; text-transform: uppercase; }
+.snn-rich-text-editor-main pre {
+    margin: 0 0 1em 0;
+    padding: .6em .8em;
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, monospace;
+    white-space: pre-wrap;
+}
+.snn-rich-text-editor-main a { color: #2271b1; text-decoration: underline; }
+
+/* HTML source mode */
+.snn-rich-text-editor-source-mode {
+    margin-bottom: 0;
+}
+.snn-rich-text-editor-source-mode .snn-rich-text-editor-toolbar-group:not(:last-child) {
+    opacity: .4;
+    pointer-events: none;
+}
+textarea.snn-rich-text-editor-source {
+    width: 100%;
+    max-width: 100% !important;
+    min-height: 200px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    background: #f8f9fa;
+}

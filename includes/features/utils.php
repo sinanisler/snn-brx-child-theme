@@ -270,13 +270,13 @@ add_action('admin_enqueue_scripts', function() {
         'snn-rich-text-editor',
         $theme_uri . '/assets/css/snn-rich-text-editor.css',
         [],
-        '1.0'
+        '1.1'
     );
     wp_enqueue_script(
         'snn-rich-text-editor',
         $theme_uri . '/assets/js/snn-rich-text-editor.js',
         [],
-        '1.0',
+        '1.1',
         true
     );
     // Pass AJAX URL and nonce as array!

@@ -86,9 +86,31 @@ function initSnnRichTextEditor(textarea) {
                 </select>
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
-                <div class="snn-rich-text-editor-btn" data-command="bold"><strong>B</strong></div>
-                <div class="snn-rich-text-editor-btn" data-command="italic"><em>I</em></div>
-                <div class="snn-rich-text-editor-btn" data-command="underline"><u>U</u></div>
+                <select class="snn-rich-text-editor-block-format snn-rich-text-editor-select" title="Block format">
+                    <option value="p">Paragraph</option>
+                    <option value="h2">Heading 2</option>
+                    <option value="h3">Heading 3</option>
+                    <option value="h4">Heading 4</option>
+                    <option value="h5">Heading 5</option>
+                    <option value="h6">Heading 6</option>
+                    <option value="pre">Preformatted</option>
+                </select>
+            </div>
+            <div class="snn-rich-text-editor-toolbar-group">
+                <div class="snn-rich-text-editor-btn" data-command="bold" title="Bold (Ctrl+B)"><strong>B</strong></div>
+                <div class="snn-rich-text-editor-btn" data-command="italic" title="Italic (Ctrl+I)"><em>I</em></div>
+                <div class="snn-rich-text-editor-btn" data-command="underline" title="Underline (Ctrl+U)"><u>U</u></div>
+                <div class="snn-rich-text-editor-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></div>
+            </div>
+            <div class="snn-rich-text-editor-toolbar-group">
+                <div class="snn-rich-text-editor-btn" data-command="insertUnorderedList" title="Bulleted list">• List</div>
+                <div class="snn-rich-text-editor-btn" data-command="insertOrderedList" title="Numbered list">1. List</div>
+                <div class="snn-rich-text-editor-btn" data-command="outdent" title="Outdent">⇠</div>
+                <div class="snn-rich-text-editor-btn" data-command="indent" title="Indent / nest list item">⇢</div>
+                <div class="snn-rich-text-editor-btn" data-command="blockquote" title="Quote">❝ Quote</div>
+                <div class="snn-rich-text-editor-btn" data-command="insertHorizontalRule" title="Horizontal divider">― HR</div>
+            </div>
+            <div class="snn-rich-text-editor-toolbar-group">
                 <div class="snn-rich-text-editor-btn" data-command="justifyLeft"  title="Left">⇤</div>
                 <div class="snn-rich-text-editor-btn" data-command="justifyCenter" title="Center">↔</div>
                 <div class="snn-rich-text-editor-btn" data-command="justifyRight" title="Right">⇥</div>
@@ -101,7 +123,11 @@ function initSnnRichTextEditor(textarea) {
             </div>
             <div class="snn-rich-text-editor-toolbar-group">
                 <div class="snn-rich-text-editor-btn" data-command="createLink">Link</div>
+                <div class="snn-rich-text-editor-btn" data-command="unlink" title="Remove link">Unlink</div>
                 <div class="snn-rich-text-editor-btn" data-command="removeFormat" title="Clear">Clear X</div>
+            </div>
+            <div class="snn-rich-text-editor-toolbar-group">
+                <div class="snn-rich-text-editor-btn snn-rich-text-editor-source-btn" title="Edit HTML source">&lt;/&gt; HTML</div>
             </div>
         </div>
 
@@ -198,8 +224,9 @@ function initSnnRichTextEditor(textarea) {
             e.preventDefault();
             redo();
         }
-        // Handle Enter key to insert a paragraph
-        else if (e.key === 'Enter' && !e.shiftKey) {
+        // Handle Enter key to insert a paragraph. Inside lists, quotes and pre blocks the
+        // browser's native Enter handles new items and exiting the block correctly.
+        else if (e.key === 'Enter' && !e.shiftKey && !closestInEditor('li, blockquote, pre')) {
             e.preventDefault();
             document.execCommand('insertParagraph');
             saveState(); // Save state after inserting paragraph
@@ -215,14 +242,85 @@ function initSnnRichTextEditor(textarea) {
             if (cmd === 'createLink') {
                 const url = prompt('Enter URL');
                 if (url) document.execCommand('createLink', false, url);
+            } else if (cmd === 'blockquote') {
+                // formatBlock doesn't toggle, so unwrap when already inside a quote.
+                const quote = closestInEditor('blockquote');
+                if (quote) {
+                    while (quote.firstChild) quote.parentNode.insertBefore(quote.firstChild, quote);
+                    quote.remove();
+                } else {
+                    document.execCommand('formatBlock', false, 'blockquote');
+                }
             } else {
                 document.execCommand(cmd, false, null);
             }
             editor.focus();
             saveState();
             sync();
+            updateToolbarState();
         };
     });
+
+    // Block format dropdown (paragraph / headings / pre).
+    const blockSelect = container.querySelector('.snn-rich-text-editor-block-format');
+    blockSelect.onchange = e => {
+        editor.focus();
+        document.execCommand('formatBlock', false, e.target.value);
+        saveState(); sync();
+        updateToolbarState();
+    };
+
+    // Returns the closest ancestor of the caret matching selector, only within this editor.
+    function closestInEditor(selector) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return null;
+        let node = sel.getRangeAt(0).startContainer;
+        if (node.nodeType === 3) node = node.parentNode;
+        const found = node && node.closest ? node.closest(selector) : null;
+        return found && editor.contains(found) && found !== editor ? found : null;
+    }
+
+    // Highlights toolbar buttons that match the formatting at the caret.
+    const stateCommands = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight'];
+    function updateToolbarState() {
+        const sel = window.getSelection();
+        if (!sel.rangeCount || !editor.contains(sel.anchorNode)) return;
+        stateCommands.forEach(cmd => {
+            const btn = container.querySelector(`.snn-rich-text-editor-btn[data-command="${cmd}"]`);
+            let on = false;
+            try { on = document.queryCommandState(cmd); } catch (err) {}
+            if (btn) btn.classList.toggle('active', on);
+        });
+        const quoteBtn = container.querySelector('.snn-rich-text-editor-btn[data-command="blockquote"]');
+        quoteBtn.classList.toggle('active', !!closestInEditor('blockquote'));
+        const block = closestInEditor('h2, h3, h4, h5, h6, pre');
+        blockSelect.value = block ? block.nodeName.toLowerCase() : 'p';
+    }
+    document.addEventListener('selectionchange', updateToolbarState);
+
+    // HTML source toggle: edit the raw markup in the original textarea.
+    const sourceBtn = container.querySelector('.snn-rich-text-editor-source-btn');
+    let sourceMode = false;
+    sourceBtn.onmousedown = e => e.preventDefault();
+    sourceBtn.onclick = e => {
+        e.preventDefault();
+        sourceMode = !sourceMode;
+        if (sourceMode) {
+            sync();
+            textarea.classList.add('snn-rich-text-editor-source');
+            textarea.style.display = '';
+            editor.style.display = 'none';
+            container.after(textarea);
+            textarea.focus();
+        } else {
+            editor.innerHTML = textarea.value;
+            textarea.style.display = 'none';
+            editor.style.display = '';
+            saveState();
+        }
+        sourceBtn.classList.toggle('active', sourceMode);
+        container.classList.toggle('snn-rich-text-editor-source-mode', sourceMode);
+    };
 
     // Event listeners for toolbar controls that apply inline styles.
     container.querySelector('.snn-rich-text-editor-font-size').onchange = e => {
