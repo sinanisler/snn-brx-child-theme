@@ -4064,7 +4064,7 @@ function snn_snippets_render_list() {
                         </tr>
                     <?php endforeach; ?>
 
-                    <tr class="snn-legacy-group"><td colspan="7"><?php esc_html_e( 'Legacy snippets · fixed, cannot be deleted', 'snn' ); ?></td></tr>
+                    <tr class="snn-legacy-group"><td colspan="7"><?php esc_html_e( 'Legacy snippets', 'snn' ); ?></td></tr>
                     <?php
                     $legacy_places = array(
                         'frontend'  => $places['site_head'],
