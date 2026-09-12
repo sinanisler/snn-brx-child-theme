@@ -211,7 +211,7 @@ class SNN_Bricks_Chat_Overlay {
                             <span class="dashicons dashicons-backup"></span>
                         </button>
                         <button class="snn-bricks-chat-btn" id="snn-bricks-preview-toggle-btn" title="Toggle Design Preview" style="display:none;">
-                            <span style="font-size:15px;">&#128247;</span>
+                            <span class="dashicons dashicons-visibility"></span>
                         </button>
                         <button class="snn-bricks-chat-btn snn-bricks-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
@@ -302,7 +302,6 @@ Fitness</button>
                 <!-- Context chip + scope selector -->
                 <div class="snn-bricks-context-bar">
                     <div class="snn-bricks-context-chip" id="snn-bricks-context-chip" style="display:none;">
-                        <span class="snn-ctx-icon">&#127919;</span>
                         <span class="snn-ctx-label"></span>
                         <span class="snn-ctx-detail"></span>
                         <button class="snn-ctx-clear" title="<?php echo esc_attr__( 'Clear selection', 'snn' ); ?>">&times;</button>
@@ -2093,7 +2092,7 @@ RULES
                 const $msgs = $('#snn-bricks-chat-messages');
                 const html =
                     '<div class="snn-change-card is-applied"' + (checkpointId ? ' data-cp="' + escapeHtml(checkpointId) + '"' : '') + '>' +
-                        '<div class="snn-chg-head">✓ Applied</div>' +
+                        '<div class="snn-chg-head">Applied</div>' +
                         opRowsHtml(pv.rows || []) +
                         (checkpointId ? '<div class="snn-chg-actions"><button class="snn-chg-revert">Revert this change</button></div>' : '') +
                     '</div>';
@@ -4086,9 +4085,19 @@ IMPORTANT RULES:
                 // swallowed by its try/catch. Record it so callers can react and the
                 // debug log says plainly what happened.
                 ChatState.lastResponseTruncated = (choice.finish_reason === 'length');
+                // Where the budget went. Reasoning models (Gemini 3, o-series, R1) spend
+                // hidden thinking tokens against the same cap, so a small section can be
+                // cut off even though its visible reply is short — this is what proves it.
+                const usage = data.usage || {};
+                ChatState.lastUsage = {
+                    maxTokens: maxTokens,
+                    completion: usage.completion_tokens || 0,
+                    reasoning: (usage.completion_tokens_details && usage.completion_tokens_details.reasoning_tokens)
+                        || usage.reasoning_tokens || 0,
+                };
                 if (ChatState.lastResponseTruncated) {
-                    debugLog('⚠️ Response truncated: hit max_tokens (' + maxTokens + '). ' +
-                             'If the model is a reasoning model, thinking tokens consumed the budget.');
+                    debugLog('Response truncated: hit max_tokens (' + maxTokens + '), ' +
+                             ChatState.lastUsage.reasoning + ' of them spent reasoning.');
                 }
                 return choice.message.content;
             }
@@ -4923,12 +4932,51 @@ IMPORTANT RULES:
                     return node;
                 }
 
+                /**
+                 * A name a person recognises. Exporter class names ("box-1", "img-19")
+                 * mean nothing, so they are the last resort, not the first.
+                 */
                 function sectionLabel(el) {
-                    const h = el.querySelector('h1,h2,h3,h4');
-                    if (h && h.textContent.trim()) return h.textContent.trim().slice(0, 40);
+                    const clip = s => {
+                        s = String(s || '').replace(/\s+/g, ' ').trim();
+                        if (s.length <= 40) return s;
+                        const cut = s.slice(0, 40);
+                        return (cut.lastIndexOf(' ') > 20 ? cut.slice(0, cut.lastIndexOf(' ')) : cut) + '...';
+                    };
+                    const h = el.querySelector('h1,h2,h3,h4,h5,h6');
+                    if (h && h.textContent.trim()) return clip(h.textContent);
+                    const tag = el.tagName.toLowerCase();
+                    const semantic = { nav: 'Navigation', header: 'Header', footer: 'Footer' }[tag];
+                    if (semantic) return semantic;
+                    const text = clip(el.textContent);
+                    if (text) return text;
+                    const img = el.matches('img') ? el : el.querySelector('img[alt]:not([alt=""])');
+                    if (img && img.getAttribute('alt')) return clip(img.getAttribute('alt'));
                     const cls = (el.getAttribute('class') || '').split(/\s+/)[0];
-                    return cls || el.tagName.toLowerCase();
+                    return cls || tag;
                 }
+
+                /**
+                 * Exports often put the site nav LAST in the DOM and pin it to the top
+                 * with position:absolute. Converted into normal flow in DOM order, it
+                 * would land at the bottom of the page — so pinned-to-top elements are
+                 * moved to the front before the page is split.
+                 */
+                function isPinnedTop(el, css) {
+                    if (['nav', 'header'].includes(el.tagName.toLowerCase())) return true;
+                    const classes = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean);
+                    return classes.some(cls => {
+                        const esc = cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const rule = new RegExp('\\.' + esc + '\\s*\\{([^}]*)\\}').exec(css || '');
+                        if (!rule) return false;
+                        const pos = /position\s*:\s*(absolute|fixed)/i.test(rule[1]);
+                        const top = /(^|[;\s])top\s*:\s*(-?\d+(?:\.\d+)?)px/i.exec(rule[1]);
+                        return pos && top && parseFloat(top[2]) < 200;
+                    });
+                }
+
+                // Below this a pass would be a whole AI call for a lone icon or badge.
+                const TINY_CHARS = 600;
 
                 /**
                  * Break the export into conversion passes.
@@ -4939,20 +4987,24 @@ IMPORTANT RULES:
                  * into small passes whose output comfortably fits, and each pass keeps its
                  * individual sections so a failing pass can be split again and retried.
                  */
-                function splitChunks(bodyHtml) {
+                function splitChunks(bodyHtml, css) {
                     const doc  = new DOMParser().parseFromString('<!DOCTYPE html><body>' + bodyHtml + '</body>', 'text/html');
                     const root = chunkRoot(doc.body);
-                    const kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
+                    let kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
 
                     if (kids.length < 2) {
                         return [{ label: 'Design', parts: [root.innerHTML] }];
                     }
 
+                    // Visual order, not DOM order: pinned-to-top elements go first.
+                    const pinned = kids.filter(el => isPinnedTop(el, css));
+                    kids = pinned.concat(kids.filter(el => !pinned.includes(el)));
+
                     const chunks = [];
                     let buf = [], bufLen = 0, first = null;
                     const flush = () => {
                         if (!buf.length) return;
-                        chunks.push({ label: sectionLabel(first), parts: buf.slice() });
+                        chunks.push({ label: sectionLabel(first), parts: buf.slice(), size: bufLen });
                         buf = []; bufLen = 0; first = null;
                     };
                     kids.forEach(el => {
@@ -4962,6 +5014,16 @@ IMPORTANT RULES:
                         buf.push(h); bufLen += h.length;
                     });
                     flush();
+
+                    // Fold tiny passes (a lone badge or icon) into a neighbour instead of
+                    // spending a whole AI call on them.
+                    for (let i = chunks.length - 1; i >= 0 && chunks.length > 1; i--) {
+                        if (chunks[i].size >= TINY_CHARS) continue;
+                        const into = i > 0 ? chunks[i - 1] : chunks[i + 1];
+                        into.parts = i > 0 ? into.parts.concat(chunks[i].parts) : chunks[i].parts.concat(into.parts);
+                        into.size += chunks[i].size;
+                        chunks.splice(i, 1);
+                    }
                     return chunks;
                 }
 
@@ -5077,6 +5139,7 @@ REQUIRED data-bricks ATTRIBUTES on every structural element:
   data-bricks="custom-html-css-script" — raw SVG / embeds
 Structure must be: section > container > content. Never a container inside a block.
 Use class="..." only — NO inline style="" attributes anywhere in the output.
+Give every data-bricks="section" element an aria-label with a short human name for what it is ("Hero", "Client logos", "Services", "Case studies", "Footer") — never a generated class name.
 ${note ? '\nUSER INSTRUCTIONS (these override the source design where they conflict):\n' + note + '\n' : ''}
 Output the HTML only — no explanation after the code block, no patch blocks, no JSON.`;
                 }
@@ -5093,14 +5156,25 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         'SOURCE STYLESHEET:\n```css\n' + css + '\n```\n\n' +
                         'SOURCE MARKUP' + (isOnlyPass ? '' : ' (section "' + chunk.label + '")') + ':\n```html\n' + markup + '\n```';
 
-                    // Budget the reply from the source size rather than handing over the
-                    // whole global cap: many models refuse a max_tokens above their own
-                    // output ceiling, and an oversized ask is what starves the reply.
-                    const budget = Math.max(3000, Math.min(12000, Math.ceil(source.length / 3) + 1500));
-                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, budget', budget, 'tokens');
+                    // First attempt budgets from the source size. The floor is generous
+                    // because reasoning models spend thousands of hidden tokens before the
+                    // first visible character — a real run cut off a small footer at ~7.8k.
+                    const globalCap = parseInt(snnBricksChatConfig.ai.maxTokens, 10) || 8000;
+                    const sized     = Math.max(8000, Math.min(16000, Math.ceil(source.length / 3) + 4000));
+                    // A cut-off reply is a budget problem, not a size problem, so the retry
+                    // escalates to the user's full cap instead of repeating the same ask.
+                    const budgets   = [Math.min(sized, globalCap), globalCap];
+                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, budgets', budgets);
 
                     let lastReason = 'unknown';
-                    for (let attempt = 0; attempt < 2; attempt++) {
+                    let lastWasTruncated = false;
+                    for (let attempt = 0; attempt < budgets.length; attempt++) {
+                        const budget = budgets[attempt];
+                        if (attempt > 0) {
+                            setAgentState('converting', lastWasTruncated
+                                ? 'Retrying "' + chunk.label + '" with the full ' + budget + '-token budget...'
+                                : 'Retrying "' + chunk.label + '"...');
+                        }
                         try {
                             const response = await callAI([
                                 { role: 'system', content: conversionPrompt(zip.note, prefix) },
@@ -5109,11 +5183,14 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 
                             const truncated = ChatState.lastResponseTruncated;
                             const html = extractHTMLFromResponse(response);
+                            lastWasTruncated = truncated;
 
                             if (html && !truncated) return { html };
 
                             if (truncated) {
-                                lastReason = 'the model hit its output limit (' + budget + ' tokens) and the reply was cut off';
+                                const u = ChatState.lastUsage || {};
+                                lastReason = 'the reply was cut off at ' + (u.maxTokens || budget) + ' tokens' +
+                                    (u.reasoning ? ' (' + u.reasoning + ' of them spent on hidden reasoning)' : '');
                             } else {
                                 const text = String(response || '').trim();
                                 lastReason = text
@@ -5133,7 +5210,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 
                 async function convert(userMessage, zip) {
                     zip.note = userMessage || '';
-                    const queue   = splitChunks(zip.bodyHtml);
+                    const queue   = splitChunks(zip.bodyHtml, zip.css);
                     const initial = queue.length;
                     const built   = [];
                     const failed  = [];
@@ -5392,7 +5469,6 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 /* Context bar — what the agent is looking at, and what it may change */
 .snn-bricks-context-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 12px; background: #fff; border-top: 1px solid #eee; }
 .snn-bricks-context-chip { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; background: #f1f5f9; border: 1px solid #dbe3ec; border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 12px; color: #334155; }
-.snn-ctx-icon { font-size: 12px; flex-shrink: 0; }
 .snn-ctx-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .snn-ctx-detail { color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .snn-ctx-clear { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
