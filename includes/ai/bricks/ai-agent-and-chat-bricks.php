@@ -364,6 +364,7 @@ Fitness</button>
                 abortController: null, currentSessionId: null,
                 pageContext: snnBricksChatConfig.pageContext || {},
                 recoveryAttempts: 0, bricksState: null, attachedImages: [], attachedZip: null,
+                lastStatusLine: null,
                 // Abilities API
                 abilities: [],
                 // Two-phase workflow
@@ -3821,7 +3822,9 @@ IMPORTANT RULES:
             }
 
             function buildConversationContext() {
-                return ChatState.messages.slice(-MAX_HISTORY).map(m => {
+                // Status lines are UI history, not conversation — sending them back to
+                // the model would just burn tokens on the agent narrating itself.
+                return ChatState.messages.filter(m => m.role !== 'status').slice(-MAX_HISTORY).map(m => {
                     const msg = { role: m.role === 'user' ? 'user' : 'assistant' };
                     if (m.images && m.images.length > 0) {
                         msg.content = [];
@@ -4011,7 +4014,6 @@ IMPORTANT RULES:
                 updateSendButton();
                 showTyping();
                 try {
-                    setAgentState('designing');
                     await ZipImport.convert(userMessage, zip);
                     autoSaveConversation();
                 } catch(err) {
@@ -4059,7 +4061,9 @@ IMPORTANT RULES:
                     request_type: 'text',
                     payload: JSON.stringify({
                         messages: messages,
-                        temperature: 0.7,
+                        // Faithful work (converting an existing design) wants a low
+                        // temperature; inventing a design wants the default.
+                        temperature: (typeof opts.temperature === 'number') ? opts.temperature : 0.7,
                         max_tokens: maxTokens
                     })
                 });
@@ -4143,6 +4147,7 @@ IMPORTANT RULES:
             function clearChat() {
                 ChatState.messages = []; ChatState.currentSessionId = null;
                 ChatState.attachedImages = []; ChatState.attachedZip = null;
+                ChatState.lastStatusLine = null;
                 ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
                 ChatState.currentTheme = null; // Reset theme for new conversation
                 ChatState.globalUsedIds.clear(); // Reset ID tracker
@@ -4154,26 +4159,51 @@ IMPORTANT RULES:
                 renderContextChip();
             }
 
+            const AGENT_STATES = {
+                analyzing:   { icon: '🔍', label: 'Understanding your request...' },
+                planning:    { icon: '📋', label: 'Planning your layout...' },
+                theming:     { icon: '🎨', label: 'Choosing design language...' },
+                designing:   { icon: '✏️', label: 'Designing your page...' },
+                reviewing:   { icon: '🔎', label: 'Reviewing HTML structure...' },
+                patching:    { icon: '🔧', label: 'Updating element...' },
+                answering:   { icon: '💭', label: 'Thinking...' },
+                thinking:    { icon: '💭', label: 'Thinking...' },
+                abilities:   { icon: '⚙️', label: 'Running WordPress abilities...' },
+                compiling:   { icon: '🧩', label: 'Compiling to Bricks...' },
+                recovering:  { icon: '♻️', label: 'Recovering...' },
+                saving:      { icon: '💾', label: 'Saving images to media library...' },
+                // Design-export import states
+                unpacking:   { icon: '📦', label: 'Unpacking the archive...' },
+                reading:     { icon: '📄', label: 'Reading the export...' },
+                uploading:   { icon: '⬆️', label: 'Uploading images...' },
+                converting:  { icon: '🔄', label: 'Converting the design...' },
+                building:    { icon: '🏗️', label: 'Building in Bricks...' },
+                error:       { icon: '⚠️', label: 'Error' },
+                idle:        { icon: '',   label: '' }
+            };
+
+            /**
+             * Set the live status line AND record it in the conversation.
+             *
+             * The status line alone was write-only history: it was overwritten by the
+             * next state and gone on reload, so a user who looked away never learned
+             * what the agent actually did. Every state is now also a persisted
+             * 'status' message, deduped so a repeated state does not spam the log.
+             */
             function setAgentState(state, detail = '') {
-                const $t = $('#snn-bricks-chat-state-text');
-                const labels = {
-                    analyzing:   'Understanding your request...',
-                    planning:    'Planning your layout...',
-                    theming:     'Choosing design language...',
-                    designing:   'Designing your page...',
-                    reviewing:   'Reviewing HTML structure...',
-                    patching:    'Updating element...',
-                    answering:   'Thinking...',
-                    thinking:    'Thinking...',
-                    abilities:   detail || 'Running WordPress abilities...',
-                    compiling:   detail || 'Compiling to Bricks...',
-                    recovering:  detail || 'Recovering...',
-                    saving:      detail || 'Saving images to media library...',
-                    error:       'Error',
-                    idle:        ''
-                };
-                const lbl = labels[state] || detail || '';
+                const $t   = $('#snn-bricks-chat-state-text');
+                const def  = AGENT_STATES[state] || {};
+                // A caller-supplied detail is more specific than the generic label,
+                // so it must win — states with a fixed label used to discard it.
+                const lbl  = detail || def.label || '';
+
                 lbl ? $t.text(lbl).show() : $t.hide();
+
+                if (state === 'idle' || !lbl) return;
+                const line = (def.icon ? def.icon + ' ' : '') + lbl;
+                if (line === ChatState.lastStatusLine) return;
+                ChatState.lastStatusLine = line;
+                addMessage('status', line);
             }
 
             function updateSendButton() {
@@ -4411,10 +4441,12 @@ IMPORTANT RULES:
                     png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
                     gif: 'image/gif', webp: 'image/webp', avif: 'image/avif',
                 };
-                // Above this, the source is converted section by section instead of
-                // in one call, so a large export cannot blow the model's context.
-                const SINGLE_CALL_CHARS = 42000;
-                const CHUNK_CHARS       = 26000;
+                // Markup per conversion pass. Kept small deliberately: the limiting
+                // factor is how many tokens a model will OUTPUT in one reply, and a
+                // rewritten section is bigger than its source. Measured against a real
+                // Figma export (17k markup / 49k CSS): 4000 yields ~6 passes needing at
+                // most ~6.5k output tokens each, so even an 8k-output model copes.
+                const CHUNK_CHARS = 4000;
                 // Desktop canvas the preview lays out against before being scaled down.
                 const CANVAS_WIDTH  = 1440;
                 const CANVAS_HEIGHT = 9000;
@@ -4495,7 +4527,7 @@ IMPORTANT RULES:
                 }
 
                 async function extract(file, forcedHtmlPath) {
-                    setZipStatus('Unpacking ' + file.name + '…');
+                    setAgentState('unpacking', 'Unpacking ' + file.name + '...');
 
                     const zip = await JSZip.loadAsync(file);
                     const entries = [];
@@ -4522,7 +4554,7 @@ IMPORTANT RULES:
                     const lookup  = makeLookup(entries);
                     const baseDir = dirOf(primary.path);
 
-                    setZipStatus('Reading ' + primary.path + '…');
+                    setAgentState('reading', 'Reading ' + primary.path + ' (' + entries.length + ' files in the archive)...');
                     const doc = await readDocument(primary, baseDir, lookup);
 
                     // Assets: upload rasters, inline SVGs, then rewrite every reference.
@@ -4655,6 +4687,7 @@ IMPORTANT RULES:
                     const done = new Map();        // zip path -> new url (dedupe re-uploads)
                     let uploadedCount = 0;
                     let index = 0;
+                    if (refs.size) setAgentState('uploading', 'Uploading ' + refs.size + ' assets to the media library...');
 
                     for (const [ref, entry] of refs) {
                         index++;
@@ -4796,10 +4829,15 @@ IMPORTANT RULES:
 
                 // ── attachment card + preview ────────────────────────────────
 
+                /**
+                 * Per-item progress ("image 7/19"). Deliberately transient — it goes to
+                 * the card, not the chat log, so nineteen uploads do not become nineteen
+                 * permanent lines. Phase changes use setAgentState and DO persist.
+                 */
                 function setZipStatus(text) {
                     const $s = $('#snn-zip-status');
                     if ($s.length) { $s.text(text).toggle(!!text); return; }
-                    if (text) setAgentState('designing', text);
+                    $('#snn-bricks-chat-state-text').text(text).toggle(!!text);
                 }
 
                 function renderCard(zip) {
@@ -4886,27 +4924,36 @@ IMPORTANT RULES:
                     return node;
                 }
 
+                function sectionLabel(el) {
+                    const h = el.querySelector('h1,h2,h3,h4');
+                    if (h && h.textContent.trim()) return h.textContent.trim().slice(0, 40);
+                    const cls = (el.getAttribute('class') || '').split(/\s+/)[0];
+                    return cls || el.tagName.toLowerCase();
+                }
+
+                /**
+                 * Break the export into conversion passes.
+                 *
+                 * Output size, not input size, is what breaks a conversion: rewriting a
+                 * whole page in one call needs more output tokens than most models will
+                 * emit, and the reply comes back truncated or empty. So the page is split
+                 * into small passes whose output comfortably fits, and each pass keeps its
+                 * individual sections so a failing pass can be split again and retried.
+                 */
                 function splitChunks(bodyHtml) {
                     const doc  = new DOMParser().parseFromString('<!DOCTYPE html><body>' + bodyHtml + '</body>', 'text/html');
                     const root = chunkRoot(doc.body);
                     const kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
 
-                    if (bodyHtml.length <= SINGLE_CALL_CHARS || kids.length < 2) {
-                        return [{ label: 'Design', html: root.innerHTML }];
+                    if (kids.length < 2) {
+                        return [{ label: 'Design', parts: [root.innerHTML] }];
                     }
-
-                    const label = (el) => {
-                        const h = el.querySelector('h1,h2,h3,h4');
-                        if (h && h.textContent.trim()) return h.textContent.trim().slice(0, 40);
-                        const cls = (el.getAttribute('class') || '').split(/\s+/)[0];
-                        return cls || el.tagName.toLowerCase();
-                    };
 
                     const chunks = [];
                     let buf = [], bufLen = 0, first = null;
                     const flush = () => {
                         if (!buf.length) return;
-                        chunks.push({ label: label(first), html: buf.join('\n') });
+                        chunks.push({ label: sectionLabel(first), parts: buf.slice() });
                         buf = []; bufLen = 0; first = null;
                     };
                     kids.forEach(el => {
@@ -4917,6 +4964,20 @@ IMPORTANT RULES:
                     });
                     flush();
                     return chunks;
+                }
+
+                const chunkHtml = chunk => chunk.parts.join('\n');
+
+                /** Halve a failing pass so each retry has a smaller job. */
+                function bisect(chunk) {
+                    if (chunk.parts.length < 2) return null;
+                    const mid = Math.ceil(chunk.parts.length / 2);
+                    const mk = (parts) => {
+                        const el = new DOMParser()
+                            .parseFromString('<!DOCTYPE html><body>' + parts[0] + '</body>', 'text/html').body.firstElementChild;
+                        return { label: el ? sectionLabel(el) : chunk.label, parts };
+                    };
+                    return [mk(chunk.parts.slice(0, mid)), mk(chunk.parts.slice(mid))];
                 }
 
                 /** Keep only the CSS a chunk can actually use, so chunking saves tokens. */
@@ -5021,60 +5082,131 @@ ${note ? '\nUSER INSTRUCTIONS (these override the source design where they confl
 Output the HTML only — no explanation after the code block, no patch blocks, no JSON.`;
                 }
 
-                async function convert(userMessage, zip) {
-                    const chunks = splitChunks(zip.bodyHtml);
-                    const parts  = [];
-                    const failed = [];
+                /**
+                 * One conversion pass. Returns { html } or { reason } — never throws
+                 * except on abort, and never hides why it failed: a silent null here is
+                 * what turned a truncated reply into "produced no usable HTML".
+                 */
+                async function convertChunk(chunk, zip, prefix, isOnlyPass) {
+                    const markup = chunkHtml(chunk);
+                    const css    = isOnlyPass ? zip.css : pruneCss(zip.css, markup);
+                    const source =
+                        'SOURCE STYLESHEET:\n```css\n' + css + '\n```\n\n' +
+                        'SOURCE MARKUP' + (isOnlyPass ? '' : ' (section "' + chunk.label + '")') + ':\n```html\n' + markup + '\n```';
 
-                    addMessage('assistant',
-                        '🔄 Converting **' + zip.htmlPath + '** — ' +
-                        (chunks.length === 1 ? 'one pass' : chunks.length + ' sections, one pass each') + '.'
-                    );
+                    // Budget the reply from the source size rather than handing over the
+                    // whole global cap: many models refuse a max_tokens above their own
+                    // output ceiling, and an oversized ask is what starves the reply.
+                    const budget = Math.max(3000, Math.min(12000, Math.ceil(source.length / 3) + 1500));
+                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, budget', budget, 'tokens');
 
-                    for (let i = 0; i < chunks.length; i++) {
-                        const chunk = chunks[i];
-                        const label = chunk.label || ('Part ' + (i + 1));
-                        const prefix = slug(label) || ('sec' + (i + 1));
-
-                        showTyping();
-                        setAgentState('designing', 'Converting ' + label + ' (' + (i + 1) + '/' + chunks.length + ')…');
-
-                        const css = chunks.length > 1 ? pruneCss(zip.css, chunk.html) : zip.css;
-                        const source =
-                            'SOURCE STYLESHEET:\n```css\n' + css + '\n```\n\n' +
-                            'SOURCE MARKUP' + (chunks.length > 1 ? ' (section "' + label + '")' : '') + ':\n```html\n' + chunk.html + '\n```';
-
+                    let lastReason = 'unknown';
+                    for (let attempt = 0; attempt < 2; attempt++) {
                         try {
                             const response = await callAI([
-                                { role: 'system', content: conversionPrompt(userMessage, prefix) },
+                                { role: 'system', content: conversionPrompt(zip.note, prefix) },
                                 { role: 'user',   content: source }
-                            ]);
+                            ], 0, { maxTokens: budget, temperature: 0.2 });
+
+                            const truncated = ChatState.lastResponseTruncated;
                             const html = extractHTMLFromResponse(response);
-                            if (html) {
-                                parts.push(html);
-                                if (chunks.length > 1) addMessage('assistant', '✓ Converted "' + label + '" (' + parts.length + '/' + chunks.length + ')');
+
+                            if (html && !truncated) return { html };
+
+                            if (truncated) {
+                                lastReason = 'the model hit its output limit (' + budget + ' tokens) and the reply was cut off';
                             } else {
-                                failed.push(label);
+                                const text = String(response || '').trim();
+                                lastReason = text
+                                    ? 'the model replied without any HTML: "' + text.replace(/\s+/g, ' ').slice(0, 200) + '"'
+                                    : 'the model returned an empty reply';
                             }
+                            debugLog('zip chunk "' + chunk.label + '" attempt ' + (attempt + 1) + ' failed: ' + lastReason);
                         } catch(err) {
                             if (err.name === 'AbortError') throw err;
-                            debugLog('zip conversion error on chunk', label, err);
-                            failed.push(label);
+                            lastReason = err.message || String(err);
+                            debugLog('zip chunk "' + chunk.label + '" attempt ' + (attempt + 1) + ' error:', err);
                         }
+                        if (attempt === 0) await sleep(800);
+                    }
+                    return { reason: lastReason };
+                }
+
+                async function convert(userMessage, zip) {
+                    zip.note = userMessage || '';
+                    const queue   = splitChunks(zip.bodyHtml);
+                    const initial = queue.length;
+                    const built   = [];
+                    const failed  = [];
+                    let pass = 0, total = initial, usedPrefixes = {};
+
+                    addMessage('assistant',
+                        '🔄 Converting **' + zip.htmlPath + '** in ' +
+                        (initial === 1 ? 'a single pass' : initial + ' passes (one per section group)') + '.'
+                    );
+
+                    while (queue.length) {
+                        const chunk = queue.shift();
+                        pass++;
+                        const label = chunk.label || ('Part ' + pass);
+                        let prefix  = slug(label) || ('sec' + pass);
+                        // Prefixes namespace the generated CSS, so they must stay unique.
+                        if (usedPrefixes[prefix]) prefix += '-' + (++usedPrefixes[prefix]);
+                        else usedPrefixes[prefix] = 1;
+
+                        showTyping();
+                        setAgentState('converting', 'Converting "' + label + '" (' + pass + '/' + total + ')...');
+
+                        const res = await convertChunk(chunk, zip, prefix, total === 1);
+
+                        if (res.html) {
+                            built.push(res.html);
+                            setAgentState('converting', '✓ Converted "' + label + '" (' + built.length + ' done)');
+                            continue;
+                        }
+
+                        // A failing pass is usually just too big — halve it and retry the
+                        // halves before giving up on this part of the design.
+                        const halves = bisect(chunk);
+                        if (halves) {
+                            addMessage('status', '⚠️ "' + label + '" failed (' + res.reason + ') — splitting it in two and retrying.');
+                            queue.unshift(halves[0], halves[1]);
+                            total += 1;
+                            continue;
+                        }
+                        failed.push('**' + label + '** — ' + res.reason);
                     }
 
                     hideTyping();
-                    if (!parts.length) {
-                        addMessage('error', 'The conversion produced no usable HTML. Try a smaller export, or a single page from it.');
+
+                    if (failed.length) {
+                        addMessage('error',
+                            'Could not convert ' + failed.length + ' of ' + total + ' pass' + (total === 1 ? '' : 'es') + ':\n' +
+                            failed.map(f => '• ' + f).join('\n')
+                        );
+                    }
+
+                    if (!built.length) {
+                        addMessage('error',
+                            'Nothing could be converted, so there is no preview to build.\n\n' +
+                            'Most likely causes, in order:\n' +
+                            '1. The model\'s reply limit is lower than this design needs — lower **Max Tokens** is not the fix; check the model actually supports the output size, or pick a stronger model.\n' +
+                            '2. A reasoning model spent its whole budget thinking and emitted nothing.\n' +
+                            '3. The API rejected the request (the reason is shown above).\n\n' +
+                            'Turn on Debug Mode in the AI settings and retry — the console then logs the source size, the token budget and the raw reply for every pass.'
+                        );
                         return;
                     }
-                    if (failed.length) addMessage('error', '✗ Could not convert: ' + failed.join(', '));
 
-                    const combined = parts.join('\n');
+                    const combined = built.join('\n');
                     ChatState.currentHTMLPreview = combined;
                     ChatState.previewMode        = 'html';
                     showHTMLPreview(combined);
                     addApproveBar();
+                    addMessage('assistant',
+                        '✅ Converted ' + built.length + ' of ' + total + ' passes. Review the preview on the left, ' +
+                        'then press **Build** to inject it into Bricks.'
+                    );
                 }
 
                 // ── misc ─────────────────────────────────────────────────────
@@ -5170,6 +5302,10 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 .snn-bricks-chat-message-user { background: #161a1d; color: #fff; margin-left: auto; }
 .snn-bricks-chat-message-assistant { background: #fff; border: 1px solid #e0e0e0; margin-right: auto; }
 .snn-bricks-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; }
+/* Agent status lines: a persistent, compact log of what the agent did */
+.snn-bricks-chat-message-status { background: transparent; border: none; padding: 1px 4px; margin: 0 auto 0 0; max-width: 100%; font-size: 11.5px; color: #7a7a7a; letter-spacing: 0.01em; }
+.snn-bricks-chat-message-status .snn-msg-body { display: flex; align-items: center; gap: 5px; }
+.snn-bricks-chat-message-status + .snn-bricks-chat-message-status { margin-top: -1px; }
 .snn-bricks-chat-message.is-collapsed .snn-msg-body { max-height: 70px; overflow: hidden; position: relative; }
 .snn-bricks-chat-message.is-collapsed .snn-msg-body::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(to bottom, transparent, var(--snn-msg-fade, #fff)); pointer-events: none; }
 .snn-bricks-chat-message-user.is-collapsed .snn-msg-body::after { --snn-msg-fade: #161a1d; }
