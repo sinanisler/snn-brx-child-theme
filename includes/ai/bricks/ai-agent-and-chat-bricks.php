@@ -74,6 +74,16 @@ class SNN_Bricks_Chat_Overlay {
             true
         );
 
+        // JSZip — reads design-export .zip attachments (Figma/Penpot "export to HTML")
+        // entirely in the browser. Served from the theme, never a CDN.
+        wp_enqueue_script(
+            'jszip',
+            get_stylesheet_directory_uri() . '/assets/js/jszip.min.js',
+            array(),
+            '3.10.1',
+            true
+        );
+
         // Get configuration from main chat overlay
         $main_chat = SNN_Chat_Overlay::get_instance();
         $ai_config = function_exists( 'snn_get_ai_api_config' ) ? snn_get_ai_api_config() : array();
@@ -309,8 +319,8 @@ Fitness</button>
 
                 <!-- Input -->
                 <div class="snn-bricks-chat-input-container">
-                    <input type="file" id="snn-bricks-chat-file-input" accept="image/*" style="display: none;" />
-                    <button id="snn-bricks-chat-attach-btn" class="snn-bricks-chat-attach-btn" title="Attach image">
+                    <input type="file" id="snn-bricks-chat-file-input" accept="image/*,.zip,application/zip" style="display: none;" />
+                    <button id="snn-bricks-chat-attach-btn" class="snn-bricks-chat-attach-btn" title="<?php echo esc_attr__( 'Attach an image, or a design export .zip (HTML/CSS)', 'snn' ); ?>">
                         <span class="dashicons dashicons-paperclip"></span>
                     </button>
                     <div class="snn-bricks-chat-input-wrapper">
@@ -353,7 +363,7 @@ Fitness</button>
                 messages: [], isOpen: false, isProcessing: false,
                 abortController: null, currentSessionId: null,
                 pageContext: snnBricksChatConfig.pageContext || {},
-                recoveryAttempts: 0, bricksState: null, attachedImages: [],
+                recoveryAttempts: 0, bricksState: null, attachedImages: [], attachedZip: null,
                 // Abilities API
                 abilities: [],
                 // Two-phase workflow
@@ -3979,13 +3989,42 @@ IMPORTANT RULES:
                 const input = $('#snn-bricks-chat-input');
                 const msg   = input.val().trim();
                 const imgs  = ChatState.attachedImages;
-                if (!msg && !imgs.length) return;
-                addMessage('user', msg || '(Image attached)', [...imgs]);
+                const zip   = ChatState.attachedZip;
+                if (!msg && !imgs.length && !zip) return;
+
+                const label = msg || (zip ? '(Design .zip attached: ' + zip.fileName + ')' : '(Image attached)');
+                addMessage('user', label, [...imgs]);
                 const saved = [...imgs];
                 input.val('').css('height', 'auto');
                 ChatState.attachedImages = [];
+                ChatState.attachedZip    = null;
                 renderImagePreviews();
+
+                // A design export is already a design — it goes straight to the
+                // converter rather than through intent/planning/theming.
+                if (zip) { await processZipWithAI(msg, zip); return; }
                 await processWithAI(msg, saved);
+            }
+
+            async function processZipWithAI(userMessage, zip) {
+                ChatState.isProcessing = true;
+                updateSendButton();
+                showTyping();
+                try {
+                    setAgentState('designing');
+                    await ZipImport.convert(userMessage, zip);
+                    autoSaveConversation();
+                } catch(err) {
+                    if (err.name !== 'AbortError') {
+                        addMessage('error', 'Error: ' + err.message);
+                        debugLog('processZipWithAI error:', err);
+                    }
+                } finally {
+                    hideTyping();
+                    ChatState.isProcessing = false;
+                    setAgentState('idle');
+                    updateSendButton();
+                }
             }
 
             // ================================================================
@@ -4103,7 +4142,8 @@ IMPORTANT RULES:
 
             function clearChat() {
                 ChatState.messages = []; ChatState.currentSessionId = null;
-                ChatState.attachedImages = []; ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
+                ChatState.attachedImages = []; ChatState.attachedZip = null;
+                ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
                 ChatState.currentTheme = null; // Reset theme for new conversation
                 ChatState.globalUsedIds.clear(); // Reset ID tracker
                 ChatState.pendingOps = null; ChatState.pendingAmbiguous = null;
@@ -4288,10 +4328,19 @@ IMPORTANT RULES:
             async function handleFileSelect(files) {
                 if (!files || !files.length) return;
                 for (const f of Array.from(files)) {
+                    if (isZipFile(f)) {
+                        await ZipImport.attach(f);
+                        continue;
+                    }
                     if (!f.type.startsWith('image/')) continue;
                     try { addImageAttachment(await fileToBase64(f), f.name); } catch(e) {}
                 }
                 $('#snn-bricks-chat-file-input').val('');
+            }
+
+            function isZipFile(f) {
+                return /\.zip$/i.test(f.name || '') ||
+                    ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'].includes(f.type);
             }
 
             async function handlePaste(ev) {
@@ -4323,7 +4372,8 @@ IMPORTANT RULES:
             function renderImagePreviews() {
                 const $p = $('#snn-bricks-chat-image-preview');
                 $p.empty();
-                if (!ChatState.attachedImages.length) { $p.hide(); return; }
+                const zip = ChatState.attachedZip;
+                if (!ChatState.attachedImages.length && !zip) { $p.hide(); return; }
                 $p.show();
                 ChatState.attachedImages.forEach(img => {
                     const $w = $('<div>').addClass('snn-image-preview-item');
@@ -4331,7 +4381,710 @@ IMPORTANT RULES:
                     $w.append($('<img>').attr('src', img.data)).append($r);
                     $p.append($w);
                 });
+                if (zip) $p.append(ZipImport.renderCard(zip));
             }
+
+            // ================================================================
+            // Design .zip Import (Figma / Penpot "export to HTML" and friends)
+            //
+            // A design export is read, rendered and rewritten entirely in the
+            // browser: JSZip unpacks it, raster assets are pushed into the WP
+            // media library so the design keeps working once it is a real page,
+            // SVGs are inlined (never uploaded — an uploaded SVG is a script
+            // vector), and the resulting HTML+CSS is handed to the conversion
+            // agent. Nothing is written to disk server-side except the images.
+            // ================================================================
+
+            const ZipImport = (function() {
+
+                const LIMITS = {
+                    zipBytes:       50 * 1024 * 1024,   // user-facing cap
+                    entries:        800,
+                    unpackedBytes:  250 * 1024 * 1024,  // zip-bomb guard
+                    images:         80,
+                    imageBytes:     10 * 1024 * 1024,
+                    inlineSvgBytes: 48 * 1024,
+                    textBytes:      4 * 1024 * 1024,    // per html/css file
+                };
+                const RASTER = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'];
+                const MIME = {
+                    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+                    gif: 'image/gif', webp: 'image/webp', avif: 'image/avif',
+                };
+                // Above this, the source is converted section by section instead of
+                // in one call, so a large export cannot blow the model's context.
+                const SINGLE_CALL_CHARS = 42000;
+                const CHUNK_CHARS       = 26000;
+                // Desktop canvas the preview lays out against before being scaled down.
+                const CANVAS_WIDTH  = 1440;
+                const CANVAS_HEIGHT = 9000;
+
+                let currentFile = null; // kept so the page <select> can re-extract
+
+                // ── path helpers ─────────────────────────────────────────────
+
+                const extOf  = p => (p.split('.').pop() || '').toLowerCase();
+                const dirOf  = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/') + 1) : '';
+                const isJunk = p => /(^|\/)(__MACOSX|\.DS_Store)/i.test(p) || /(^|\/)\./.test(p);
+
+                function normalizePath(p) {
+                    const out = [];
+                    p.split('/').forEach(seg => {
+                        if (!seg || seg === '.') return;
+                        if (seg === '..') { out.pop(); return; }
+                        out.push(seg);
+                    });
+                    return out.join('/');
+                }
+
+                function resolveRef(baseDir, ref) {
+                    let r = String(ref || '').trim().replace(/[?#].*$/, '');
+                    if (!r) return '';
+                    try { r = decodeURIComponent(r); } catch(e) {}
+                    if (/^(https?:|data:|blob:|mailto:|tel:|#)/i.test(r)) return '';
+                    if (r.startsWith('//')) return '';
+                    return normalizePath(r.startsWith('/') ? r.slice(1) : baseDir + r);
+                }
+
+                /** Exports are inconsistent about folder case, so fall back to basename. */
+                function makeLookup(entries) {
+                    const byPath = new Map(), byName = new Map();
+                    entries.forEach(en => {
+                        byPath.set(en.path.toLowerCase(), en);
+                        const base = en.path.split('/').pop().toLowerCase();
+                        if (!byName.has(base)) byName.set(base, en);
+                    });
+                    return (resolved) => {
+                        if (!resolved) return null;
+                        return byPath.get(resolved.toLowerCase())
+                            || byName.get(resolved.split('/').pop().toLowerCase())
+                            || null;
+                    };
+                }
+
+                // ── extraction ───────────────────────────────────────────────
+
+                async function attach(file) {
+                    if (typeof JSZip === 'undefined') {
+                        addMessage('error', 'Zip support did not load (JSZip missing). Reload the builder and try again.');
+                        return;
+                    }
+                    if (file.size > LIMITS.zipBytes) {
+                        addMessage('error', 'That .zip is ' + mb(file.size) + ' — the limit is ' + mb(LIMITS.zipBytes) + '.');
+                        return;
+                    }
+                    currentFile = file;
+                    try {
+                        await extract(file, null);
+                    } catch(err) {
+                        debugLog('zip extract error:', err);
+                        addMessage('error', 'Could not read that .zip: ' + (err.message || err));
+                        ChatState.attachedZip = null;
+                        renderImagePreviews();
+                    } finally {
+                        if (!ChatState.isProcessing) setAgentState('idle');
+                    }
+                }
+
+                /** Re-run extraction for a different page inside the same zip. */
+                async function selectPage(htmlPath) {
+                    if (!currentFile) return;
+                    try { await extract(currentFile, htmlPath); }
+                    catch(err) { addMessage('error', 'Could not read that page: ' + (err.message || err)); }
+                    finally { if (!ChatState.isProcessing) setAgentState('idle'); }
+                }
+
+                async function extract(file, forcedHtmlPath) {
+                    setZipStatus('Unpacking ' + file.name + '…');
+
+                    const zip = await JSZip.loadAsync(file);
+                    const entries = [];
+                    let unpacked = 0;
+                    zip.forEach((path, en) => {
+                        if (en.dir || isJunk(path)) return;
+                        entries.push({ path: normalizePath(path), zipEntry: en });
+                        unpacked += (en._data && en._data.uncompressedSize) || 0;
+                    });
+
+                    if (!entries.length)                     throw new Error('the archive is empty.');
+                    if (entries.length > LIMITS.entries)      throw new Error('it holds ' + entries.length + ' files (limit ' + LIMITS.entries + ').');
+                    if (unpacked > LIMITS.unpackedBytes)      throw new Error('it unpacks to ' + mb(unpacked) + ' (limit ' + mb(LIMITS.unpackedBytes) + ').');
+
+                    const htmlEntries = entries.filter(en => ['html', 'htm'].includes(extOf(en.path)));
+                    if (!htmlEntries.length) {
+                        throw new Error('no .html file inside. This importer needs an HTML/CSS export — in Figma that means a plugin that exports HTML, not a plain "Export" of frames.');
+                    }
+
+                    const primary = forcedHtmlPath
+                        ? (htmlEntries.find(en => en.path === forcedHtmlPath) || pickPrimary(htmlEntries))
+                        : pickPrimary(htmlEntries);
+
+                    const lookup  = makeLookup(entries);
+                    const baseDir = dirOf(primary.path);
+
+                    setZipStatus('Reading ' + primary.path + '…');
+                    const doc = await readDocument(primary, baseDir, lookup);
+
+                    // Assets: upload rasters, inline SVGs, then rewrite every reference.
+                    const report = await processAssets(doc, baseDir, lookup);
+
+                    // Split the finished document into markup + stylesheet text.
+                    const previewDoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+                    const css = Array.from(doc.querySelectorAll('style')).map(s => s.textContent || '').join('\n');
+                    Array.from(doc.querySelectorAll('style')).forEach(s => s.remove());
+                    const bodyHtml = doc.body ? doc.body.innerHTML : '';
+
+                    if (!bodyHtml.trim()) throw new Error('the HTML file has an empty <body>.');
+
+                    ChatState.attachedZip = {
+                        id:         'zip_' + Date.now(),
+                        fileName:   file.name,
+                        htmlPath:   primary.path,
+                        candidates: htmlEntries.map(en => en.path),
+                        bodyHtml:   bodyHtml,
+                        css:        css,
+                        previewDoc: previewDoc,
+                        report:     report,
+                        expanded:   false,
+                    };
+                    renderImagePreviews();
+
+                    const bits = [report.uploaded + ' image' + (report.uploaded === 1 ? '' : 's') + ' added to the media library'];
+                    if (report.inlinedSvg) bits.push(report.inlinedSvg + ' SVG' + (report.inlinedSvg === 1 ? '' : 's') + ' inlined');
+                    if (report.skipped.length) bits.push(report.skipped.length + ' asset' + (report.skipped.length === 1 ? '' : 's') + ' skipped');
+                    addMessage('assistant',
+                        '📦 Read **' + primary.path + '** from `' + file.name + '` — ' + bits.join(', ') +
+                        '.\nCheck the preview above, then send (add a note if you want anything changed) and I will convert it into Bricks sections.'
+                    );
+                    if (report.skipped.length) {
+                        addMessage('error',
+                            'Skipped assets (their references will be missing from the design):\n' +
+                            report.skipped.slice(0, 12).map(s => '• ' + s).join('\n') +
+                            (report.skipped.length > 12 ? '\n• …and ' + (report.skipped.length - 12) + ' more' : '')
+                        );
+                    }
+                }
+
+                /** index.html at the shallowest depth wins; otherwise the largest file. */
+                function pickPrimary(htmlEntries) {
+                    const depth = p => p.split('/').length;
+                    const score = en => {
+                        const base = en.path.split('/').pop().toLowerCase();
+                        return (/^index\.html?$/.test(base) ? 0 : /^(home|main|page)\.html?$/.test(base) ? 1 : 2);
+                    };
+                    return htmlEntries.slice().sort((a, b) =>
+                        score(a) - score(b) ||
+                        depth(a.path) - depth(b.path) ||
+                        sizeOf(b) - sizeOf(a)
+                    )[0];
+                }
+
+                const sizeOf = en => (en.zipEntry._data && en.zipEntry._data.uncompressedSize) || 0;
+
+                /** Parse the HTML, drop scripts, and inline every local stylesheet. */
+                async function readDocument(entry, baseDir, lookup) {
+                    if (sizeOf(entry) > LIMITS.textBytes) throw new Error('the HTML file is larger than ' + mb(LIMITS.textBytes) + '.');
+                    const html = await entry.zipEntry.async('string');
+                    const doc  = new DOMParser().parseFromString(html, 'text/html');
+
+                    // A design export needs no JS, and we are about to render it in a preview.
+                    doc.querySelectorAll('script, noscript, iframe, object, embed').forEach(n => n.remove());
+
+                    for (const link of Array.from(doc.querySelectorAll('link[href]'))) {
+                        const rel = (link.getAttribute('rel') || '').toLowerCase();
+                        if (!rel.split(/\s+/).includes('stylesheet')) continue;
+                        const href = link.getAttribute('href') || '';
+                        // Remote sheets (Google Fonts etc.) stay as links — they still work.
+                        if (/^(https?:)?\/\//i.test(href)) continue;
+                        const hit = lookup(resolveRef(baseDir, href));
+                        if (!hit || sizeOf(hit) > LIMITS.textBytes) { link.remove(); continue; }
+                        let css = await hit.zipEntry.async('string');
+                        css = await inlineCssImports(css, dirOf(hit.path), lookup);
+                        const style = doc.createElement('style');
+                        style.setAttribute('data-snn-zip-css', hit.path);
+                        style.textContent = css;
+                        link.replaceWith(style);
+                    }
+                    return doc;
+                }
+
+                /** Splice in local @import'ed stylesheets (one level); leave remote ones alone. */
+                async function inlineCssImports(css, baseDir, lookup) {
+                    const rx = /@import\s+(?:url\(\s*)?['"]?([^'")\s]+)['"]?\s*\)?\s*;/gi;
+                    const jobs = [];
+                    css.replace(rx, (full, ref) => { jobs.push({ full, ref }); return full; });
+                    for (const job of jobs) {
+                        if (/^(https?:)?\/\//i.test(job.ref)) continue;
+                        const hit = lookup(resolveRef(baseDir, job.ref));
+                        if (!hit || sizeOf(hit) > LIMITS.textBytes) continue;
+                        css = css.split(job.full).join(await hit.zipEntry.async('string'));
+                    }
+                    return css;
+                }
+
+                // ── assets ───────────────────────────────────────────────────
+
+                async function processAssets(doc, baseDir, lookup) {
+                    const report = { uploaded: 0, inlinedSvg: 0, skipped: [] };
+
+                    // 1. Collect every local reference: markup attributes and CSS url().
+                    const refs = new Map(); // original ref string -> entry
+                    const addRef = (ref) => {
+                        if (!ref || refs.has(ref)) return;
+                        const hit = lookup(resolveRef(baseDir, ref));
+                        if (hit) refs.set(ref, hit);
+                    };
+
+                    doc.querySelectorAll('img[src], video[poster], source[src]').forEach(el => {
+                        addRef(el.getAttribute('src') || el.getAttribute('poster'));
+                    });
+                    doc.querySelectorAll('img[srcset], source[srcset]').forEach(el => {
+                        (el.getAttribute('srcset') || '').split(',').forEach(part => addRef(part.trim().split(/\s+/)[0]));
+                    });
+                    const cssHolders = Array.from(doc.querySelectorAll('style'));
+                    const styleAttrEls = Array.from(doc.querySelectorAll('[style]'));
+                    [...cssHolders.map(s => s.textContent || ''), ...styleAttrEls.map(e => e.getAttribute('style') || '')]
+                        .forEach(text => {
+                            const rx = /url\(\s*['"]?([^'")]+)['"]?\s*\)/gi;
+                            let m;
+                            while ((m = rx.exec(text)) !== null) addRef(m[1]);
+                        });
+
+                    // 2. Resolve each reference to a replacement URL.
+                    const replacement = new Map(); // original ref string -> new url
+                    const done = new Map();        // zip path -> new url (dedupe re-uploads)
+                    let uploadedCount = 0;
+                    let index = 0;
+
+                    for (const [ref, entry] of refs) {
+                        index++;
+                        if (done.has(entry.path)) { replacement.set(ref, done.get(entry.path)); continue; }
+
+                        const ext = extOf(entry.path);
+                        const size = sizeOf(entry);
+
+                        if (ext === 'svg') {
+                            if (size > LIMITS.inlineSvgBytes) { report.skipped.push(entry.path + ' (SVG over ' + kb(LIMITS.inlineSvgBytes) + ')'); continue; }
+                            const svg = sanitizeSvg(await entry.zipEntry.async('string'));
+                            if (!svg) { report.skipped.push(entry.path + ' (unreadable SVG)'); continue; }
+                            const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                            done.set(entry.path, url);
+                            replacement.set(ref, url);
+                            report.inlinedSvg++;
+                            continue;
+                        }
+
+                        if (!RASTER.includes(ext)) { report.skipped.push(entry.path + ' (unsupported type)'); continue; }
+                        if (size > LIMITS.imageBytes) { report.skipped.push(entry.path + ' (over ' + mb(LIMITS.imageBytes) + ')'); continue; }
+                        if (uploadedCount >= LIMITS.images) { report.skipped.push(entry.path + ' (image limit ' + LIMITS.images + ' reached)'); continue; }
+
+                        setZipStatus('Uploading image ' + index + '/' + refs.size + '…');
+                        try {
+                            const blob = await entry.zipEntry.async('blob');
+                            const name = entry.path.split('/').pop();
+                            let url;
+                            try {
+                                url = await uploadImage(blob, name, MIME[ext]);
+                            } catch(first) {
+                                // One retry: a busy server can drop a single upload, and a
+                                // missing image silently degrades the whole design.
+                                debugLog('zip image upload retry:', entry.path, first);
+                                await sleep(700);
+                                url = await uploadImage(blob, name, MIME[ext]);
+                            }
+                            done.set(entry.path, url);
+                            replacement.set(ref, url);
+                            uploadedCount++;
+                        } catch(e) {
+                            debugLog('zip image upload failed:', entry.path, e);
+                            report.skipped.push(entry.path + ' (upload failed: ' + (e.message || e) + ')');
+                        }
+                    }
+                    report.uploaded = uploadedCount;
+
+                    // 3. Rewrite markup attributes.
+                    const swap = (v) => replacement.has(v) ? replacement.get(v) : null;
+                    doc.querySelectorAll('img[src], source[src]').forEach(el => {
+                        const n = swap(el.getAttribute('src'));
+                        if (n) el.setAttribute('src', n);
+                    });
+                    doc.querySelectorAll('video[poster]').forEach(el => {
+                        const n = swap(el.getAttribute('poster'));
+                        if (n) el.setAttribute('poster', n);
+                    });
+                    doc.querySelectorAll('img[srcset], source[srcset]').forEach(el => {
+                        const next = (el.getAttribute('srcset') || '').split(',').map(part => {
+                            const bits = part.trim().split(/\s+/);
+                            const n = swap(bits[0]);
+                            if (n) bits[0] = n;
+                            return bits.join(' ');
+                        }).join(', ');
+                        el.setAttribute('srcset', next);
+                    });
+
+                    // 4. Rewrite CSS text (style blocks and style attributes).
+                    const rewriteCss = (text) => {
+                        let out = text;
+                        replacement.forEach((url, ref) => {
+                            if (!out.includes(ref)) return;
+                            out = out.split('url(' + ref + ')').join('url("' + url + '")')
+                                     .split("url('" + ref + "')").join('url("' + url + '")')
+                                     .split('url("' + ref + '")').join('url("' + url + '")');
+                        });
+                        return out;
+                    };
+                    cssHolders.forEach(s => { s.textContent = rewriteCss(s.textContent || ''); });
+                    styleAttrEls.forEach(e => { e.setAttribute('style', rewriteCss(e.getAttribute('style') || '')); });
+
+                    // 5. An <img> pointing at an inlined SVG becomes real inline SVG so the
+                    //    converter can hand it to Bricks as markup rather than a data URI.
+                    doc.querySelectorAll('img[src^="data:image/svg+xml"]').forEach(img => {
+                        try {
+                            const raw = decodeURIComponent(img.getAttribute('src').replace(/^data:image\/svg\+xml;charset=utf-8,/, ''));
+                            const frag = new DOMParser().parseFromString(raw, 'image/svg+xml');
+                            const svg  = frag.documentElement;
+                            if (!svg || svg.nodeName.toLowerCase() !== 'svg') return;
+                            const cls = img.getAttribute('class');
+                            if (cls) svg.setAttribute('class', cls);
+                            img.replaceWith(doc.importNode(svg, true));
+                        } catch(e) { debugLog('svg inline swap failed', e); }
+                    });
+
+                    setZipStatus('');
+                    return report;
+                }
+
+                /** Strip anything executable before an SVG is inlined into the page. */
+                function sanitizeSvg(text) {
+                    let doc;
+                    try { doc = new DOMParser().parseFromString(text, 'image/svg+xml'); } catch(e) { return ''; }
+                    const svg = doc.documentElement;
+                    if (!svg || svg.nodeName.toLowerCase() !== 'svg' || doc.querySelector('parsererror')) return '';
+                    svg.querySelectorAll('script, foreignObject, animate, set, handler').forEach(n => n.remove());
+                    const walk = (el) => {
+                        Array.from(el.attributes || []).forEach(a => {
+                            const name = a.name.toLowerCase();
+                            const val  = (a.value || '').trim().toLowerCase();
+                            if (name.startsWith('on')) { el.removeAttribute(a.name); return; }
+                            // Links may only point inside the document (gradients, clip paths).
+                            if (name === 'href' || name === 'xlink:href') {
+                                if (!val.startsWith('#')) el.removeAttribute(a.name);
+                                return;
+                            }
+                            if (name !== 'style' && /^javascript:/i.test(val)) el.removeAttribute(a.name);
+                        });
+                        Array.from(el.children).forEach(walk);
+                    };
+                    walk(svg);
+                    return new XMLSerializer().serializeToString(svg);
+                }
+
+                function uploadImage(blob, fileName, mime) {
+                    const fd = new FormData();
+                    fd.append('action', 'snn_upload_design_asset');
+                    fd.append('nonce', snnBricksChatConfig.agentNonce);
+                    fd.append('file', new File([blob], fileName, { type: mime }), fileName);
+                    return fetch(snnBricksChatConfig.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                        .then(r => r.json())
+                        .then(r => {
+                            if (!r || !r.success || !r.data || !r.data.url) {
+                                throw new Error((r && r.data && r.data.message) || 'server rejected the file');
+                            }
+                            return r.data.url;
+                        });
+                }
+
+                // ── attachment card + preview ────────────────────────────────
+
+                function setZipStatus(text) {
+                    const $s = $('#snn-zip-status');
+                    if ($s.length) { $s.text(text).toggle(!!text); return; }
+                    if (text) setAgentState('designing', text);
+                }
+
+                function renderCard(zip) {
+                    const r = zip.report || { uploaded: 0, inlinedSvg: 0, skipped: [] };
+                    const $card = $('<div>').addClass('snn-zip-card');
+
+                    const $head = $('<div>').addClass('snn-zip-head').append(
+                        $('<span>').addClass('snn-zip-name').text(zip.fileName),
+                        $('<button>').addClass('snn-image-preview-remove snn-zip-remove').html('&times;')
+                            .attr('title', 'Remove this design')
+                            .on('click', () => { ChatState.attachedZip = null; currentFile = null; renderImagePreviews(); })
+                    );
+
+                    const $frame = $('<div>').addClass('snn-zip-frame').toggleClass('is-expanded', !!zip.expanded);
+                    const iframe = document.createElement('iframe');
+                    // No allow-scripts: the export's own JS is already stripped, and this
+                    // keeps a hostile zip from executing anything in the builder.
+                    iframe.setAttribute('sandbox', '');
+                    iframe.setAttribute('scrolling', 'no');
+                    iframe.className = 'snn-zip-iframe';
+                    iframe.srcdoc = zip.previewDoc;
+                    const $clip = $('<div>').addClass('snn-zip-clip').append(iframe);
+                    $frame.append($clip).attr('title', 'Click to enlarge').on('click', () => {
+                        zip.expanded = !zip.expanded;
+                        renderImagePreviews();
+                    });
+
+                    // The export is authored against a desktop canvas, so the iframe must
+                    // LAY OUT at CANVAS_WIDTH and only then be scaled down to the card.
+                    // Set it inline: the builder ships its own `iframe { width: 100% }`
+                    // rules that would otherwise win and squash the design into a column.
+                    requestAnimationFrame(() => {
+                        const avail = $frame.width() || 240;
+                        const scale = avail / CANVAS_WIDTH;
+                        // !important is required: the builder's own iframe sizing rules
+                        // carry it, and would otherwise squash the canvas to panel width.
+                        iframe.style.cssText =
+                            'position:absolute;top:0;left:0;border:0;pointer-events:none;' +
+                            'width:' + CANVAS_WIDTH + 'px !important;' +
+                            'height:' + CANVAS_HEIGHT + 'px !important;' +
+                            'max-width:none !important;min-width:0 !important;' +
+                            'transform:scale(' + scale + ');transform-origin:top left;';
+                        // A transform does not shrink the layout box, so the scroll extent
+                        // has to be set from the scaled height by hand.
+                        $clip.css({ height: Math.round(CANVAS_HEIGHT * scale) + 'px', width: '100%' });
+                    });
+
+                    const meta = [];
+                    if (zip.candidates.length > 1) meta.push(zip.candidates.length + ' pages');
+                    meta.push(r.uploaded + ' img');
+                    if (r.inlinedSvg) meta.push(r.inlinedSvg + ' svg');
+                    if (r.skipped.length) meta.push(r.skipped.length + ' skipped');
+
+                    const $meta = $('<div>').addClass('snn-zip-meta').text(meta.join(' · '));
+
+                    let $picker = $();
+                    if (zip.candidates.length > 1) {
+                        $picker = $('<select>').addClass('snn-zip-page-select').attr('title', 'Which page to import');
+                        zip.candidates.forEach(p => {
+                            $picker.append($('<option>').attr('value', p).text(p).prop('selected', p === zip.htmlPath));
+                        });
+                        $picker.on('change', function() { selectPage($(this).val()); });
+                    }
+
+                    const $status = $('<div>').attr('id', 'snn-zip-status').addClass('snn-zip-status').hide();
+
+                    return $card.append($head, $frame, $meta, $picker, $status);
+                }
+
+                // ── conversion ───────────────────────────────────────────────
+
+                /**
+                 * Walk past single-child wrappers — these exports usually bury the whole
+                 * page inside one positioned div — then treat that node's children as
+                 * the sections to convert.
+                 */
+                function chunkRoot(bodyEl) {
+                    let node = bodyEl;
+                    // Descend through every single-child wrapper, but never into a leaf —
+                    // these exports nest the whole page several wrappers deep.
+                    while (node.children.length === 1 && node.children[0].children.length > 0) {
+                        node = node.children[0];
+                    }
+                    return node;
+                }
+
+                function splitChunks(bodyHtml) {
+                    const doc  = new DOMParser().parseFromString('<!DOCTYPE html><body>' + bodyHtml + '</body>', 'text/html');
+                    const root = chunkRoot(doc.body);
+                    const kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
+
+                    if (bodyHtml.length <= SINGLE_CALL_CHARS || kids.length < 2) {
+                        return [{ label: 'Design', html: root.innerHTML }];
+                    }
+
+                    const label = (el) => {
+                        const h = el.querySelector('h1,h2,h3,h4');
+                        if (h && h.textContent.trim()) return h.textContent.trim().slice(0, 40);
+                        const cls = (el.getAttribute('class') || '').split(/\s+/)[0];
+                        return cls || el.tagName.toLowerCase();
+                    };
+
+                    const chunks = [];
+                    let buf = [], bufLen = 0, first = null;
+                    const flush = () => {
+                        if (!buf.length) return;
+                        chunks.push({ label: label(first), html: buf.join('\n') });
+                        buf = []; bufLen = 0; first = null;
+                    };
+                    kids.forEach(el => {
+                        const h = el.outerHTML;
+                        if (bufLen && bufLen + h.length > CHUNK_CHARS) flush();
+                        if (!buf.length) first = el;
+                        buf.push(h); bufLen += h.length;
+                    });
+                    flush();
+                    return chunks;
+                }
+
+                /** Keep only the CSS a chunk can actually use, so chunking saves tokens. */
+                function pruneCss(css, chunkHtml) {
+                    const classes = new Set();
+                    const rx = /class\s*=\s*["']([^"']+)["']/gi;
+                    let m;
+                    while ((m = rx.exec(chunkHtml)) !== null) {
+                        m[1].split(/\s+/).forEach(c => { if (c) classes.add(c.toLowerCase()); });
+                    }
+
+                    const keep = (selectorList) => selectorList.split(',').some(sel => {
+                        const found = sel.match(/\.[-_a-zA-Z0-9]+/g);
+                        if (!found) return true; // tag / :root / attribute selectors — always keep
+                        return found.every(c => classes.has(c.slice(1).toLowerCase()));
+                    });
+
+                    return topLevelBlocks(css).map(block => {
+                        if (block.prelude.trim().startsWith('@')) {
+                            if (/^@(media|supports|layer|container)/i.test(block.prelude.trim())) {
+                                const inner = topLevelBlocks(block.body)
+                                    .filter(b => b.prelude.trim().startsWith('@') || keep(b.prelude))
+                                    .map(b => b.raw).join('\n');
+                                return inner.trim() ? block.prelude + '{\n' + inner + '\n}' : '';
+                            }
+                            return block.raw; // @font-face, @keyframes, @import — cheap, always keep
+                        }
+                        return keep(block.prelude) ? block.raw : '';
+                    }).filter(Boolean).join('\n');
+                }
+
+                /** Split CSS into top-level blocks without a real parser. */
+                function topLevelBlocks(css) {
+                    const out = [];
+                    let depth = 0, start = 0, braceAt = -1, quote = null;
+                    for (let i = 0; i < css.length; i++) {
+                        const ch = css[i];
+                        if (quote) { if (ch === quote && css[i - 1] !== '\\') quote = null; continue; }
+                        if (ch === '"' || ch === "'") { quote = ch; continue; }
+                        if (ch === '{') { if (depth === 0) braceAt = i; depth++; continue; }
+                        if (ch === '}') {
+                            depth--;
+                            if (depth === 0 && braceAt > -1) {
+                                out.push({
+                                    prelude: css.slice(start, braceAt),
+                                    body:    css.slice(braceAt + 1, i),
+                                    raw:     css.slice(start, i + 1).trim(),
+                                });
+                                start = i + 1; braceAt = -1;
+                            }
+                            continue;
+                        }
+                        if (ch === ';' && depth === 0) {
+                            const stmt = css.slice(start, i + 1).trim();
+                            if (stmt.startsWith('@')) out.push({ prelude: stmt, body: '', raw: stmt });
+                            start = i + 1;
+                        }
+                    }
+                    return out;
+                }
+
+                function conversionPrompt(note, prefix) {
+                    return `You are converting an EXISTING design export (Figma, Penpot, Sketch or similar "export to HTML/CSS") into clean, Bricks-Builder-ready HTML.
+
+THIS IS A CONVERSION, NOT A REDESIGN.
+- Reproduce the given design faithfully: same text, same colors, same fonts, same order, same imagery.
+- Never invent content, never substitute Lorem Ipsum, never drop a section.
+- Keep every image URL EXACTLY as given — they are already WordPress media library URLs. Do not rewrite, shorten or replace them.
+- Inline <svg> in the source stays as <svg>, wrapped in data-bricks="custom-html-css-script".
+
+WHAT YOU MUST FIX (design tools export unusable markup):
+- Absolute positioning and fixed pixel canvas widths (e.g. width:1440px, position:absolute, left/top offsets) MUST become normal flow: flex/grid, max-width containers, percentage or auto widths.
+- Drop the exporter's meaningless wrapper divs and its generated class names (box-1, box-27, img-14, leistung-3, frame-1206). Re-name every class semantically.
+- Fixed heights that only existed to fit the canvas must go; let content size itself.
+- Convert the flat, generated class soup into a small, readable class system.
+- Add responsive @media queries — the export has none. Use max-width breakpoints at 991px, 767px and 478px so they map onto Bricks' own breakpoints.
+- Remove empty spacer divs that exist only for canvas layout.
+
+OUTPUT FORMAT:
+One short sentence, then a single \`\`\`html code block containing:
+- A <style> tag with ALL CSS classes (one property per line, :root custom properties with concrete hex/px values — never var() as a value).
+- The converted markup.
+
+CLASS NAMING: prefix every class with "${prefix}-" so sections cannot collide. Hyphenated children: .${prefix}-hero, .${prefix}-hero-title, .${prefix}-hero-grid.
+
+REQUIRED data-bricks ATTRIBUTES on every structural element:
+  data-bricks="section"   — top-level section/header/footer
+  data-bricks="container" — one per section, DIRECT child of section
+  data-bricks="block"     — inner layout divs
+  data-bricks="heading"   — h1..h6
+  data-bricks="text-basic"— p, span, li text
+  data-bricks="text"      — rich text with mixed inline formatting
+  data-bricks="button"    — buttons / CTAs (href for the link)
+  data-bricks="text-link" — inline <a>
+  data-bricks="image"     — <img> (keep src verbatim)
+  data-bricks="icon"      — FontAwesome <i class="fas fa-x">
+  data-bricks="divider"   — <hr> and decorative line divs
+  data-bricks="custom-html-css-script" — raw SVG / embeds
+Structure must be: section > container > content. Never a container inside a block.
+Use class="..." only — NO inline style="" attributes anywhere in the output.
+${note ? '\nUSER INSTRUCTIONS (these override the source design where they conflict):\n' + note + '\n' : ''}
+Output the HTML only — no explanation after the code block, no patch blocks, no JSON.`;
+                }
+
+                async function convert(userMessage, zip) {
+                    const chunks = splitChunks(zip.bodyHtml);
+                    const parts  = [];
+                    const failed = [];
+
+                    addMessage('assistant',
+                        '🔄 Converting **' + zip.htmlPath + '** — ' +
+                        (chunks.length === 1 ? 'one pass' : chunks.length + ' sections, one pass each') + '.'
+                    );
+
+                    for (let i = 0; i < chunks.length; i++) {
+                        const chunk = chunks[i];
+                        const label = chunk.label || ('Part ' + (i + 1));
+                        const prefix = slug(label) || ('sec' + (i + 1));
+
+                        showTyping();
+                        setAgentState('designing', 'Converting ' + label + ' (' + (i + 1) + '/' + chunks.length + ')…');
+
+                        const css = chunks.length > 1 ? pruneCss(zip.css, chunk.html) : zip.css;
+                        const source =
+                            'SOURCE STYLESHEET:\n```css\n' + css + '\n```\n\n' +
+                            'SOURCE MARKUP' + (chunks.length > 1 ? ' (section "' + label + '")' : '') + ':\n```html\n' + chunk.html + '\n```';
+
+                        try {
+                            const response = await callAI([
+                                { role: 'system', content: conversionPrompt(userMessage, prefix) },
+                                { role: 'user',   content: source }
+                            ]);
+                            const html = extractHTMLFromResponse(response);
+                            if (html) {
+                                parts.push(html);
+                                if (chunks.length > 1) addMessage('assistant', '✓ Converted "' + label + '" (' + parts.length + '/' + chunks.length + ')');
+                            } else {
+                                failed.push(label);
+                            }
+                        } catch(err) {
+                            if (err.name === 'AbortError') throw err;
+                            debugLog('zip conversion error on chunk', label, err);
+                            failed.push(label);
+                        }
+                    }
+
+                    hideTyping();
+                    if (!parts.length) {
+                        addMessage('error', 'The conversion produced no usable HTML. Try a smaller export, or a single page from it.');
+                        return;
+                    }
+                    if (failed.length) addMessage('error', '✗ Could not convert: ' + failed.join(', '));
+
+                    const combined = parts.join('\n');
+                    ChatState.currentHTMLPreview = combined;
+                    ChatState.previewMode        = 'html';
+                    showHTMLPreview(combined);
+                    addApproveBar();
+                }
+
+                // ── misc ─────────────────────────────────────────────────────
+
+                const mb   = b => (b / (1024 * 1024)).toFixed(1) + ' MB';
+                const kb   = b => Math.round(b / 1024) + ' KB';
+                const slug = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+
+                return { attach, renderCard, convert };
+            })();
 
             // ================================================================
             // Chat History
@@ -4450,6 +5203,22 @@ IMPORTANT RULES:
 .snn-image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
 .snn-image-preview-remove { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0, 0, 0, 0.7); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center; }
 .snn-image-preview-remove:hover { background: rgba(220, 38, 38, 0.9); }
+/* Design .zip attachment card (scaled preview of the imported export) */
+.snn-zip-card { width: 100%; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.snn-zip-head { display: flex; align-items: center; gap: 6px; }
+.snn-zip-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: #161a1d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snn-zip-remove { position: static; width: 18px; height: 18px; font-size: 14px; flex-shrink: 0; }
+/* The export is authored at a 1440px canvas; scale it down to the chat width.
+   Collapsed shows the top of the design, expanded scrolls the whole thing. */
+.snn-zip-frame { position: relative; width: 100%; height: 150px; overflow: hidden; border: 1px solid #e6e6e6; border-radius: 6px; background: #fff; cursor: zoom-in; }
+.snn-zip-frame.is-expanded { height: 420px; overflow-y: auto; cursor: zoom-out; }
+/* Both the clip height and the iframe transform are set inline from the measured
+   card width — see renderCard(). These are only the pre-measurement fallbacks. */
+.snn-zip-clip { position: relative; width: 100%; height: 150px; overflow: hidden; }
+.snn-zip-iframe { position: absolute; top: 0; left: 0; border: 0; pointer-events: none; }
+.snn-zip-meta { font-size: 11px; color: #777; }
+.snn-zip-page-select { width: 100%; font-size: 11px; padding: 3px 4px; border: 1px solid #ddd; border-radius: 4px; }
+.snn-zip-status { font-size: 11px; color: #2271b1; font-weight: 600; }
 .snn-message-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .snn-message-images img { max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(0, 0, 0, 0.1); }
 .snn-bricks-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; z-index: 10; }
@@ -4805,6 +5574,96 @@ function snn_save_image_to_library_handler() {
         'original_url'  => $url,
     ) );
 }
+/**
+ * Store One Image Extracted From a Design-Export .zip
+ *
+ * The chat overlay unpacks a design export (Figma/Penpot "export to HTML") in the
+ * browser and posts each raster asset here so the converted page references real
+ * media library attachments instead of paths that only existed inside the zip.
+ *
+ * Only raster images are accepted. SVGs are deliberately NOT uploadable through
+ * this endpoint — the importer inlines them into the markup instead, so a crafted
+ * SVG never becomes a file served from the uploads directory.
+ */
+add_action( 'wp_ajax_snn_upload_design_asset', 'snn_upload_design_asset_handler' );
+
+function snn_upload_design_asset_handler() {
+    check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+
+    if ( ! current_user_can( 'upload_files' ) ) {
+        wp_send_json_error( array( 'message' => 'Insufficient permissions to upload files.' ) );
+    }
+
+    if ( empty( $_FILES['file'] ) || ! isset( $_FILES['file']['tmp_name'] ) ) {
+        wp_send_json_error( array( 'message' => 'No file received.' ) );
+    }
+
+    $file = $_FILES['file'];
+
+    if ( ! empty( $file['error'] ) ) {
+        wp_send_json_error( array( 'message' => 'Upload failed (code ' . (int) $file['error'] . ').' ) );
+    }
+
+    // Mirrors the client-side per-image cap.
+    $max_bytes = 10 * 1024 * 1024;
+    if ( (int) $file['size'] > $max_bytes ) {
+        wp_send_json_error( array( 'message' => 'Image is larger than 10 MB.' ) );
+    }
+
+    if ( ! is_uploaded_file( $file['tmp_name'] ) ) {
+        wp_send_json_error( array( 'message' => 'Invalid upload.' ) );
+    }
+
+    // Locally scoped allowlist — raster images only, regardless of what the site
+    // permits globally. wp_handle_upload sniffs the real bytes against this.
+    $allowed = array(
+        'png'          => 'image/png',
+        'jpg|jpeg'     => 'image/jpeg',
+        'gif'          => 'image/gif',
+        'webp'         => 'image/webp',
+        'avif'         => 'image/avif',
+    );
+
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    $file['name'] = sanitize_file_name( $file['name'] );
+
+    $upload = wp_handle_upload( $file, array(
+        'test_form' => false,
+        'mimes'     => $allowed,
+    ) );
+
+    if ( ! is_array( $upload ) || ! empty( $upload['error'] ) ) {
+        wp_send_json_error( array( 'message' => is_array( $upload ) ? $upload['error'] : 'Upload rejected.' ) );
+    }
+
+    // Belt and braces: never register a non-image, even if the allowlist were widened.
+    if ( strpos( (string) $upload['type'], 'image/' ) !== 0 || ! @getimagesize( $upload['file'] ) ) {
+        @unlink( $upload['file'] );
+        wp_send_json_error( array( 'message' => 'File is not a readable image.' ) );
+    }
+
+    $attachment_id = wp_insert_attachment( array(
+        'post_mime_type' => $upload['type'],
+        'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $upload['file'] ) ),
+        'post_content'   => '',
+        'post_status'    => 'inherit',
+    ), $upload['file'] );
+
+    if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+        @unlink( $upload['file'] );
+        wp_send_json_error( array( 'message' => 'Could not create the attachment.' ) );
+    }
+
+    wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $upload['file'] ) );
+
+    wp_send_json_success( array(
+        'attachment_id' => $attachment_id,
+        'url'           => wp_get_attachment_url( $attachment_id ),
+    ) );
+}
+
 /**
  * Front-end FontAwesome rescue for AI-generated pages.
  *
