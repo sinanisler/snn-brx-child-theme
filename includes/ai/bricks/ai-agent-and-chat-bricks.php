@@ -276,9 +276,6 @@ class SNN_Bricks_Chat_Overlay {
                 <!-- Execution Checklist -->
                 <div class="snn-bricks-execution-checklist" id="snn-bricks-execution-checklist" style="display:none;"></div>
 
-                <!-- State Indicator -->
-                <div class="snn-bricks-chat-state-text" id="snn-bricks-chat-state-text"></div>
-
                 <!-- Quick Actions -->
                 <div class="snn-bricks-chat-quick-actions">
 
@@ -2134,9 +2131,9 @@ RULES
                 const res = EditOps.apply(ops, describeOpsShort(ops));
                 if (res.success) {
                     renderAppliedChange(pv, res.checkpointId);
-                    addMessage('assistant', '✓ ' + res.message);
+                    addMessage('assistant', 'Applied: ' + res.message);
                 } else {
-                    addMessage('error', '✗ ' + res.error);
+                    addMessage('error', 'Failed: ' + res.error);
                 }
             }
 
@@ -2484,7 +2481,7 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                     // invented its own palette.
                     if (ChatState.lastResponseTruncated) {
                         debugLog('generateTheme: response was truncated before the JSON closed.');
-                        addMessage('assistant', '⚠️ The theme spec came back truncated, so this design will not have a locked palette. Raise **Max tokens** in AI Settings if it keeps happening.');
+                        addMessage('assistant', 'The theme spec came back truncated, so this design will not have a locked palette. Raise **Max tokens** in AI Settings if it keeps happening.');
                     } else {
                         debugLog('generateTheme parse error, using defaults:', e);
                     }
@@ -2573,9 +2570,9 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                 if (textPart) addMessage('assistant', textPart);
                 if (result.success) {
                     renderAppliedChange(previewRows, result.checkpointId);
-                    addMessage('assistant', '✓ ' + result.message);
+                    addMessage('assistant', 'Applied: ' + result.message);
                 } else {
-                    addMessage('error', '✗ Patch failed: ' + result.error);
+                    addMessage('error', 'Patch failed: ' + result.error);
                 }
             }
 
@@ -2871,7 +2868,7 @@ Output as a \`\`\`html block.`;
                 // generation the same way they undo a single edit.
                 const buildCheckpoint = History.checkpoint(
                     (actionType === 'replace' ? 'Rebuild page' : 'Add') + ' — ' + total + ' section(s)');
-                addMessage('assistant', '⚡ Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with class-based compiler...');
+                addMessage('assistant', 'Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with class-based compiler...');
 
                 // ── PHASE 0: Extract CSS, fonts, and variables from FULL HTML <style> blocks ──
                 // CRITICAL: <style> tags are children of <body>, but parseHTMLIntoSections
@@ -2999,7 +2996,7 @@ Output as a \`\`\`html block.`;
                 if (allGlobalClasses.length) {
                     setAgentState('compiling', 'Registering ' + allGlobalClasses.length + ' CSS classes...');
                     const addedCount = BricksHelper.writeGlobalClassesToState(allGlobalClasses);
-                    addMessage('assistant', '🎨 Registered ' + addedCount + ' new CSS classes as Bricks Global Classes');
+                    addMessage('assistant', 'Registered ' + addedCount + ' new CSS classes as Bricks Global Classes');
                 }
 
                 // ── PHASE 1.5: Inject CSS element (fonts + :root) BEFORE any sections ──
@@ -3023,7 +3020,7 @@ Output as a \`\`\`html block.`;
                 // ── PHASE 2: Compile each section with the pre-computed classNameToId map ──
                 const allCompiledData = [];
                 for (let i = 0; i < sections.length; i++) {
-                    if (!ChatState.isProcessing) { addMessage('assistant', '⏹ Build stopped.'); break; }
+                    if (!ChatState.isProcessing) { addMessage('assistant', 'Build stopped.'); break; }
                     const { label, html } = sections[i];
                     setAgentState('compiling', 'Compiling "' + label + '" (' + (i + 1) + '/' + total + ')...');
                     let bricksData = null;
@@ -3031,14 +3028,14 @@ Output as a \`\`\`html block.`;
                         bricksData = await compileSingleSection(html, label, i + 1, classNameToId, cssRuleSet);
                     } catch(compileErr) {
                         debugLog('Compilation failed for "' + label + '":', compileErr.message);
-                        addMessage('assistant', '⚠️ "' + label + '" had issues. Auto-correcting...');
+                        addMessage('assistant', '"' + label + '" had issues. Auto-correcting...');
                         try {
                             const fixedHtml = await selfCorrectHTML(html, compileErr.message);
                             bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1, classNameToId, cssRuleSet);
                         } catch(retryErr) {
                             debugLog('Self-correction failed for "' + label + '":', retryErr.message);
                             if (retryErr.name !== 'AbortError') {
-                                addMessage('error', '✗ "' + label + '" could not be auto-corrected: ' + retryErr.message);
+                                addMessage('error', '"' + label + '" could not be auto-corrected: ' + retryErr.message);
                             }
                         }
                     }
@@ -3047,7 +3044,7 @@ Output as a \`\`\`html block.`;
                         allCompiledData.push({ label, data, index: i });
                         debugLog('✓ Section "' + label + '" compiled — ' + data.content.length + ' elements');
                     } else if (!bricksData && ChatState.isProcessing) {
-                        addMessage('error', '✗ "' + label + '" — could not compile. Skipped.');
+                        addMessage('error', '"' + label + '" could not be compiled. Skipped.');
                     }
                 }
 
@@ -3061,7 +3058,7 @@ Output as a \`\`\`html block.`;
                 const builtImageUrls = [];
                 let builtCount = 0;
                 for (const compiled of allCompiledData) {
-                    if (!ChatState.isProcessing) { addMessage('assistant', '⏹ Build stopped.'); break; }
+                    if (!ChatState.isProcessing) { addMessage('assistant', 'Build stopped.'); break; }
                     const { label, data, index } = compiled;
                     setAgentState('compiling', 'Building "' + label + '" (' + (builtCount + 1) + '/' + allCompiledData.length + ')...');
 
@@ -3099,9 +3096,9 @@ Output as a \`\`\`html block.`;
                                 classes: Object.keys(classNameToId)
                             });
                         }
-                        addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + allCompiledData.length + ')');
+                        addMessage('assistant', 'Built "' + label + '" (' + builtCount + '/' + allCompiledData.length + ')');
                     } else {
-                        addMessage('error', '✗ "' + label + '" inject failed');
+                        addMessage('error', '"' + label + '" could not be injected');
                     }
                 }
 
@@ -3110,7 +3107,7 @@ Output as a \`\`\`html block.`;
                 updateSendButton();
 
                 if (builtCount > 0) {
-                    addMessage('assistant', '🎉 Done! ' + builtCount + '/' + allCompiledData.length + ' sections built in Bricks.');
+                    addMessage('assistant', 'Done. ' + builtCount + '/' + allCompiledData.length + ' sections built in Bricks.');
                     renderAppliedChange(
                         { rows: allCompiledData.map(c => ({ sign: '+', label: c.label, detail: c.data.content.length + ' elements' })) },
                         buildCheckpoint
@@ -3933,9 +3930,9 @@ IMPORTANT RULES:
                     const res = EditOps.apply(ops, describeOpsShort(ops));
                     if (res.success) {
                         renderAppliedChange(pv, res.checkpointId);
-                        addMessage('assistant', '✓ ' + res.message);
+                        addMessage('assistant', 'Applied: ' + res.message);
                     } else {
-                        addMessage('error', '✗ ' + res.error);
+                        addMessage('error', 'Failed: ' + res.error);
                     }
                 });
                 $('#snn-bricks-chat-messages').on('click', '.snn-chg-discard', function() {
@@ -3952,10 +3949,10 @@ IMPORTANT RULES:
                     const res = History.restore(cp);
                     if (res.success) {
                         $(this).closest('.snn-change-card').addClass('is-reverted').find('.snn-chg-actions').remove();
-                        addMessage('assistant', '↩ ' + res.message);
+                        addMessage('assistant', 'Reverted: ' + res.message);
                         renderContextChip();
                     } else {
-                        addMessage('error', '✗ ' + res.error);
+                        addMessage('error', 'Failed: ' + res.error);
                     }
                 });
                 // Disambiguation picks
@@ -4106,6 +4103,18 @@ IMPORTANT RULES:
                 ChatState.messages.push(m);
                 const $msgs = $('#snn-bricks-chat-messages');
                 $msgs.find('.snn-bricks-chat-welcome').remove();
+
+                // Status lines are short, frequent and plain — an import emits dozens.
+                // They skip the page re-index and the collapse measurement that every
+                // other message does, so progress reporting stays cheap.
+                if (role === 'status') {
+                    $msgs.append(
+                        $('<div>').addClass('snn-bricks-chat-message snn-bricks-chat-message-status')
+                            .append($('<div>').addClass('snn-msg-body').text(content))
+                    );
+                    scrollToBottom();
+                    return;
+                }
                 // Starter prompts are long and only make sense on an empty page;
                 // the contextual edit actions stay available while working.
                 if (!PageContext.index().content.length) $('.snn-bricks-chat-quick-actions').hide();
@@ -4160,47 +4169,42 @@ IMPORTANT RULES:
             }
 
             const AGENT_STATES = {
-                analyzing:   { icon: '🔍', label: 'Understanding your request...' },
-                planning:    { icon: '📋', label: 'Planning your layout...' },
-                theming:     { icon: '🎨', label: 'Choosing design language...' },
-                designing:   { icon: '✏️', label: 'Designing your page...' },
-                reviewing:   { icon: '🔎', label: 'Reviewing HTML structure...' },
-                patching:    { icon: '🔧', label: 'Updating element...' },
-                answering:   { icon: '💭', label: 'Thinking...' },
-                thinking:    { icon: '💭', label: 'Thinking...' },
-                abilities:   { icon: '⚙️', label: 'Running WordPress abilities...' },
-                compiling:   { icon: '🧩', label: 'Compiling to Bricks...' },
-                recovering:  { icon: '♻️', label: 'Recovering...' },
-                saving:      { icon: '💾', label: 'Saving images to media library...' },
+                analyzing:   'Understanding your request...',
+                planning:    'Planning your layout...',
+                theming:     'Choosing design language...',
+                designing:   'Designing your page...',
+                reviewing:   'Reviewing HTML structure...',
+                patching:    'Updating element...',
+                answering:   'Thinking...',
+                thinking:    'Thinking...',
+                abilities:   'Running WordPress abilities...',
+                compiling:   'Compiling to Bricks...',
+                recovering:  'Recovering...',
+                saving:      'Saving images to media library...',
                 // Design-export import states
-                unpacking:   { icon: '📦', label: 'Unpacking the archive...' },
-                reading:     { icon: '📄', label: 'Reading the export...' },
-                uploading:   { icon: '⬆️', label: 'Uploading images...' },
-                converting:  { icon: '🔄', label: 'Converting the design...' },
-                building:    { icon: '🏗️', label: 'Building in Bricks...' },
-                error:       { icon: '⚠️', label: 'Error' },
-                idle:        { icon: '',   label: '' }
+                unpacking:   'Unpacking the archive...',
+                reading:     'Reading the export...',
+                uploading:   'Uploading images...',
+                converting:  'Converting the design...',
+                building:    'Building in Bricks...',
+                error:       'Error',
+                idle:        ''
             };
 
             /**
-             * Set the live status line AND record it in the conversation.
+             * Record what the agent is doing, in the conversation itself.
              *
-             * The status line alone was write-only history: it was overwritten by the
-             * next state and gone on reload, so a user who looked away never learned
-             * what the agent actually did. Every state is now also a persisted
-             * 'status' message, deduped so a repeated state does not spam the log.
+             * There is deliberately no separate status bar: a bar is write-only
+             * history — overwritten by the next state and gone on reload — and having
+             * two places that report progress means the user has to watch both. Every
+             * state is a persisted 'status' message instead, deduped so an unchanged
+             * state does not repeat.
              */
             function setAgentState(state, detail = '') {
-                const $t   = $('#snn-bricks-chat-state-text');
-                const def  = AGENT_STATES[state] || {};
                 // A caller-supplied detail is more specific than the generic label,
                 // so it must win — states with a fixed label used to discard it.
-                const lbl  = detail || def.label || '';
-
-                lbl ? $t.text(lbl).show() : $t.hide();
-
-                if (state === 'idle' || !lbl) return;
-                const line = (def.icon ? def.icon + ' ' : '') + lbl;
+                const line = detail || AGENT_STATES[state] || '';
+                if (state === 'idle' || !line) return;
                 if (line === ChatState.lastStatusLine) return;
                 ChatState.lastStatusLine = line;
                 addMessage('status', line);
@@ -4223,7 +4227,7 @@ IMPORTANT RULES:
                 setAgentState('idle');
                 hideTyping();
                 updateSendButton();
-                addMessage('assistant', '⏹ Agent stopped.');
+                addMessage('assistant', 'Agent stopped.');
                 debugLog('Agent stopped by user.');
             }
 
@@ -4287,7 +4291,7 @@ IMPORTANT RULES:
                     return;
                 }
 
-                addMessage('assistant', '📸 Saving ' + external.length + ' image(s) to WordPress media library...');
+                addMessage('assistant', 'Saving ' + external.length + ' image(s) to WordPress media library...');
                 setAgentState('saving', 'Saving ' + external.length + ' image(s)...');
                 let saved = 0, failed = 0;
                 for (const url of external) {
@@ -4581,20 +4585,11 @@ IMPORTANT RULES:
                     };
                     renderImagePreviews();
 
-                    const bits = [report.uploaded + ' image' + (report.uploaded === 1 ? '' : 's') + ' added to the media library'];
+                    const bits = [report.uploaded + ' image' + (report.uploaded === 1 ? '' : 's') + ' uploaded'];
                     if (report.inlinedSvg) bits.push(report.inlinedSvg + ' SVG' + (report.inlinedSvg === 1 ? '' : 's') + ' inlined');
                     if (report.skipped.length) bits.push(report.skipped.length + ' asset' + (report.skipped.length === 1 ? '' : 's') + ' skipped');
-                    addMessage('assistant',
-                        '📦 Read **' + primary.path + '** from `' + file.name + '` — ' + bits.join(', ') +
-                        '.\nCheck the preview above, then send (add a note if you want anything changed) and I will convert it into Bricks sections.'
-                    );
-                    if (report.skipped.length) {
-                        addMessage('error',
-                            'Skipped assets (their references will be missing from the design):\n' +
-                            report.skipped.slice(0, 12).map(s => '• ' + s).join('\n') +
-                            (report.skipped.length > 12 ? '\n• …and ' + (report.skipped.length - 12) + ' more' : '')
-                        );
-                    }
+                    setAgentState('reading', 'Ready: ' + primary.path + ' from ' + file.name + ' - ' + bits.join(', '));
+                    setAgentState('reading', 'Check the preview, then press send to convert it into Bricks sections.');
                 }
 
                 /** index.html at the shallowest depth wins; otherwise the largest file. */
@@ -4689,29 +4684,44 @@ IMPORTANT RULES:
                     let index = 0;
                     if (refs.size) setAgentState('uploading', 'Uploading ' + refs.size + ' assets to the media library...');
 
+                    // Every asset reports its own outcome. With a real export this is
+                    // dozens of lines, which is the point: the user can see exactly
+                    // which file landed where, and which one did not.
+                    const nOf = () => '(' + index + '/' + refs.size + ')';
+                    const skip = (name, why) => {
+                        report.skipped.push(name + ' (' + why + ')');
+                        setAgentState('uploading', 'Skipped ' + name + ' ' + nOf() + ' - ' + why);
+                    };
+
                     for (const [ref, entry] of refs) {
                         index++;
-                        if (done.has(entry.path)) { replacement.set(ref, done.get(entry.path)); continue; }
+                        const name = entry.path.split('/').pop();
+                        if (done.has(entry.path)) {
+                            replacement.set(ref, done.get(entry.path));
+                            setAgentState('uploading', 'Reused ' + name + ' ' + nOf() + ' - already uploaded');
+                            continue;
+                        }
 
                         const ext = extOf(entry.path);
                         const size = sizeOf(entry);
 
                         if (ext === 'svg') {
-                            if (size > LIMITS.inlineSvgBytes) { report.skipped.push(entry.path + ' (SVG over ' + kb(LIMITS.inlineSvgBytes) + ')'); continue; }
+                            if (size > LIMITS.inlineSvgBytes) { skip(name, 'SVG over ' + kb(LIMITS.inlineSvgBytes)); continue; }
                             const svg = sanitizeSvg(await entry.zipEntry.async('string'));
-                            if (!svg) { report.skipped.push(entry.path + ' (unreadable SVG)'); continue; }
+                            if (!svg) { skip(name, 'unreadable SVG'); continue; }
                             const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
                             done.set(entry.path, url);
                             replacement.set(ref, url);
                             report.inlinedSvg++;
+                            setAgentState('uploading', 'Inlined SVG ' + name + ' ' + nOf());
                             continue;
                         }
 
-                        if (!RASTER.includes(ext)) { report.skipped.push(entry.path + ' (unsupported type)'); continue; }
-                        if (size > LIMITS.imageBytes) { report.skipped.push(entry.path + ' (over ' + mb(LIMITS.imageBytes) + ')'); continue; }
-                        if (uploadedCount >= LIMITS.images) { report.skipped.push(entry.path + ' (image limit ' + LIMITS.images + ' reached)'); continue; }
+                        if (!RASTER.includes(ext)) { skip(name, 'unsupported type .' + ext); continue; }
+                        if (size > LIMITS.imageBytes) { skip(name, 'over ' + mb(LIMITS.imageBytes)); continue; }
+                        if (uploadedCount >= LIMITS.images) { skip(name, 'image limit ' + LIMITS.images + ' reached'); continue; }
 
-                        setZipStatus('Uploading image ' + index + '/' + refs.size + '…');
+                        setAgentState('uploading', 'Uploading ' + name + ' ' + nOf() + '...');
                         try {
                             const blob = await entry.zipEntry.async('blob');
                             const name = entry.path.split('/').pop();
@@ -4728,14 +4738,16 @@ IMPORTANT RULES:
                             done.set(entry.path, url);
                             replacement.set(ref, url);
                             uploadedCount++;
+                            setAgentState('uploading', 'Uploaded ' + name + ' ' + nOf() + ' to the media library');
                         } catch(e) {
                             debugLog('zip image upload failed:', entry.path, e);
-                            report.skipped.push(entry.path + ' (upload failed: ' + (e.message || e) + ')');
+                            skip(name, 'upload failed: ' + (e.message || e));
                         }
                     }
                     report.uploaded = uploadedCount;
 
                     // 3. Rewrite markup attributes.
+                    setAgentState('reading', 'Rewriting ' + replacement.size + ' asset reference' + (replacement.size === 1 ? '' : 's') + ' to media library URLs...');
                     const swap = (v) => replacement.has(v) ? replacement.get(v) : null;
                     doc.querySelectorAll('img[src], source[src]').forEach(el => {
                         const n = swap(el.getAttribute('src'));
@@ -4783,7 +4795,6 @@ IMPORTANT RULES:
                         } catch(e) { debugLog('svg inline swap failed', e); }
                     });
 
-                    setZipStatus('');
                     return report;
                 }
 
@@ -4829,16 +4840,6 @@ IMPORTANT RULES:
 
                 // ── attachment card + preview ────────────────────────────────
 
-                /**
-                 * Per-item progress ("image 7/19"). Deliberately transient — it goes to
-                 * the card, not the chat log, so nineteen uploads do not become nineteen
-                 * permanent lines. Phase changes use setAgentState and DO persist.
-                 */
-                function setZipStatus(text) {
-                    const $s = $('#snn-zip-status');
-                    if ($s.length) { $s.text(text).toggle(!!text); return; }
-                    $('#snn-bricks-chat-state-text').text(text).toggle(!!text);
-                }
 
                 function renderCard(zip) {
                     const r = zip.report || { uploaded: 0, inlinedSvg: 0, skipped: [] };
@@ -4902,9 +4903,7 @@ IMPORTANT RULES:
                         $picker.on('change', function() { selectPage($(this).val()); });
                     }
 
-                    const $status = $('<div>').attr('id', 'snn-zip-status').addClass('snn-zip-status').hide();
-
-                    return $card.append($head, $frame, $meta, $picker, $status);
+                    return $card.append($head, $frame, $meta, $picker);
                 }
 
                 // ── conversion ───────────────────────────────────────────────
@@ -5140,9 +5139,9 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                     const failed  = [];
                     let pass = 0, total = initial, usedPrefixes = {};
 
-                    addMessage('assistant',
-                        '🔄 Converting **' + zip.htmlPath + '** in ' +
-                        (initial === 1 ? 'a single pass' : initial + ' passes (one per section group)') + '.'
+                    setAgentState('converting',
+                        'Converting ' + zip.htmlPath + ' in ' +
+                        (initial === 1 ? 'a single pass' : initial + ' passes, one per section group') + '.'
                     );
 
                     while (queue.length) {
@@ -5161,7 +5160,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 
                         if (res.html) {
                             built.push(res.html);
-                            setAgentState('converting', '✓ Converted "' + label + '" (' + built.length + ' done)');
+                            setAgentState('converting', 'Converted "' + label + '" (' + built.length + ' of ' + total + ' done)');
                             continue;
                         }
 
@@ -5169,12 +5168,12 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         // halves before giving up on this part of the design.
                         const halves = bisect(chunk);
                         if (halves) {
-                            addMessage('status', '⚠️ "' + label + '" failed (' + res.reason + ') — splitting it in two and retrying.');
+                            setAgentState('converting', 'Pass "' + label + '" failed (' + res.reason + ') - splitting it in two and retrying.');
                             queue.unshift(halves[0], halves[1]);
                             total += 1;
                             continue;
                         }
-                        failed.push('**' + label + '** — ' + res.reason);
+                        failed.push(label + ' - ' + res.reason);
                     }
 
                     hideTyping();
@@ -5182,7 +5181,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                     if (failed.length) {
                         addMessage('error',
                             'Could not convert ' + failed.length + ' of ' + total + ' pass' + (total === 1 ? '' : 'es') + ':\n' +
-                            failed.map(f => '• ' + f).join('\n')
+                            failed.map(f => '- ' + f).join('\n')
                         );
                     }
 
@@ -5190,10 +5189,10 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         addMessage('error',
                             'Nothing could be converted, so there is no preview to build.\n\n' +
                             'Most likely causes, in order:\n' +
-                            '1. The model\'s reply limit is lower than this design needs — lower **Max Tokens** is not the fix; check the model actually supports the output size, or pick a stronger model.\n' +
+                            '1. The model\'s reply limit is lower than this design needs. Raising Max Tokens will not help if the model itself caps output lower - try a model with a bigger output limit.\n' +
                             '2. A reasoning model spent its whole budget thinking and emitted nothing.\n' +
-                            '3. The API rejected the request (the reason is shown above).\n\n' +
-                            'Turn on Debug Mode in the AI settings and retry — the console then logs the source size, the token budget and the raw reply for every pass.'
+                            '3. The API rejected the request (the reason is listed above).\n\n' +
+                            'Turn on Debug Mode in the AI settings and retry - the console then logs the source size, the token budget and the raw reply for every pass.'
                         );
                         return;
                     }
@@ -5203,9 +5202,8 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                     ChatState.previewMode        = 'html';
                     showHTMLPreview(combined);
                     addApproveBar();
-                    addMessage('assistant',
-                        '✅ Converted ' + built.length + ' of ' + total + ' passes. Review the preview on the left, ' +
-                        'then press **Build** to inject it into Bricks.'
+                    setAgentState('converting',
+                        'Done: converted ' + built.length + ' of ' + total + ' passes. Review the preview, then press Build.'
                     );
                 }
 
@@ -5321,7 +5319,6 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-8px); opacity: 1; } }
-.snn-bricks-chat-state-text { padding: 8px 16px; background: #f0f0f0; font-size: 13px; color: #666; display: none; }
 .snn-bricks-chat-quick-actions { padding: 5px; background: #fff;  display: flex; gap: 6px; flex-wrap: wrap; }
 .snn-bricks-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; cursor: pointer; }
 .snn-bricks-quick-action-btn:hover { background: #161a1d; color: #fff; }
@@ -5354,7 +5351,6 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 .snn-zip-iframe { position: absolute; top: 0; left: 0; border: 0; pointer-events: none; }
 .snn-zip-meta { font-size: 11px; color: #777; }
 .snn-zip-page-select { width: 100%; font-size: 11px; padding: 3px 4px; border: 1px solid #ddd; border-radius: 4px; }
-.snn-zip-status { font-size: 11px; color: #2271b1; font-weight: 600; }
 .snn-message-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .snn-message-images img { max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(0, 0, 0, 0.1); }
 .snn-bricks-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; z-index: 10; }
