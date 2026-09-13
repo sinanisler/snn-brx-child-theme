@@ -190,11 +190,54 @@
                 return out;
             }
 
+            /**
+             * Separate statement at-rules (@import, @charset, @namespace) from the rest of a
+             * stylesheet.
+             *
+             * Every rule walker in this file finds a selector by stepping back to the
+             * previous "}". A statement has no braces, so it was glued onto the NEXT rule's
+             * selector, which then started with "@" and was skipped as an at-rule: the first
+             * class or :root after a font @import silently vanished from the page.
+             *
+             * A statement ends at a ";" outside quotes and parentheses. Google Fonts URLs
+             * carry ";" between weights ("wght@400;600"), which a plain [^;]+ cut in half.
+             */
+            function splitStatementAtRules(css) {
+                const statements = [];
+                let rest = '', depth = 0, i = 0;
+                while (i < css.length) {
+                    if (depth === 0 && css[i] === '@' && /^@(import|charset|namespace)\b/i.test(css.slice(i, i + 12))) {
+                        let j = i, quote = null, paren = 0;
+                        for (; j < css.length; j++) {
+                            const ch = css[j];
+                            if (quote) { if (ch === quote && css[j - 1] !== '\\') quote = null; continue; }
+                            if (ch === '"' || ch === "'") { quote = ch; continue; }
+                            if (ch === '(') paren++;
+                            else if (ch === ')') paren = Math.max(0, paren - 1);
+                            else if (paren === 0 && (ch === ';' || ch === '{' || ch === '}')) break;
+                        }
+                        const end  = css[j] === ';' ? j + 1 : j;
+                        const stmt = css.slice(i, end).trim();
+                        if (stmt && !statements.includes(stmt)) statements.push(stmt);
+                        i = end;
+                        continue;
+                    }
+                    const ch = css[i];
+                    if (ch === '{') depth++;
+                    else if (ch === '}') depth = Math.max(0, depth - 1);
+                    rest += ch;
+                    i++;
+                }
+                return { statements, rest };
+            }
+
             function parseCSSRules(css) {
                 const classes = {};
 
                 // Remove comments
                 css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+                // Statement at-rules carry no classes and would corrupt the selector walk.
+                css = splitStatementAtRules(css).rest;
 
                 // ── STEP 0: Identify all @media blocks first ──
                 // We MUST extract and remove @media blocks BEFORE parsing class rules,
@@ -420,6 +463,8 @@
              */
             function buildCssRuleSet(css) {
                 css = (css || '').replace(/\/\*[\s\S]*?\*\//g, '');
+                // A font @import glued onto the next selector hid that rule from the cascade.
+                css = splitStatementAtRules(css).rest;
                 const base = [];
                 const breakpoints = {};
 
@@ -1022,7 +1067,16 @@
              * Does NOT capture @media (handled by parseCSSRules) or .class rules.
              */
             function extractGlobalCSS(css) {
-                css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+                // Statements are taken out whole BEFORE the block walk and put back first,
+                // where @import has to be. Walked in place, an @import hid the :root after
+                // it, and a regex pull cut the font URL at its first ";".
+                const split = splitStatementAtRules(css.replace(/\/\*[\s\S]*?\*\//g, ''));
+                const blocks = extractGlobalBlocks(split.rest);
+                return ((split.statements.length ? split.statements.join('\n') + '\n' : '') + blocks).trim();
+            }
+
+            /** The non-class blocks of a stylesheet that no longer contains statement at-rules. */
+            function extractGlobalBlocks(css) {
                 let result = '';
                 let i = 0;
 
@@ -1060,22 +1114,6 @@
                     }
 
                     i = endIdx;
-                }
-
-                // Also capture @import / @charset statements BEFORE the first brace block
-                // These don't have { } so the brace loop above won't find them
-                const firstBrace = css.indexOf('{');
-                if (firstBrace !== -1) {
-                    const preamble = css.substring(0, firstBrace).trim();
-                    if (preamble) {
-                        // Extract @import and other at-rules
-                        const atRules = preamble.match(/@(import|charset|namespace)[^;]+;/gi);
-                        if (atRules) {
-                            atRules.forEach(r => {
-                                if (!result.includes(r)) result = r + '\n' + result;
-                            });
-                        }
-                    }
                 }
 
                 return result.trim();
