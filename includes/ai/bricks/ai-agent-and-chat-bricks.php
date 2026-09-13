@@ -115,25 +115,6 @@ class SNN_Bricks_Chat_Overlay {
             'faBrandsCss' => $bricks_css . 'libs/font-awesome-6-brands.min.css',
         );
 
-        // Fonts already uploaded under Bricks > Custom Fonts. A design-export import uses
-        // this to avoid reporting a font as missing when the site already has it. Bricks
-        // stores the family name as the post title.
-        $custom_fonts = array();
-        if ( defined( 'BRICKS_DB_CUSTOM_FONTS' ) ) {
-            $font_ids = get_posts( array(
-                'post_type'      => BRICKS_DB_CUSTOM_FONTS,
-                'post_status'    => 'publish',
-                'posts_per_page' => 200,
-                'fields'         => 'ids',
-            ) );
-            foreach ( $font_ids as $font_id ) {
-                $family = html_entity_decode( get_the_title( $font_id ), ENT_QUOTES, 'UTF-8' );
-                if ( $family !== '' ) {
-                    $custom_fonts[] = $family;
-                }
-            }
-        }
-
         wp_localize_script( 'jquery', 'snnBricksChatConfig', array(
             'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
             'restUrl'          => rest_url( 'wp-abilities/v1/' ),
@@ -141,7 +122,6 @@ class SNN_Bricks_Chat_Overlay {
             'agentNonce'       => wp_create_nonce( 'snn_ai_agent_nonce' ),
             'pageContext'      => $page_context,
             'previewAssets'    => $preview_assets,
-            'customFonts'      => $custom_fonts,
             'ai'               => $ai_config,
             'settings'         => array(
                 'debugMode'        => $main_chat->is_debug_enabled(),
@@ -231,7 +211,7 @@ class SNN_Bricks_Chat_Overlay {
                             <span class="dashicons dashicons-backup"></span>
                         </button>
                         <button class="snn-bricks-chat-btn" id="snn-bricks-preview-toggle-btn" title="Toggle Design Preview" style="display:none;">
-                            <span class="dashicons dashicons-visibility"></span>
+                            <span style="font-size:15px;">&#128247;</span>
                         </button>
                         <button class="snn-bricks-chat-btn snn-bricks-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
@@ -322,6 +302,7 @@ Fitness</button>
                 <!-- Context chip + scope selector -->
                 <div class="snn-bricks-context-bar">
                     <div class="snn-bricks-context-chip" id="snn-bricks-context-chip" style="display:none;">
+                        <span class="snn-ctx-icon">&#127919;</span>
                         <span class="snn-ctx-label"></span>
                         <span class="snn-ctx-detail"></span>
                         <button class="snn-ctx-clear" title="<?php echo esc_attr__( 'Clear selection', 'snn' ); ?>">&times;</button>
@@ -2112,7 +2093,7 @@ RULES
                 const $msgs = $('#snn-bricks-chat-messages');
                 const html =
                     '<div class="snn-change-card is-applied"' + (checkpointId ? ' data-cp="' + escapeHtml(checkpointId) + '"' : '') + '>' +
-                        '<div class="snn-chg-head">Applied</div>' +
+                        '<div class="snn-chg-head">✓ Applied</div>' +
                         opRowsHtml(pv.rows || []) +
                         (checkpointId ? '<div class="snn-chg-actions"><button class="snn-chg-revert">Revert this change</button></div>' : '') +
                     '</div>';
@@ -3242,12 +3223,7 @@ Output as a \`\`\`html block.`;
                     '</head><body>' + html + '</body></html>';
             }
 
-            /**
-             * @param {Set<number>|null} preselect Section indexes to tick. Null ticks all;
-             *   a retry after a build ticks only the recovered sections, so building
-             *   again does not duplicate what is already on the page.
-             */
-            function addApproveBar(preselect = null) {
+            function addApproveBar() {
                 removeApproveBar();
                 const sections = parseHTMLIntoSections(ChatState.currentHTMLPreview || '');
                 const n        = sections.length;
@@ -3257,8 +3233,7 @@ Output as a \`\`\`html block.`;
                 // keep the three that work and drop the one that does not.
                 const picker = n > 1
                     ? '<div class="snn-approve-sections">' + sections.map((s, i) =>
-                        '<label class="snn-approve-section"><input type="checkbox" class="snn-sec-pick" value="' + i + '"' +
-                        (!preselect || preselect.has(i) ? ' checked' : '') + '> ' +
+                        '<label class="snn-approve-section"><input type="checkbox" class="snn-sec-pick" value="' + i + '" checked> ' +
                         escapeHtml(s.label) + '</label>').join('') + '</div>'
                     : '';
 
@@ -4111,19 +4086,9 @@ IMPORTANT RULES:
                 // swallowed by its try/catch. Record it so callers can react and the
                 // debug log says plainly what happened.
                 ChatState.lastResponseTruncated = (choice.finish_reason === 'length');
-                // Where the budget went. Reasoning models (Gemini 3, o-series, R1) spend
-                // hidden thinking tokens against the same cap, so a small section can be
-                // cut off even though its visible reply is short — this is what proves it.
-                const usage = data.usage || {};
-                ChatState.lastUsage = {
-                    maxTokens: maxTokens,
-                    completion: usage.completion_tokens || 0,
-                    reasoning: (usage.completion_tokens_details && usage.completion_tokens_details.reasoning_tokens)
-                        || usage.reasoning_tokens || 0,
-                };
                 if (ChatState.lastResponseTruncated) {
-                    debugLog('Response truncated: hit max_tokens (' + maxTokens + '), ' +
-                             ChatState.lastUsage.reasoning + ' of them spent reasoning.');
+                    debugLog('⚠️ Response truncated: hit max_tokens (' + maxTokens + '). ' +
+                             'If the model is a reasoning model, thinking tokens consumed the budget.');
                 }
                 return choice.message.content;
             }
@@ -4599,18 +4564,6 @@ IMPORTANT RULES:
                     // Assets: upload rasters, inline SVGs, then rewrite every reference.
                     const report = await processAssets(doc, baseDir, lookup);
 
-                    // Fonts: resolve every family the stylesheet uses, and load them into
-                    // the preview so it shows the real typography rather than a fallback.
-                    const fonts = await resolveFonts(
-                        Array.from(doc.querySelectorAll('style')).map(s => s.textContent || '').join('\n')
-                    );
-                    if (fonts.importUrl && doc.head) {
-                        const link = doc.createElement('link');
-                        link.setAttribute('rel', 'stylesheet');
-                        link.setAttribute('href', fonts.importUrl);
-                        doc.head.insertBefore(link, doc.head.firstChild);
-                    }
-
                     // Split the finished document into markup + stylesheet text.
                     const previewDoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
                     const css = Array.from(doc.querySelectorAll('style')).map(s => s.textContent || '').join('\n');
@@ -4628,19 +4581,11 @@ IMPORTANT RULES:
                         css:        css,
                         previewDoc: previewDoc,
                         report:     report,
-                        fonts:      fonts,
                         expanded:   false,
                     };
                     renderImagePreviews();
 
-                    // report.uploaded counts every image that ended up in the library;
-                    // report.reused is the part that was already there.
-                    const reusedCount = report.reused || 0;
-                    const freshCount  = report.uploaded - reusedCount;
-                    const bits = [];
-                    if (freshCount)  bits.push(freshCount + ' image' + (freshCount === 1 ? '' : 's') + ' uploaded');
-                    if (reusedCount) bits.push(reusedCount + ' image' + (reusedCount === 1 ? '' : 's') + ' reused from the media library');
-                    if (!report.uploaded) bits.push('no images');
+                    const bits = [report.uploaded + ' image' + (report.uploaded === 1 ? '' : 's') + ' uploaded'];
                     if (report.inlinedSvg) bits.push(report.inlinedSvg + ' SVG' + (report.inlinedSvg === 1 ? '' : 's') + ' inlined');
                     if (report.skipped.length) bits.push(report.skipped.length + ' asset' + (report.skipped.length === 1 ? '' : 's') + ' skipped');
                     setAgentState('reading', 'Ready: ' + primary.path + ' from ' + file.name + ' - ' + bits.join(', '));
@@ -4702,239 +4647,6 @@ IMPORTANT RULES:
                         css = css.split(job.full).join(await hit.zipEntry.async('string'));
                     }
                     return css;
-                }
-
-                // ── fonts ────────────────────────────────────────────────────
-                //
-                // Exports name their fonts but never embed them ("Fonts used (not
-                // embedded)"), so without this the built page silently renders in a
-                // fallback face and stops looking like the design.
-
-                // Only the FIRST family in a stack is the designer's choice; these are
-                // generic or OS-bundled faces that never need loading.
-                const NON_LOADABLE_FONTS = new Set([
-                    'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'emoji', 'math', 'fangsong',
-                    'ui-sans-serif', 'ui-serif', 'ui-monospace', 'ui-rounded',
-                    'inherit', 'initial', 'unset', 'revert', 'revert-layer',
-                    '-apple-system', 'blinkmacsystemfont', 'segoe ui', 'arial', 'helvetica', 'helvetica neue',
-                    'times new roman', 'times', 'georgia', 'courier new', 'courier', 'verdana', 'tahoma',
-                    'apple color emoji', 'segoe ui emoji',
-                ]);
-
-                /**
-                 * Which families the stylesheet uses, with the weights and italic weights
-                 * each needs. Reads font-family, font-weight, font-style, the font:
-                 * shorthand, and resolves var() references declared anywhere in the CSS.
-                 */
-                function extractFontUsage(css) {
-                    const vars = {};
-                    const vrx = /(--[\w-]+)\s*:\s*([^;}]+)/g;
-                    let vm;
-                    while ((vm = vrx.exec(css)) !== null) vars[vm[1]] = vm[2].trim();
-                    const resolve = v => String(v || '').replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g,
-                        (m, name, fallback) => vars[name] || fallback || '');
-
-                    const weightOf = w => {
-                        w = resolve(w).trim().toLowerCase();
-                        if (w === 'bold' || w === 'bolder') return 700;
-                        if (!w || w === 'normal' || w === 'lighter') return 400;
-                        const n = parseInt(w, 10);
-                        return n >= 100 && n <= 900 ? Math.round(n / 100) * 100 : 400;
-                    };
-
-                    const usage = new Map();
-                    const orphanWeights = new Set(); // weights set on rules that inherit the family
-                    const add = (stack, weight, italic) => {
-                        const first = resolve(stack).split(',')[0].trim().replace(/^['"]+|['"]+$/g, '').trim();
-                        if (!first || NON_LOADABLE_FONTS.has(first.toLowerCase())) return;
-                        const key = first.toLowerCase();
-                        if (!usage.has(key)) usage.set(key, { family: first, weights: new Set(), italicWeights: new Set(), count: 0 });
-                        const u = usage.get(key);
-                        u.count++;
-                        (italic ? u.italicWeights : u.weights).add(weight);
-                    };
-
-                    const walk = text => topLevelBlocks(text).forEach(b => {
-                        const pre = b.prelude.trim();
-                        if (/^@(media|supports|layer|container)/i.test(pre)) { walk(b.body); return; }
-                        if (pre.startsWith('@')) return; // @font-face declares a face, it does not use one
-                        const body   = b.body;
-                        const fam    = /(?:^|[;{\s])font-family\s*:\s*([^;]+)/i.exec(body);
-                        const wt     = /(?:^|[;{\s])font-weight\s*:\s*([^;]+)/i.exec(body);
-                        const italic = /(?:^|[;{\s])font-style\s*:\s*(italic|oblique)/i.test(body);
-                        if (fam) add(fam[1], weightOf(wt && wt[1]), italic);
-                        else if (wt) orphanWeights.add(weightOf(wt[1]));
-
-                        const sh = /(?:^|[;{\s])font\s*:\s*([^;]+)/i.exec(body);
-                        if (sh) {
-                            const val = resolve(sh[1]);
-                            // The size is the token that carries a unit or a size keyword. A
-                            // unitless number is the WEIGHT ("italic 500 10px/1.4 Jost"), and
-                            // treating it as the size turned "10px/1.4 Jost" into a family.
-                            const m = /(\d[\d.]*(?:px|r?em|%|pt|vw|vh|ch|ex)|\b(?:xx-small|x-small|small|medium|large|x-large|xx-large|xxx-large|smaller|larger))(?:\s*\/\s*\S+)?\s+(.+)$/i.exec(val);
-                            if (m) {
-                                const lead = val.slice(0, m.index);
-                                const w = /\b([1-9]00|bold|normal)\b/i.exec(lead);
-                                add(m[2], weightOf(w && w[1]), /\b(italic|oblique)\b/i.test(lead));
-                            }
-                        }
-                    });
-                    walk(css);
-
-                    // A weight set without a family inherits the page's main font, so it
-                    // belongs to the most-used family only — spreading it to every family
-                    // bloats each import and can make Google reject the request.
-                    let primary = null;
-                    usage.forEach(u => { if (!primary || u.count > primary.count) primary = u; });
-
-                    return Array.from(usage.values()).map(u => {
-                        const weights = new Set(u.weights);
-                        if (u === primary) orphanWeights.forEach(w => weights.add(w));
-                        if (!weights.size) weights.add(400);
-                        return {
-                            family: u.family,
-                            weights: Array.from(weights).sort((a, b) => a - b),
-                            italicWeights: Array.from(u.italicWeights).sort((a, b) => a - b),
-                        };
-                    });
-                }
-
-                /** Families the export ships as @font-face (their files cannot be installed for you). */
-                function extractFontFaceFamilies(css) {
-                    const out = new Set();
-                    topLevelBlocks(css).forEach(b => {
-                        if (!/^@font-face/i.test(b.prelude.trim())) return;
-                        const m = /font-family\s*:\s*['"]?([^'";]+)['"]?/i.exec(b.body);
-                        if (m) out.add(m[1].trim().toLowerCase());
-                    });
-                    return out;
-                }
-
-                const googleFontsUrl = (family, axis) =>
-                    'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replace(/%20/g, '+') +
-                    (axis ? ':' + axis : '') + '&display=swap';
-
-                const googleAxis = (weights, italicWeights) => {
-                    if (!italicWeights.length) return 'wght@' + weights.join(';');
-                    const tuples = weights.map(w => '0,' + w).concat(italicWeights.map(w => '1,' + w));
-                    return 'ital,wght@' + tuples.join(';');
-                };
-
-                // A font check must never stall the import: a request that gets no answer
-                // is treated exactly like Google being unreachable.
-                function fetchWithTimeout(url, ms) {
-                    const ctrl  = new AbortController();
-                    const timer = setTimeout(() => ctrl.abort(), ms);
-                    return fetch(url, { mode: 'cors', credentials: 'omit', signal: ctrl.signal })
-                        .finally(() => clearTimeout(timer));
-                }
-
-                let googleReachablePromise = null;
-                /** Whether Google Fonts answers at all, probed once with a family that always exists. */
-                function googleReachable() {
-                    if (!googleReachablePromise) {
-                        googleReachablePromise = fetchWithTimeout(googleFontsUrl('Roboto', ''), 8000)
-                            .then(r => r.ok)
-                            .catch(() => false);
-                    }
-                    return googleReachablePromise;
-                }
-
-                /**
-                 * true = served, false = not available, null = could not ask.
-                 *
-                 * Google answers an unknown family or weight with HTTP 400 and NO CORS
-                 * header, so the browser reports it as a network error, indistinguishable
-                 * from being offline. A failure while a known-good family loads fine is
-                 * therefore a real "not available".
-                 */
-                async function googleServes(url) {
-                    try {
-                        const r = await fetchWithTimeout(url, 8000);
-                        if (r.ok) return true;
-                        return r.status === 400 ? false : null;
-                    } catch(e) {
-                        return (await googleReachable()) ? false : null;
-                    }
-                }
-
-                /**
-                 * Resolve every used family to Google Fonts, the site's Bricks custom
-                 * fonts, or "missing" — reporting each decision as it is made.
-                 * Returns { importUrl, loaded:[{family, weights, italicWeights}], missing:[] }.
-                 */
-                async function resolveFonts(css) {
-                    const usages   = extractFontUsage(css);
-                    const shipped  = extractFontFaceFamilies(css);
-                    const custom   = new Set((snnBricksChatConfig.customFonts || []).map(f => String(f).toLowerCase()));
-                    const loaded   = [];
-                    const missing  = [];
-                    const params   = [];
-
-                    if (!usages.length) {
-                        setAgentState('reading', 'No custom fonts used by the stylesheet');
-                        return { importUrl: '', loaded, missing };
-                    }
-                    setAgentState('reading', 'Stylesheet uses ' + usages.length + ' font famil' + (usages.length === 1 ? 'y' : 'ies') + ': ' +
-                        usages.map(u => u.family).join(', '));
-
-                    for (const u of usages) {
-                        const wlist = u.weights.join(', ') + (u.italicWeights.length ? '; italic ' + u.italicWeights.join(', ') : '');
-
-                        if (custom.has(u.family.toLowerCase())) {
-                            loaded.push(u);
-                            setAgentState('reading', 'Font "' + u.family + '" is already installed in Bricks Custom Fonts');
-                            continue;
-                        }
-
-                        setAgentState('reading', 'Checking Google Fonts for "' + u.family + '" (weights ' + wlist + ')...');
-                        const familyOk = await googleServes(googleFontsUrl(u.family, ''));
-
-                        if (familyOk === false) {
-                            missing.push(u.family + (shipped.has(u.family.toLowerCase()) ? ' (the export includes its font files, but they cannot be installed automatically)' : ''));
-                            setAgentState('reading', 'Font "' + u.family + '" is not on Google Fonts');
-                            continue;
-                        }
-                        if (familyOk === null) {
-                            params.push({ family: u.family, axis: googleAxis(u.weights, u.italicWeights) });
-                            loaded.push(u);
-                            setAgentState('reading', 'Could not reach Google Fonts to verify "' + u.family + '" - requesting it anyway');
-                            continue;
-                        }
-
-                        // Family exists. A single unavailable weight makes Google reject the
-                        // whole request, so fall back to checking weights one at a time.
-                        let weights = u.weights, italics = u.italicWeights;
-                        if (!(await googleServes(googleFontsUrl(u.family, googleAxis(weights, italics))))) {
-                            const keepW = [], keepI = [];
-                            for (const w of u.weights)       if (await googleServes(googleFontsUrl(u.family, googleAxis([w], [])))) keepW.push(w);
-                            for (const w of u.italicWeights) if (await googleServes(googleFontsUrl(u.family, 'ital,wght@1,' + w))) keepI.push(w);
-                            const dropped = u.weights.filter(w => !keepW.includes(w)).concat(u.italicWeights.filter(w => !keepI.includes(w)).map(w => w + ' italic'));
-                            weights = keepW.length ? keepW : [400];
-                            italics = keepI;
-                            if (dropped.length) {
-                                setAgentState('reading', 'Font "' + u.family + '": weight ' + dropped.join(', ') + ' is not available on Google Fonts, using the nearest available');
-                            }
-                        }
-                        params.push({ family: u.family, axis: googleAxis(weights, italics) });
-                        loaded.push({ family: u.family, weights, italicWeights: italics });
-                        setAgentState('reading', 'Font "' + u.family + '" will load from Google Fonts (weights ' +
-                            weights.join(', ') + (italics.length ? '; italic ' + italics.join(', ') : '') + ')');
-                    }
-
-                    const importUrl = params.length
-                        ? 'https://fonts.googleapis.com/css2?' + params.map(p =>
-                            'family=' + encodeURIComponent(p.family).replace(/%20/g, '+') + (p.axis ? ':' + p.axis : '')).join('&') + '&display=swap'
-                        : '';
-
-                    if (missing.length) {
-                        addMessage('error',
-                            'These fonts could not be found on Google Fonts or in Bricks Custom Fonts, so the page will use a fallback font for them:\n' +
-                            missing.map(f => '- ' + f).join('\n') +
-                            '\nUpload them under Bricks > Custom Fonts, then run the import again.'
-                        );
-                    }
-                    return { importUrl, loaded, missing };
                 }
 
                 // ── assets ───────────────────────────────────────────────────
@@ -5013,26 +4725,20 @@ IMPORTANT RULES:
                         try {
                             const blob = await entry.zipEntry.async('blob');
                             const name = entry.path.split('/').pop();
-                            let res;
+                            let url;
                             try {
-                                res = await uploadImage(blob, name, MIME[ext]);
+                                url = await uploadImage(blob, name, MIME[ext]);
                             } catch(first) {
                                 // One retry: a busy server can drop a single upload, and a
                                 // missing image silently degrades the whole design.
                                 debugLog('zip image upload retry:', entry.path, first);
-                                setAgentState('uploading', 'Upload of ' + name + ' ' + nOf() + ' failed once, retrying...');
                                 await sleep(700);
-                                res = await uploadImage(blob, name, MIME[ext]);
+                                url = await uploadImage(blob, name, MIME[ext]);
                             }
-                            done.set(entry.path, res.url);
-                            replacement.set(ref, res.url);
+                            done.set(entry.path, url);
+                            replacement.set(ref, url);
                             uploadedCount++;
-                            if (res.reused) {
-                                report.reused = (report.reused || 0) + 1;
-                                setAgentState('uploading', 'Reused ' + name + ' ' + nOf() + ' - identical image already in the media library');
-                            } else {
-                                setAgentState('uploading', 'Uploaded ' + name + ' ' + nOf() + ' to the media library');
-                            }
+                            setAgentState('uploading', 'Uploaded ' + name + ' ' + nOf() + ' to the media library');
                         } catch(e) {
                             debugLog('zip image upload failed:', entry.path, e);
                             skip(name, 'upload failed: ' + (e.message || e));
@@ -5122,20 +4828,13 @@ IMPORTANT RULES:
                     fd.append('action', 'snn_upload_design_asset');
                     fd.append('nonce', snnBricksChatConfig.agentNonce);
                     fd.append('file', new File([blob], fileName, { type: mime }), fileName);
-                    // A hung request must fail instead of stalling the whole import. If the
-                    // server finishes after the timeout anyway, the retry lands on the
-                    // duplicate check and reuses that attachment rather than uploading twice.
-                    const ctrl  = new AbortController();
-                    const timer = setTimeout(() => ctrl.abort(), 90000);
-                    return fetch(snnBricksChatConfig.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin', signal: ctrl.signal })
-                        .catch(err => { throw new Error(err.name === 'AbortError' ? 'upload timed out after 90s' : (err.message || String(err))); })
-                        .finally(() => clearTimeout(timer))
-                        .then(r => r.json().catch(() => { throw new Error('server returned a non-JSON response (HTTP ' + r.status + ')'); }))
+                    return fetch(snnBricksChatConfig.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                        .then(r => r.json())
                         .then(r => {
                             if (!r || !r.success || !r.data || !r.data.url) {
                                 throw new Error((r && r.data && r.data.message) || 'server rejected the file');
                             }
-                            return { url: r.data.url, reused: !!r.data.reused };
+                            return r.data.url;
                         });
                 }
 
@@ -5207,312 +4906,6 @@ IMPORTANT RULES:
                     return $card.append($head, $frame, $meta, $picker);
                 }
 
-                // ── design tokens & components ───────────────────────────────
-                //
-                // Converted one pass at a time, each section used to invent its own
-                // colour variables and its own copy of every button, which is how one
-                // page produced 102 global classes. These helpers measure what the
-                // design actually repeats, so the foundation pass can define it ONCE.
-
-                /** Split a declaration block on ';' without breaking inside url("...;...") or rgba(). */
-                function splitDeclarations(body) {
-                    const out = [];
-                    let depth = 0, quote = null, start = 0;
-                    for (let i = 0; i < body.length; i++) {
-                        const ch = body[i];
-                        if (quote) { if (ch === quote && body[i - 1] !== '\\') quote = null; continue; }
-                        if (ch === '"' || ch === "'") { quote = ch; continue; }
-                        if (ch === '(') depth++;
-                        else if (ch === ')') depth = Math.max(0, depth - 1);
-                        else if (ch === ';' && depth === 0) { out.push(body.slice(start, i)); start = i + 1; }
-                    }
-                    out.push(body.slice(start));
-                    return out.map(d => d.trim()).filter(Boolean);
-                }
-
-                function normalizeColor(c) {
-                    c = c.trim().toLowerCase().replace(/\s+/g, '');
-                    const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/.exec(c);
-                    return short ? '#' + short[1] + short[1] + short[2] + short[2] + short[3] + short[3] : c;
-                }
-
-                /**
-                 * Every reusable value in the stylesheet with how often it is used and by
-                 * which classes: colours, type sizes, line heights, letter spacing, radii,
-                 * shadows. Colours inside url() (inlined SVG data) are ignored.
-                 */
-                function extractDesignTokens(css) {
-                    const make = () => new Map();
-                    const b = { colors: make(), fontSizes: make(), lineHeights: make(), letterSpacings: make(), radii: make(), shadows: make() };
-                    const note = (map, value, cls) => {
-                        value = String(value || '').trim();
-                        if (!value) return;
-                        const key = value.toLowerCase();
-                        if (!map.has(key)) map.set(key, { value, count: 0, classes: new Set() });
-                        const e = map.get(key);
-                        e.count++;
-                        if (cls) e.classes.add(cls);
-                    };
-                    const colorRx = /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/gi;
-                    const walk = text => topLevelBlocks(text).forEach(block => {
-                        const pre = block.prelude.trim();
-                        if (/^@(media|supports|layer|container)/i.test(pre)) { walk(block.body); return; }
-                        if (pre.startsWith('@')) return;
-                        const cls = ((pre.match(/\.[-_a-zA-Z0-9]+/) || [''])[0]).slice(1);
-                        splitDeclarations(block.body).forEach(decl => {
-                            const i = decl.indexOf(':');
-                            if (i < 0) return;
-                            const prop = decl.slice(0, i).trim().toLowerCase();
-                            if (!prop || prop.startsWith('--')) return;
-                            const val = decl.slice(i + 1).trim();
-                            const noUrl = val.replace(/url\((?:"[^"]*"|'[^']*'|[^)]*)\)/gi, '');
-                            (noUrl.match(colorRx) || []).forEach(c => note(b.colors, normalizeColor(c), cls));
-                            if (prop === 'font-size')           note(b.fontSizes, val, cls);
-                            else if (prop === 'line-height')    note(b.lineHeights, val, cls);
-                            else if (prop === 'letter-spacing') note(b.letterSpacings, val, cls);
-                            else if (prop === 'border-radius')  note(b.radii, val, cls);
-                            else if (prop === 'box-shadow')     note(b.shadows, val, cls);
-                        });
-                    });
-                    walk(css);
-                    const list = map => Array.from(map.values())
-                        .sort((x, y) => y.count - x.count)
-                        .map(e => ({ value: e.value, count: e.count, classes: Array.from(e.classes).slice(0, 6) }));
-                    const out = {};
-                    Object.keys(b).forEach(k => { out[k] = list(b[k]); });
-                    return out;
-                }
-
-                /**
-                 * Source classes with identical declarations are one component the exporter
-                 * copied per instance (buttons-v3 ... buttons-v3-10). Placement (position,
-                 * offsets) is per-instance, so it is ignored when comparing looks.
-                 * Returns [{ classes:[...], css:"decl;\n  decl" }], biggest groups first.
-                 */
-                function groupComponents(css) {
-                    const byLook = new Map();
-                    topLevelBlocks(css).forEach(block => {
-                        const pre = block.prelude.trim();
-                        if (pre.startsWith('@')) return;
-                        if (!/^\.[-_a-zA-Z0-9]+$/.test(pre)) return; // single-class rules only
-                        const decls = splitDeclarations(block.body)
-                            .map(d => d.replace(/\s+/g, ' ').replace(/\s*:\s*/, ': '))
-                            .filter(d => !/^(position|left|top|right|bottom|inset|z-index)\s*:/i.test(d))
-                            .sort();
-                        if (decls.length < 2) return;
-                        const key = decls.join(';').toLowerCase();
-                        if (!byLook.has(key)) byLook.set(key, { classes: [], css: decls.join(';\n  ') });
-                        byLook.get(key).classes.push(pre.slice(1));
-                    });
-                    return Array.from(byLook.values())
-                        .filter(g => g.classes.length >= 2)
-                        .sort((x, y) => y.classes.length - x.classes.length);
-                }
-
-                // ── foundation ───────────────────────────────────────────────
-
-                /**
-                 * The one shared stylesheet every conversion pass builds on: the font
-                 * import, the design's measured colours and type scale as named :root
-                 * variables, and one ui- class per repeated component.
-                 *
-                 * It has to be a single block placed before every section: the compiler
-                 * writes only the FIRST :root to the Bricks palette, and drops an @import
-                 * that is not at the top of the first stylesheet.
-                 *
-                 * Returns { css, vars:[--names], components:[{name, sourceClasses}] }.
-                 */
-                async function buildFoundation(zip) {
-                    setAgentState('converting', 'Measuring the design system: colours, type scale, radii, shadows and repeated components...');
-                    const tokens = extractDesignTokens(zip.css);
-                    const groups = groupComponents(zip.css);
-                    setAgentState('converting', 'Measured ' + tokens.colors.length + ' colours, ' + tokens.fontSizes.length + ' font sizes, ' +
-                        tokens.radii.length + ' radii and ' + groups.length + ' repeated component' + (groups.length === 1 ? '' : 's'));
-
-                    const loadedFonts = (zip.fonts && zip.fonts.loaded) || [];
-                    const brief = JSON.stringify({
-                        colors:         tokens.colors.slice(0, 24),
-                        fontSizes:      tokens.fontSizes.slice(0, 16),
-                        lineHeights:    tokens.lineHeights.slice(0, 12),
-                        letterSpacings: tokens.letterSpacings.slice(0, 12),
-                        radii:          tokens.radii.slice(0, 10),
-                        shadows:        tokens.shadows.slice(0, 6),
-                        fonts:          loadedFonts.map(f => ({ family: f.family, weights: f.weights, italicWeights: f.italicWeights })),
-                        components:     groups.slice(0, 30).map(g => ({ sourceClasses: g.classes, css: g.css })),
-                    }, null, 1);
-
-                    const system = `You are defining the FOUNDATION stylesheet for converting an existing design export into Bricks Builder.
-You receive data measured from the export's CSS: every colour, font size, line height, letter spacing, radius and shadow with usage counts and example classes; the fonts; and groups of source classes that share identical styling (components the exporter duplicated per instance).
-
-First, one line per component group, exactly in this form:
-MAP ui-semantic-name: sourceClass1, sourceClass2, ...
-
-Then ONE \`\`\`css code block containing exactly:
-1. A :root block naming the tokens by role: colours (--color-ink, --color-surface, --color-accent, --color-muted, --color-card ...), a type scale (--text-sm ... --text-display), line heights, letter spacings, radii, shadows, and --font-heading / --font-body as full font stacks. Every value must be the EXACT measured value - never invent, round or "improve" one. Every custom property value is concrete (hex, rgb, px, %, a font stack) - never var().
-2. One class per component group, named with the ui- prefix from your MAP lines. Each reproduces the component's LOOK with clean, flow-friendly CSS: keep colours, typography, padding, radius, border/outline, gap, display and alignment, and reference the :root variables with var(). DROP canvas placement: position:absolute, left/top/right/bottom offsets, and fixed widths or heights that only fit the design canvas. Only create ui- classes for groups present in the data.
-
-No other prose, no @import, no comments outside the code block.`;
-
-                    try {
-                        const response = await callAI([
-                            { role: 'system', content: system },
-                            { role: 'user',   content: 'MEASURED DESIGN DATA:\n```json\n' + brief + '\n```' }
-                        ], 0, { maxTokens: 12000, temperature: 0.2 });
-
-                        const cssBlock = (/```css\s*([\s\S]*?)```/i.exec(response) || [])[1];
-                        if (cssBlock && /:root\s*\{/.test(cssBlock) && !ChatState.lastResponseTruncated) {
-                            const components = [];
-                            String(response).split('\n').forEach(line => {
-                                const m = /^\s*MAP\s+(ui-[\w-]+)\s*:\s*(.+)$/i.exec(line);
-                                if (m) components.push({ name: m[1], sourceClasses: m[2].split(',').map(s => s.trim()).filter(Boolean) });
-                            });
-                            // A ui- class the model wrote but did not map is still reusable.
-                            (cssBlock.match(/\.ui-[\w-]+/g) || []).forEach(sel => {
-                                const name = sel.slice(1);
-                                if (!components.some(c => c.name === name)) components.push({ name, sourceClasses: [] });
-                            });
-                            const cleanCss = cssBlock.replace(/@import[^;]+;/gi, '').trim();
-                            const vars = Array.from(new Set(cleanCss.match(/--[\w-]+(?=\s*:)/g) || []));
-                            setAgentState('converting', 'Foundation ready: ' + vars.length + ' named design tokens and ' +
-                                components.length + ' shared component class' + (components.length === 1 ? '' : 'es'));
-                            components.forEach(c => {
-                                if (c.sourceClasses.length) setAgentState('converting', 'Component ' + c.name + ' replaces ' + c.sourceClasses.join(', '));
-                            });
-                            return finalizeFoundation(zip, cleanCss, vars, components);
-                        }
-                        setAgentState('converting', 'The foundation reply was ' + (ChatState.lastResponseTruncated ? 'cut off' : 'unusable') +
-                            ' - building the foundation from the measured values directly');
-                    } catch(err) {
-                        if (err.name === 'AbortError') throw err;
-                        setAgentState('converting', 'Foundation pass failed (' + (err.message || err) + ') - building it from the measured values directly');
-                    }
-                    return fallbackFoundation(zip, tokens);
-                }
-
-                /** Deterministic foundation from measured values, used when the AI pass cannot deliver. */
-                function fallbackFoundation(zip, tokens) {
-                    const lines = [], vars = [];
-                    const push = (name, value) => { vars.push(name); lines.push('  ' + name + ': ' + value + ';'); };
-                    tokens.colors.slice(0, 24).forEach((c, i) => push('--color-' + (i + 1), c.value));
-                    tokens.fontSizes.slice(0, 16).forEach((s, i) => push('--text-' + (i + 1), s.value));
-                    tokens.radii.slice(0, 10).forEach((r, i) => push('--radius-' + (i + 1), r.value));
-                    const loaded = (zip.fonts && zip.fonts.loaded) || [];
-                    if (loaded[0]) push('--font-body', "'" + loaded[0].family + "', sans-serif");
-                    if (loaded[1]) push('--font-heading', "'" + loaded[1].family + "', sans-serif");
-                    setAgentState('converting', 'Foundation ready (measured): ' + vars.length + ' design tokens');
-                    return finalizeFoundation(zip, lines.length ? ':root {\n' + lines.join('\n') + '\n}' : '', vars, []);
-                }
-
-                /** The font @import has to come first, or the browser ignores it. */
-                function finalizeFoundation(zip, css, vars, components) {
-                    const importUrl = zip.fonts && zip.fonts.importUrl;
-                    return {
-                        css: (importUrl ? "@import url('" + importUrl + "');\n" : '') + css,
-                        vars,
-                        components,
-                    };
-                }
-
-                // ── fidelity audit ───────────────────────────────────────────
-                //
-                // "Never drop content" used to be a request the model was trusted to keep.
-                // This checks it: after every pass the converted section is compared with
-                // its source, with no AI involved, and anything lost is sent back to be fixed.
-
-                /** Comparable form: case, spacing, curly quotes, dashes and ellipses do not count as changes. */
-                const normText = s => String(s || '')
-                    .replace(/[   ]/g, ' ')
-                    .replace(/[‘’‚′]/g, "'")
-                    .replace(/[“”„″]/g, '"')
-                    .replace(/[‐-―−]/g, '-')
-                    .replace(/…/g, '...')
-                    .replace(/\s+/g, ' ')
-                    .trim()
-                    .toLowerCase();
-
-                /** Visible text runs, keeping the original wording for reports and repair requests. */
-                function textRuns(html) {
-                    const doc = new DOMParser().parseFromString('<!DOCTYPE html><body>' + html + '</body>', 'text/html');
-                    doc.querySelectorAll('style, script, noscript, template').forEach(n => n.remove());
-                    const runs = [];
-                    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-                    let node;
-                    while ((node = walker.nextNode())) {
-                        const raw = String(node.nodeValue || '').replace(/\s+/g, ' ').trim();
-                        const norm = normText(raw);
-                        if (norm.length >= 2) runs.push({ raw, norm });
-                    }
-                    return runs;
-                }
-
-                const wordsOf = s => s.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-
-                /**
-                 * Compare one converted section against its source.
-                 * Returns { ok, missingText, changedText, missingImages, missingLinks, svgIn, svgOut }.
-                 * Text is "changed" when most of its words survived and "missing" when they did not.
-                 */
-                function auditConversion(sourceMarkup, sourceCss, outputHtml) {
-                    const outFlat  = ' ' + textRuns(outputHtml).map(r => r.norm).join(' ') + ' ';
-                    const outWords = new Set(wordsOf(outFlat));
-
-                    const missingText = [], changedText = [], seen = new Set();
-                    textRuns(sourceMarkup).forEach(run => {
-                        if (seen.has(run.norm)) return;
-                        seen.add(run.norm);
-                        if (outFlat.includes(run.norm)) return;
-                        const words = wordsOf(run.norm);
-                        const kept  = words.filter(w => outWords.has(w)).length;
-                        (words.length && kept / words.length >= 0.8 ? changedText : missingText).push(run.raw);
-                    });
-
-                    const srcDoc = new DOMParser().parseFromString('<!DOCTYPE html><body>' + sourceMarkup + '</body>', 'text/html');
-                    const refs = [];
-                    srcDoc.querySelectorAll('img[src], source[src]').forEach(el => refs.push(el.getAttribute('src')));
-                    srcDoc.querySelectorAll('video[poster]').forEach(el => refs.push(el.getAttribute('poster')));
-                    srcDoc.querySelectorAll('img[srcset], source[srcset]').forEach(el =>
-                        (el.getAttribute('srcset') || '').split(',').forEach(p => refs.push(p.trim().split(/\s+/)[0])));
-                    (String(sourceCss || '').match(/url\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [])
-                        .forEach(m => refs.push(m.replace(/^url\(\s*["']?/i, '')));
-                    const imageUrls = Array.from(new Set(refs.filter(u => /^https?:\/\//i.test(u || ''))
-                        .filter(u => !/fonts\.(googleapis|gstatic)\.com/i.test(u))));
-                    const missingImages = imageUrls.filter(u => !outputHtml.includes(u));
-
-                    const hrefs = Array.from(new Set(Array.from(srcDoc.querySelectorAll('a[href]'))
-                        .map(a => a.getAttribute('href'))
-                        .filter(h => h && !h.startsWith('#') && !/^javascript:/i.test(h))));
-                    const missingLinks = hrefs.filter(h => !outputHtml.includes(h));
-
-                    const svgIn  = (sourceMarkup.match(/<svg[\s>]/gi) || []).length;
-                    const svgOut = (outputHtml.match(/<svg[\s>]/gi) || []).length;
-
-                    const ok = !missingText.length && !changedText.length && !missingImages.length &&
-                        !missingLinks.length && svgOut >= svgIn;
-                    return { ok, missingText, changedText, missingImages, missingLinks, svgIn, svgOut };
-                }
-
-                /** One line for the status log. */
-                function describeAudit(a) {
-                    const parts = [];
-                    if (a.missingText.length)   parts.push(a.missingText.length + ' text passage' + (a.missingText.length === 1 ? '' : 's') + ' missing');
-                    if (a.changedText.length)   parts.push(a.changedText.length + ' text passage' + (a.changedText.length === 1 ? '' : 's') + ' reworded');
-                    if (a.missingImages.length) parts.push(a.missingImages.length + ' image' + (a.missingImages.length === 1 ? '' : 's') + ' missing');
-                    if (a.missingLinks.length)  parts.push(a.missingLinks.length + ' link' + (a.missingLinks.length === 1 ? '' : 's') + ' missing');
-                    if (a.svgOut < a.svgIn)     parts.push((a.svgIn - a.svgOut) + ' of ' + a.svgIn + ' inline SVG graphic' + (a.svgIn === 1 ? '' : 's') + ' missing');
-                    return parts.join(', ');
-                }
-
-                /** The follow-up message that asks the model to put back exactly what it lost. */
-                function repairInstructions(a) {
-                    const out = ['A check against the source found problems in your conversion. Fix ONLY these, keep everything else exactly as you wrote it, and return the COMPLETE corrected section in the same format: one short sentence, then one ```html code block.'];
-                    if (a.missingText.length)   out.push('\nTEXT MISSING - must appear with exactly this wording and punctuation:\n' + a.missingText.slice(0, 40).map(t => '- ' + t).join('\n'));
-                    if (a.changedText.length)   out.push('\nTEXT REWORDED - restore exactly this wording:\n' + a.changedText.slice(0, 40).map(t => '- ' + t).join('\n'));
-                    if (a.missingImages.length) out.push('\nIMAGES MISSING - use these exact URLs (as <img src> or as the same CSS background they had):\n' + a.missingImages.map(u => '- ' + u).join('\n'));
-                    if (a.missingLinks.length)  out.push('\nLINKS MISSING - keep these exact hrefs:\n' + a.missingLinks.map(h => '- ' + h).join('\n'));
-                    if (a.svgOut < a.svgIn)     out.push('\nINLINE SVG MISSING - the source has ' + a.svgIn + ' inline <svg> graphic(s), your output has ' + a.svgOut + '. Keep every one, wrapped in data-bricks="custom-html-css-script".');
-                    return out.join('\n');
-                }
-
                 // ── conversion ───────────────────────────────────────────────
 
                 /**
@@ -5530,51 +4923,12 @@ No other prose, no @import, no comments outside the code block.`;
                     return node;
                 }
 
-                /**
-                 * A name a person recognises. Exporter class names ("box-1", "img-19")
-                 * mean nothing, so they are the last resort, not the first.
-                 */
                 function sectionLabel(el) {
-                    const clip = s => {
-                        s = String(s || '').replace(/\s+/g, ' ').trim();
-                        if (s.length <= 40) return s;
-                        const cut = s.slice(0, 40);
-                        return (cut.lastIndexOf(' ') > 20 ? cut.slice(0, cut.lastIndexOf(' ')) : cut) + '...';
-                    };
-                    const h = el.querySelector('h1,h2,h3,h4,h5,h6');
-                    if (h && h.textContent.trim()) return clip(h.textContent);
-                    const tag = el.tagName.toLowerCase();
-                    const semantic = { nav: 'Navigation', header: 'Header', footer: 'Footer' }[tag];
-                    if (semantic) return semantic;
-                    const text = clip(el.textContent);
-                    if (text) return text;
-                    const img = el.matches('img') ? el : el.querySelector('img[alt]:not([alt=""])');
-                    if (img && img.getAttribute('alt')) return clip(img.getAttribute('alt'));
+                    const h = el.querySelector('h1,h2,h3,h4');
+                    if (h && h.textContent.trim()) return h.textContent.trim().slice(0, 40);
                     const cls = (el.getAttribute('class') || '').split(/\s+/)[0];
-                    return cls || tag;
+                    return cls || el.tagName.toLowerCase();
                 }
-
-                /**
-                 * Exports often put the site nav LAST in the DOM and pin it to the top
-                 * with position:absolute. Converted into normal flow in DOM order, it
-                 * would land at the bottom of the page — so pinned-to-top elements are
-                 * moved to the front before the page is split.
-                 */
-                function isPinnedTop(el, css) {
-                    if (['nav', 'header'].includes(el.tagName.toLowerCase())) return true;
-                    const classes = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean);
-                    return classes.some(cls => {
-                        const esc = cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        const rule = new RegExp('\\.' + esc + '\\s*\\{([^}]*)\\}').exec(css || '');
-                        if (!rule) return false;
-                        const pos = /position\s*:\s*(absolute|fixed)/i.test(rule[1]);
-                        const top = /(^|[;\s])top\s*:\s*(-?\d+(?:\.\d+)?)px/i.exec(rule[1]);
-                        return pos && top && parseFloat(top[2]) < 200;
-                    });
-                }
-
-                // Below this a pass would be a whole AI call for a lone icon or badge.
-                const TINY_CHARS = 600;
 
                 /**
                  * Break the export into conversion passes.
@@ -5585,24 +4939,20 @@ No other prose, no @import, no comments outside the code block.`;
                  * into small passes whose output comfortably fits, and each pass keeps its
                  * individual sections so a failing pass can be split again and retried.
                  */
-                function splitChunks(bodyHtml, css) {
+                function splitChunks(bodyHtml) {
                     const doc  = new DOMParser().parseFromString('<!DOCTYPE html><body>' + bodyHtml + '</body>', 'text/html');
                     const root = chunkRoot(doc.body);
-                    let kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
+                    const kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
 
                     if (kids.length < 2) {
                         return [{ label: 'Design', parts: [root.innerHTML] }];
                     }
 
-                    // Visual order, not DOM order: pinned-to-top elements go first.
-                    const pinned = kids.filter(el => isPinnedTop(el, css));
-                    kids = pinned.concat(kids.filter(el => !pinned.includes(el)));
-
                     const chunks = [];
                     let buf = [], bufLen = 0, first = null;
                     const flush = () => {
                         if (!buf.length) return;
-                        chunks.push({ label: sectionLabel(first), parts: buf.slice(), size: bufLen });
+                        chunks.push({ label: sectionLabel(first), parts: buf.slice() });
                         buf = []; bufLen = 0; first = null;
                     };
                     kids.forEach(el => {
@@ -5612,16 +4962,6 @@ No other prose, no @import, no comments outside the code block.`;
                         buf.push(h); bufLen += h.length;
                     });
                     flush();
-
-                    // Fold tiny passes (a lone badge or icon) into a neighbour instead of
-                    // spending a whole AI call on them.
-                    for (let i = chunks.length - 1; i >= 0 && chunks.length > 1; i--) {
-                        if (chunks[i].size >= TINY_CHARS) continue;
-                        const into = i > 0 ? chunks[i - 1] : chunks[i + 1];
-                        into.parts = i > 0 ? into.parts.concat(chunks[i].parts) : chunks[i].parts.concat(into.parts);
-                        into.size += chunks[i].size;
-                        chunks.splice(i, 1);
-                    }
                     return chunks;
                 }
 
@@ -5698,30 +5038,9 @@ No other prose, no @import, no comments outside the code block.`;
                     return out;
                 }
 
-                /**
-                 * @param foundation      The shared foundation (tokens + ui- components), or null.
-                 * @param definedClasses  Class names earlier passes already defined, so this
-                 *                        pass reuses them instead of minting near-duplicates.
-                 */
-                function conversionPrompt(note, prefix, foundation = null, definedClasses = []) {
-                    const f = foundation && foundation.vars && foundation.vars.length ? foundation : null;
-                    const foundationBlock = f ? `
-SHARED FOUNDATION - already on the page, loaded before this section. Do NOT repeat any of it:
-\`\`\`css
-${f.css.replace(/@import[^;]+;\s*/gi, '')}
-\`\`\`
-- Use these :root variables with var() for every colour, font family, font size, line height, letter spacing, radius and shadow they cover. Write a literal value only when no variable matches it exactly.
-- Output NO :root block and NO @import. The fonts are already loaded.${f.components.length ? `
-- Reuse these shared component classes instead of creating new classes for the same look:
-${f.components.map(c => '    .' + c.name + (c.sourceClasses.length ? '   (replaces source classes ' + c.sourceClasses.join(', ') + ')' : '')).join('\n')}
-  Put the ui- class on the element; add a section class beside it only for what genuinely differs here. Never redefine a ui- class.` : ''}
-` : '';
-                    const reuseBlock = definedClasses.length ? `
-CLASSES ALREADY DEFINED BY EARLIER SECTIONS - reuse them where the look is the same, never redefine them:
-${definedClasses.slice(0, 150).join(', ')}
-` : '';
+                function conversionPrompt(note, prefix) {
                     return `You are converting an EXISTING design export (Figma, Penpot, Sketch or similar "export to HTML/CSS") into clean, Bricks-Builder-ready HTML.
-${foundationBlock}${reuseBlock}
+
 THIS IS A CONVERSION, NOT A REDESIGN.
 - Reproduce the given design faithfully: same text, same colors, same fonts, same order, same imagery.
 - Never invent content, never substitute Lorem Ipsum, never drop a section.
@@ -5738,12 +5057,10 @@ WHAT YOU MUST FIX (design tools export unusable markup):
 
 OUTPUT FORMAT:
 One short sentence, then a single \`\`\`html code block containing:
-- A <style> tag with the CSS for the classes this section introduces (one property per line).${f
-    ? ' No :root block and no @import - the shared foundation already provides both.'
-    : ' Any :root custom properties must have concrete hex/px values - never var() as a value.'}
+- A <style> tag with ALL CSS classes (one property per line, :root custom properties with concrete hex/px values — never var() as a value).
 - The converted markup.
 
-CLASS NAMING: prefix every NEW class this section introduces with "${prefix}-" so sections cannot collide${f && f.components.length ? ' (shared ui- classes and classes listed as already defined keep their names)' : ''}. Hyphenated children: .${prefix}-hero, .${prefix}-hero-title, .${prefix}-hero-grid.
+CLASS NAMING: prefix every class with "${prefix}-" so sections cannot collide. Hyphenated children: .${prefix}-hero, .${prefix}-hero-title, .${prefix}-hero-grid.
 
 REQUIRED data-bricks ATTRIBUTES on every structural element:
   data-bricks="section"   — top-level section/header/footer
@@ -5760,7 +5077,6 @@ REQUIRED data-bricks ATTRIBUTES on every structural element:
   data-bricks="custom-html-css-script" — raw SVG / embeds
 Structure must be: section > container > content. Never a container inside a block.
 Use class="..." only — NO inline style="" attributes anywhere in the output.
-Give every data-bricks="section" element an aria-label with a short human name for what it is ("Hero", "Client logos", "Services", "Case studies", "Footer") — never a generated class name.
 ${note ? '\nUSER INSTRUCTIONS (these override the source design where they conflict):\n' + note + '\n' : ''}
 Output the HTML only — no explanation after the code block, no patch blocks, no JSON.`;
                 }
@@ -5777,109 +5093,27 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         'SOURCE STYLESHEET:\n```css\n' + css + '\n```\n\n' +
                         'SOURCE MARKUP' + (isOnlyPass ? '' : ' (section "' + chunk.label + '")') + ':\n```html\n' + markup + '\n```';
 
-                    // First attempt budgets from the source size. The floor is generous
-                    // because reasoning models spend thousands of hidden tokens before the
-                    // first visible character — a real run cut off a small footer at ~7.8k.
-                    const globalCap = parseInt(snnBricksChatConfig.ai.maxTokens, 10) || 8000;
-                    const sized     = Math.max(8000, Math.min(16000, Math.ceil(source.length / 3) + 4000));
-                    // A cut-off reply is a budget problem, not a size problem, so the retry
-                    // escalates to the user's full cap instead of repeating the same ask.
-                    const budgets   = [Math.min(sized, globalCap), globalCap];
-                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, budgets', budgets);
+                    // Budget the reply from the source size rather than handing over the
+                    // whole global cap: many models refuse a max_tokens above their own
+                    // output ceiling, and an oversized ask is what starves the reply.
+                    const budget = Math.max(3000, Math.min(12000, Math.ceil(source.length / 3) + 1500));
+                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, budget', budget, 'tokens');
 
                     let lastReason = 'unknown';
-                    let lastWasTruncated = false;
-                    for (let attempt = 0; attempt < budgets.length; attempt++) {
-                        const budget = budgets[attempt];
-                        if (attempt > 0) {
-                            setAgentState('converting', lastWasTruncated
-                                ? 'Retrying "' + chunk.label + '" with the full ' + budget + '-token budget...'
-                                : 'Retrying "' + chunk.label + '"...');
-                        }
+                    for (let attempt = 0; attempt < 2; attempt++) {
                         try {
-                            const messages = [
-                                { role: 'system', content: conversionPrompt(zip.note, prefix, zip.foundation || null, zip.definedClasses || []) },
+                            const response = await callAI([
+                                { role: 'system', content: conversionPrompt(zip.note, prefix) },
                                 { role: 'user',   content: source }
-                            ];
-                            const response = await callAI(messages, 0, { maxTokens: budget, temperature: 0.2 });
+                            ], 0, { maxTokens: budget, temperature: 0.2 });
 
                             const truncated = ChatState.lastResponseTruncated;
                             const html = extractHTMLFromResponse(response);
-                            lastWasTruncated = truncated;
 
-                            if (html && !truncated) {
-                                // Check the reply against the source and send back exactly what
-                                // it lost. Up to two repair rounds; a repair is only accepted when
-                                // it scores better, because a fix can break something else.
-                                const score = a => a.missingText.length * 3 + a.changedText.length * 2 +
-                                    a.missingImages.length * 3 + a.missingLinks.length * 2 + Math.max(0, a.svgIn - a.svgOut) * 2;
-                                let best = html, bestReply = response, bestAudit = auditConversion(markup, css, html);
-
-                                for (let round = 1; round <= 2 && !bestAudit.ok; round++) {
-                                    setAgentState('converting', 'Checked "' + chunk.label + '": ' + describeAudit(bestAudit) +
-                                        ' - asking for a fix (round ' + round + ' of 2)...');
-                                    let fixed = null, fixedReply = null;
-                                    try {
-                                        fixedReply = await callAI(messages.concat([
-                                            { role: 'assistant', content: bestReply },
-                                            { role: 'user',      content: repairInstructions(bestAudit) }
-                                        ]), 0, { maxTokens: globalCap, temperature: 0.1 });
-                                        if (!ChatState.lastResponseTruncated) fixed = extractHTMLFromResponse(fixedReply);
-                                    } catch(err) {
-                                        if (err.name === 'AbortError') throw err;
-                                        debugLog('zip repair round ' + round + ' error:', err);
-                                    }
-                                    if (!fixed) {
-                                        setAgentState('converting', 'Repair round ' + round + ' for "' + chunk.label + '" returned nothing usable');
-                                        continue;
-                                    }
-                                    const fixedAudit = auditConversion(markup, css, fixed);
-                                    if (score(fixedAudit) < score(bestAudit)) {
-                                        best = fixed; bestReply = fixedReply; bestAudit = fixedAudit;
-                                        setAgentState('converting', fixedAudit.ok
-                                            ? 'Repair round ' + round + ' fixed "' + chunk.label + '"'
-                                            : 'Repair round ' + round + ' improved "' + chunk.label + '", still: ' + describeAudit(fixedAudit));
-                                    } else {
-                                        setAgentState('converting', 'Repair round ' + round + ' for "' + chunk.label + '" was not better - keeping the previous version');
-                                    }
-                                }
-
-                                if (bestAudit.ok) {
-                                    setAgentState('converting', 'Checked "' + chunk.label + '": every text passage, image, link and graphic matches the source');
-                                }
-                                // The foundation owns :root and the font import. A section that
-                                // writes its own anyway overrides the design tokens on the real
-                                // page (the later :root wins), so remove them and say so.
-                                if (zip.foundation && zip.foundation.vars && zip.foundation.vars.length) {
-                                    const removed = new Set();
-                                    const doc = new DOMParser().parseFromString('<!DOCTYPE html><body>' + best + '</body>', 'text/html');
-                                    doc.querySelectorAll('style').forEach(styleEl => {
-                                        const before = styleEl.textContent || '';
-                                        let text = before.replace(/@import\s+(?:url\((?:'[^']*'|"[^"]*"|[^)]*)\)|'[^']*'|"[^"]*")[^;]*;/gi, () => {
-                                            removed.add('a font @import');
-                                            return '';
-                                        });
-                                        if (/:root\s*\{/i.test(text)) {
-                                            text = topLevelBlocks(text).map(b => {
-                                                if (/^:root\b/i.test(b.prelude.trim())) { removed.add('a :root block'); return ''; }
-                                                return b.raw;
-                                            }).filter(Boolean).join('\n');
-                                        }
-                                        if (text !== before) styleEl.textContent = text;
-                                    });
-                                    if (removed.size) {
-                                        best = doc.body.innerHTML;
-                                        setAgentState('converting', 'Removed ' + Array.from(removed).join(' and ') + ' from "' + chunk.label +
-                                            '" - the shared foundation owns the design tokens and fonts');
-                                    }
-                                }
-                                return { html: best, audit: bestAudit };
-                            }
+                            if (html && !truncated) return { html };
 
                             if (truncated) {
-                                const u = ChatState.lastUsage || {};
-                                lastReason = 'the reply was cut off at ' + (u.maxTokens || budget) + ' tokens' +
-                                    (u.reasoning ? ' (' + u.reasoning + ' of them spent on hidden reasoning)' : '');
+                                lastReason = 'the model hit its output limit (' + budget + ' tokens) and the reply was cut off';
                             } else {
                                 const text = String(response || '').trim();
                                 lastReason = text
@@ -5897,53 +5131,18 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                     return { reason: lastReason };
                 }
 
-                /** Class names a converted section defines in its <style>, so later passes reuse them. */
-                function definedClassesOf(html) {
-                    const names = new Set();
-                    const doc = new DOMParser().parseFromString('<!DOCTYPE html><body>' + html + '</body>', 'text/html');
-                    doc.querySelectorAll('style').forEach(s => {
-                        // A class token counts only in a selector, i.e. before the next "{".
-                        (String(s.textContent || '').match(/\.(-?[_a-zA-Z][\w-]*)(?=[^{}]*\{)/g) || [])
-                            .forEach(m => names.add(m.slice(1)));
-                    });
-                    return Array.from(names);
-                }
-
-                /**
-                 * The preview document: the foundation first (its @import must lead, and its
-                 * :root must be the first one the compiler sees), then every converted
-                 * section in PAGE order. A failed pass keeps its slot in `results`, so a
-                 * later retry fills the gap rather than landing at the bottom.
-                 */
-                function combineSections(foundation, results) {
-                    const parts = results.filter(r => r.html).map(r => r.html);
-                    if (!parts.length) return '';
-                    const head = foundation && foundation.css
-                        ? '<style data-snn-foundation>\n' + foundation.css + '\n</style>\n'
-                        : '';
-                    return head + parts.join('\n');
-                }
-
-                /** How many approve-bar entries one converted fragment produces. */
-                function sectionCount(html) {
-                    const found = parseHTMLIntoSections(html);
-                    // parseHTMLIntoSections falls back to the whole input when it finds no section.
-                    return found.length === 1 && found[0].label === 'Page Content' && found[0].html === html ? 0 : found.length;
-                }
-
                 async function convert(userMessage, zip) {
                     zip.note = userMessage || '';
-                    zip.definedClasses = [];
-                    const queue   = splitChunks(zip.bodyHtml, zip.css);
-                    const results = [];   // page order; failed passes keep their slot
-                    let pass = 0, total = queue.length, usedPrefixes = {};
+                    const queue   = splitChunks(zip.bodyHtml);
+                    const initial = queue.length;
+                    const built   = [];
+                    const failed  = [];
+                    let pass = 0, total = initial, usedPrefixes = {};
 
-                    setAgentState('converting', 'Converting ' + zip.htmlPath + ' in ' +
-                        (total === 1 ? 'a single pass' : total + ' passes, one per section group') + '.');
-
-                    // One shared stylesheet for the whole page before any section is written.
-                    showTyping();
-                    zip.foundation = await buildFoundation(zip);
+                    setAgentState('converting',
+                        'Converting ' + zip.htmlPath + ' in ' +
+                        (initial === 1 ? 'a single pass' : initial + ' passes, one per section group') + '.'
+                    );
 
                     while (queue.length) {
                         const chunk = queue.shift();
@@ -5960,16 +5159,13 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         const res = await convertChunk(chunk, zip, prefix, total === 1);
 
                         if (res.html) {
-                            results.push({ label, chunk, prefix, html: res.html, audit: res.audit || null, reason: null });
-                            const added = definedClassesOf(res.html).filter(c => !zip.definedClasses.includes(c));
-                            zip.definedClasses = zip.definedClasses.concat(added);
-                            setAgentState('converting', 'Converted "' + label + '" (' + results.filter(r => r.html).length + ' of ' + total + ' done' +
-                                (added.length ? ', ' + added.length + ' new class' + (added.length === 1 ? '' : 'es') + ' for later sections to reuse' : '') + ')');
+                            built.push(res.html);
+                            setAgentState('converting', 'Converted "' + label + '" (' + built.length + ' of ' + total + ' done)');
                             continue;
                         }
 
-                        // A failing pass is usually just too big: halve it and retry the halves
-                        // before giving up on this part of the design.
+                        // A failing pass is usually just too big — halve it and retry the
+                        // halves before giving up on this part of the design.
                         const halves = bisect(chunk);
                         if (halves) {
                             setAgentState('converting', 'Pass "' + label + '" failed (' + res.reason + ') - splitting it in two and retrying.');
@@ -5977,51 +5173,19 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                             total += 1;
                             continue;
                         }
-                        results.push({ label, chunk, prefix, html: null, audit: null, reason: res.reason });
-                        setAgentState('converting', 'Could not convert "' + label + '": ' + res.reason);
+                        failed.push(label + ' - ' + res.reason);
                     }
 
                     hideTyping();
-                    ChatState.zipConversion = { zip, results };
-                    finishConversion(ChatState.zipConversion, null);
-                }
 
-                /**
-                 * Report, refresh the preview and approve bar, and offer a retry.
-                 * @param recovered  null for a fresh conversion; for a retry, the results it recovered.
-                 */
-                function finishConversion(conv, recovered) {
-                    const failed  = conv.results.filter(r => !r.html);
-                    const flagged = conv.results.filter(r => r.html && r.audit && !r.audit.ok);
-                    const combined = combineSections(conv.zip.foundation, conv.results);
-
-                    if (flagged.length) {
-                        addMessage('error',
-                            'Converted, but the check against the source still found differences in ' + flagged.length +
-                            ' section' + (flagged.length === 1 ? '' : 's') + ':\n' +
-                            flagged.map(r => '- ' + r.label + ': ' + describeAudit(r.audit)).join('\n') +
-                            '\nLook at these in the preview before building.'
-                        );
-                    }
-
-                    $('#snn-zip-retry-card').remove();
                     if (failed.length) {
                         addMessage('error',
-                            'Could not convert ' + failed.length + ' of ' + conv.results.length + ' section group' + (conv.results.length === 1 ? '' : 's') + ':\n' +
-                            failed.map(r => '- ' + r.label + ' - ' + r.reason).join('\n')
+                            'Could not convert ' + failed.length + ' of ' + total + ' pass' + (total === 1 ? '' : 'es') + ':\n' +
+                            failed.map(f => '- ' + f).join('\n')
                         );
-                        const $card = $('<div id="snn-zip-retry-card" class="snn-change-card">').append(
-                            $('<div class="snn-chg-head">').text(failed.length + ' section' + (failed.length === 1 ? '' : 's') + ' still missing from the preview'),
-                            $('<div class="snn-chg-actions">').append(
-                                $('<button type="button" class="snn-chg-apply snn-zip-retry">')
-                                    .text('Retry ' + (failed.length === 1 ? 'the failed section' : 'the ' + failed.length + ' failed sections'))
-                            )
-                        );
-                        $('#snn-bricks-chat-messages').append($card);
-                        scrollToBottom();
                     }
 
-                    if (!combined) {
+                    if (!built.length) {
                         addMessage('error',
                             'Nothing could be converted, so there is no preview to build.\n\n' +
                             'Most likely causes, in order:\n' +
@@ -6033,80 +5197,15 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         return;
                     }
 
-                    // A retry that recovered nothing leaves the preview and approve bar as they were.
-                    if (recovered && !recovered.length) return;
-
+                    const combined = built.join('\n');
                     ChatState.currentHTMLPreview = combined;
                     ChatState.previewMode        = 'html';
                     showHTMLPreview(combined);
-
-                    // After a build, tick only the recovered sections so building again does
-                    // not duplicate what is already on the page.
-                    let preselect = null;
-                    if (recovered && conv.alreadyBuilt) {
-                        preselect = new Set();
-                        let index = 0;
-                        conv.results.forEach(r => {
-                            if (!r.html) return;
-                            const n = sectionCount(r.html);
-                            if (recovered.includes(r)) for (let k = 0; k < n; k++) preselect.add(index + k);
-                            index += n;
-                        });
-                        setAgentState('converting', 'Only the recovered section' + (recovered.length === 1 ? ' is' : 's are') +
-                            ' ticked, so building does not duplicate what is already on the page. Bricks adds ' +
-                            (recovered.length === 1 ? 'it' : 'them') + ' at the bottom - drag into place in the structure panel.');
-                    }
-                    addApproveBar(preselect);
-
-                    const done = conv.results.length - failed.length;
-                    setAgentState('converting', 'Done: ' + done + ' of ' + conv.results.length +
-                        ' section groups converted. Review the preview, then press Build.');
+                    addApproveBar();
+                    setAgentState('converting',
+                        'Done: converted ' + built.length + ' of ' + total + ' passes. Review the preview, then press Build.'
+                    );
                 }
-
-                /** Re-run only the passes that failed, into their original slots. */
-                async function retryFailed() {
-                    const conv = ChatState.zipConversion;
-                    if (!conv || ChatState.isProcessing) return;
-                    const pending = conv.results.filter(r => !r.html);
-                    if (!pending.length) return;
-
-                    $('#snn-zip-retry-card').remove();
-                    // A successful build clears previewMode; before one it is still 'html'.
-                    conv.alreadyBuilt = ChatState.previewMode !== 'html';
-                    const recovered = [];
-
-                    ChatState.isProcessing = true;
-                    updateSendButton();
-                    try {
-                        for (let i = 0; i < pending.length; i++) {
-                            const r = pending[i];
-                            showTyping();
-                            setAgentState('converting', 'Retrying "' + r.label + '" (' + (i + 1) + '/' + pending.length + ')...');
-                            const res = await convertChunk(r.chunk, conv.zip, r.prefix, false);
-                            if (res.html) {
-                                r.html = res.html; r.audit = res.audit || null; r.reason = null;
-                                recovered.push(r);
-                                definedClassesOf(res.html).forEach(c => {
-                                    if (!conv.zip.definedClasses.includes(c)) conv.zip.definedClasses.push(c);
-                                });
-                                setAgentState('converting', 'Recovered "' + r.label + '"');
-                            } else {
-                                r.reason = res.reason;
-                                setAgentState('converting', 'Retry of "' + r.label + '" failed again: ' + res.reason);
-                            }
-                        }
-                    } catch(err) {
-                        if (err.name !== 'AbortError') addMessage('error', 'Retry stopped: ' + (err.message || err));
-                    } finally {
-                        hideTyping();
-                        ChatState.isProcessing = false;
-                        updateSendButton();
-                    }
-                    finishConversion(conv, recovered);
-                    autoSaveConversation();
-                }
-
-                $(document).on('click', '.snn-zip-retry', function() { retryFailed(); });
 
                 // ── misc ─────────────────────────────────────────────────────
 
@@ -6293,6 +5392,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 /* Context bar — what the agent is looking at, and what it may change */
 .snn-bricks-context-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 12px; background: #fff; border-top: 1px solid #eee; }
 .snn-bricks-context-chip { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; background: #f1f5f9; border: 1px solid #dbe3ec; border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 12px; color: #334155; }
+.snn-ctx-icon { font-size: 12px; flex-shrink: 0; }
 .snn-ctx-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .snn-ctx-detail { color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .snn-ctx-clear { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
@@ -6661,33 +5761,6 @@ function snn_upload_design_asset_handler() {
 
     $file['name'] = sanitize_file_name( $file['name'] );
 
-    // Re-importing the same export must not pile up image-1, image-1-1, image-1-2...
-    // Identity is the SHA-256 of the bytes actually received (never a client claim),
-    // and a hit is only reused while its file still exists on disk.
-    $hash = hash_file( 'sha256', $file['tmp_name'] );
-    if ( $hash ) {
-        $existing = get_posts( array(
-            'post_type'      => 'attachment',
-            'post_status'    => 'inherit',
-            'posts_per_page' => 1,
-            'fields'         => 'ids',
-            'meta_key'       => '_snn_design_asset_sha256',
-            'meta_value'     => $hash,
-        ) );
-        if ( $existing ) {
-            $existing_id   = (int) $existing[0];
-            $existing_path = get_attached_file( $existing_id );
-            $existing_url  = wp_get_attachment_url( $existing_id );
-            if ( $existing_path && file_exists( $existing_path ) && $existing_url ) {
-                wp_send_json_success( array(
-                    'attachment_id' => $existing_id,
-                    'url'           => $existing_url,
-                    'reused'        => true,
-                ) );
-            }
-        }
-    }
-
     $upload = wp_handle_upload( $file, array(
         'test_form' => false,
         'mimes'     => $allowed,
@@ -6717,14 +5790,9 @@ function snn_upload_design_asset_handler() {
 
     wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $upload['file'] ) );
 
-    if ( $hash ) {
-        update_post_meta( $attachment_id, '_snn_design_asset_sha256', $hash );
-    }
-
     wp_send_json_success( array(
         'attachment_id' => $attachment_id,
         'url'           => wp_get_attachment_url( $attachment_id ),
-        'reused'        => false,
     ) );
 }
 
