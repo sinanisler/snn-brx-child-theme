@@ -57,19 +57,22 @@ function snn_register_get_tags_ability() {
 
                 $result = array();
                 foreach ( $tags as $tag ) {
+                    $tag_link = get_term_link( $tag );
                     $result[] = array(
                         'id'    => $tag->term_id,
                         'name'  => $tag->name,
                         'slug'  => $tag->slug,
                         'count' => $tag->count,
-                        'url'   => get_term_link( $tag ),
+                        'url'   => is_wp_error( $tag_link ) ? '' : $tag_link,
                         'description' => $tag->description,
                     );
                 }
 
                 return $result;
             },
-            'permission_callback' => '__return_true',
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
             'meta' => array(
                 'show_in_rest' => true,
                 'readonly'     => true,

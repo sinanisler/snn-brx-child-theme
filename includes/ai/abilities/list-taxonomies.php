@@ -82,6 +82,11 @@ function snn_register_list_taxonomies_ability() {
                 $result = array();
 
                 foreach ( $taxonomies as $taxonomy ) {
+                    // Internal taxonomies (no UI, not public) and ones the user cannot assign stay hidden
+                    if ( ( ! $taxonomy->public && ! $taxonomy->show_ui ) || ! current_user_can( $taxonomy->cap->assign_terms ) ) {
+                        continue;
+                    }
+
                     // Get term count for this taxonomy
                     $term_count = wp_count_terms( array(
                         'taxonomy'   => $taxonomy->name,
@@ -110,7 +115,9 @@ function snn_register_list_taxonomies_ability() {
 
                 return $result;
             },
-            'permission_callback' => '__return_true',
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
             'meta' => array(
                 'show_in_rest' => true,
                 'readonly'     => true,

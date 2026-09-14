@@ -72,12 +72,16 @@ function snn_register_get_terms_ability() {
             'execute_callback' => function( $input ) {
                 $taxonomy = isset( $input['taxonomy'] ) ? sanitize_key( $input['taxonomy'] ) : 'category';
 
-                // Validate taxonomy exists
-                if ( ! taxonomy_exists( $taxonomy ) ) {
+                // Validate taxonomy exists and is readable (internal taxonomies are treated as missing)
+                $taxonomy_obj = get_taxonomy( $taxonomy );
+                if ( ! $taxonomy_obj || ( ! $taxonomy_obj->public && ! $taxonomy_obj->show_ui ) || ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) {
                     // Get list of available public taxonomies to help the agent
                     $available_taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
                     $taxonomy_list = array();
                     foreach ( $available_taxonomies as $tax ) {
+                        if ( ! current_user_can( $tax->cap->assign_terms ) ) {
+                            continue;
+                        }
                         $taxonomy_list[] = sprintf( '"%s" (%s)', $tax->name, $tax->label );
                     }
                     return new WP_Error(
@@ -97,12 +101,15 @@ function snn_register_get_terms_ability() {
                     $number = 100;
                 }
 
+                $orderby = isset( $input['orderby'] ) ? sanitize_key( $input['orderby'] ) : 'name';
+                $order   = isset( $input['order'] ) ? strtoupper( sanitize_key( $input['order'] ) ) : 'ASC';
+
                 $args = array(
                     'taxonomy'   => $taxonomy,
                     'hide_empty' => isset( $input['hide_empty'] ) ? (bool) $input['hide_empty'] : false,
                     'number'     => $number,
-                    'orderby'    => isset( $input['orderby'] ) ? sanitize_key( $input['orderby'] ) : 'name',
-                    'order'      => isset( $input['order'] ) ? strtoupper( sanitize_key( $input['order'] ) ) : 'ASC',
+                    'orderby'    => in_array( $orderby, array( 'name', 'slug', 'term_id', 'id', 'count', 'term_group', 'description', 'parent' ), true ) ? $orderby : 'name',
+                    'order'      => in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'ASC',
                 );
 
                 if ( isset( $input['parent'] ) ) {
@@ -121,13 +128,14 @@ function snn_register_get_terms_ability() {
 
                 $result = array();
                 foreach ( $terms as $term ) {
+                    $term_link = get_term_link( $term );
                     $result[] = array(
                         'id'          => $term->term_id,
                         'name'        => $term->name,
                         'slug'        => $term->slug,
                         'taxonomy'    => $term->taxonomy,
                         'count'       => $term->count,
-                        'url'         => get_term_link( $term ),
+                        'url'         => is_wp_error( $term_link ) ? '' : $term_link,
                         'parent'      => $term->parent,
                         'description' => $term->description,
                     );
@@ -135,7 +143,9 @@ function snn_register_get_terms_ability() {
 
                 return $result;
             },
-            'permission_callback' => '__return_true',
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
             'meta' => array(
                 'show_in_rest' => true,
                 'readonly'     => true,

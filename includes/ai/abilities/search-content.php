@@ -70,35 +70,69 @@ function snn_register_search_content_ability() {
                 ),
             ),
             'execute_callback' => function( $input ) {
+                // Never query 'any': that would include internal types such as agent history.
+                // Only post types with an admin UI that the user can edit are searched.
+                $post_types = array();
+                foreach ( get_post_types( array( 'show_ui' => true ), 'objects' ) as $type_obj ) {
+                    if ( current_user_can( $type_obj->cap->edit_posts ) ) {
+                        $post_types[] = $type_obj->name;
+                    }
+                }
+
+                $requested_type = sanitize_key( $input['post_type'] ?? 'any' );
+                if ( '' !== $requested_type && 'any' !== $requested_type ) {
+                    if ( ! in_array( $requested_type, $post_types, true ) ) {
+                        return new WP_Error(
+                            'invalid_post_type',
+                            sprintf( 'Post type "%s" does not exist or you are not allowed to read it.', $requested_type ),
+                            array( 'status' => 403 )
+                        );
+                    }
+                    $post_types = array( $requested_type );
+                }
+
+                if ( empty( $post_types ) ) {
+                    return array( 'total' => 0, 'returned' => 0, 'results' => array() );
+                }
+
                 $args = array(
                     's'              => sanitize_text_field( $input['query'] ),
-                    'post_type'      => $input['post_type'] ?? 'any',
-                    'posts_per_page' => $input['limit'] ?? 10,
-                    'offset'         => $input['offset'] ?? 0,
-                    'post_status'    => 'any',
+                    'post_type'      => $post_types,
+                    'posts_per_page' => max( 1, min( absint( $input['limit'] ?? 10 ), 100 ) ),
+                    'offset'         => absint( $input['offset'] ?? 0 ),
+                    // Explicit statuses instead of 'any'; unreadable posts are filtered below
+                    'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future' ),
                 );
 
                 $query   = new WP_Query( $args );
                 $results = array();
+                $hidden  = 0;
 
                 foreach ( $query->posts as $post ) {
+                    if ( ! current_user_can( 'read_post', $post->ID ) ) {
+                        $hidden++;
+                        continue;
+                    }
+
                     $results[] = array(
                         'id'      => $post->ID,
                         'title'   => $post->post_title,
                         'type'    => $post->post_type,
-                        'url'     => get_permalink( $post ),
+                        'url'     => (string) get_permalink( $post ),
                         'excerpt' => wp_trim_words( $post->post_content, 20 ),
                         'date'    => get_the_date( 'Y-m-d H:i:s', $post ),
                     );
                 }
 
                 return array(
-                    'total'    => $query->found_posts,
+                    'total'    => max( 0, (int) $query->found_posts - $hidden ),
                     'returned' => count( $results ),
                     'results'  => $results,
                 );
             },
-            'permission_callback' => '__return_true',
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
             'meta' => array(
                 'show_in_rest' => true,
                 'readonly'     => true,

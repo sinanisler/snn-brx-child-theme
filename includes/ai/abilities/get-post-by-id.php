@@ -45,7 +45,10 @@ function snn_register_get_post_by_id_ability() {
                 $post_id = absint( $input['post_id'] );
                 $post = get_post( $post_id );
 
-                if ( ! $post ) {
+                // Same response for missing and unreadable posts, so IDs cannot be probed.
+                // Internal post types (agent history, snippets, logs) have no admin UI and stay hidden.
+                $post_type_obj = $post ? get_post_type_object( $post->post_type ) : null;
+                if ( ! $post_type_obj || ! $post_type_obj->show_ui || ! current_user_can( 'read_post', $post->ID ) ) {
                     return new WP_Error(
                         'post_not_found',
                         sprintf( 'Post with ID %d not found.', $post_id ),
@@ -64,11 +67,11 @@ function snn_register_get_post_by_id_ability() {
                     'excerpt'  => $post->post_excerpt,
                     'status'   => $post->post_status,
                     'type'     => $post->post_type,
-                    'url'      => get_permalink( $post ),
-                    'edit_url' => get_edit_post_link( $post, 'raw' ),
+                    'url'      => (string) get_permalink( $post ),
+                    'edit_url' => (string) get_edit_post_link( $post, 'raw' ),
                     'author'   => array(
-                        'id'   => $author->ID,
-                        'name' => $author->display_name,
+                        'id'   => $author ? $author->ID : 0,
+                        'name' => $author ? $author->display_name : '',
                     ),
                     'date'     => get_the_date( 'Y-m-d H:i:s', $post ),
                     'modified' => $post->post_modified,
@@ -80,7 +83,9 @@ function snn_register_get_post_by_id_ability() {
                     }, $tags ) : array(),
                 );
             },
-            'permission_callback' => '__return_true',
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
             'meta' => array(
                 'show_in_rest' => true,
                 'readonly'     => true,

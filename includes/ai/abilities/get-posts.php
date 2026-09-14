@@ -90,20 +90,38 @@ function snn_register_get_posts_ability() {
             ),
             'execute_callback' => function( $input ) {
                 $posts_per_page = isset( $input['posts_per_page'] ) ? absint( $input['posts_per_page'] ) : 10;
-                
-                // Handle post status - default to both publish and draft
-                $post_status = $input['post_status'] ?? 'publish,draft';
-                if ( strpos( $post_status, ',' ) !== false ) {
-                    $post_status = array_map( 'trim', explode( ',', $post_status ) );
+
+                // Internal post types (agent history, snippets, logs) have no admin UI and stay hidden
+                $post_type     = sanitize_key( $input['post_type'] ?? 'post' );
+                $post_type_obj = get_post_type_object( $post_type );
+                if ( ! $post_type_obj || ! $post_type_obj->show_ui || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
+                    return new WP_Error(
+                        'invalid_post_type',
+                        sprintf( 'Post type "%s" does not exist or you are not allowed to read it.', $post_type ),
+                        array( 'status' => 403 )
+                    );
                 }
-                
+
+                // Default to both publish and draft; only known statuses, 'any' expands to all of them
+                $allowed_statuses = array( 'publish', 'draft', 'pending', 'private', 'future' );
+                $post_status      = array_map( 'trim', explode( ',', (string) ( $input['post_status'] ?? 'publish,draft' ) ) );
+                $post_status      = in_array( 'any', $post_status, true )
+                    ? $allowed_statuses
+                    : array_values( array_intersect( $post_status, $allowed_statuses ) );
+                if ( empty( $post_status ) ) {
+                    $post_status = array( 'publish', 'draft' );
+                }
+
+                $orderby = $input['orderby'] ?? 'date';
+                $order   = strtoupper( $input['order'] ?? 'DESC' );
+
                 $args = array(
-                    'post_type'      => $input['post_type'] ?? 'post',
+                    'post_type'        => $post_type,
                     // Cap at 100 for performance on large sites
-                    'posts_per_page' => min( $posts_per_page, 100 ),
-                    'post_status'    => $post_status,
-                    'orderby'        => $input['orderby'] ?? 'date',
-                    'order'          => $input['order'] ?? 'DESC',
+                    'posts_per_page'   => max( 1, min( $posts_per_page, 100 ) ),
+                    'post_status'      => $post_status,
+                    'orderby'          => in_array( $orderby, array( 'date', 'title', 'modified', 'rand' ), true ) ? $orderby : 'date',
+                    'order'            => in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'DESC',
                 );
 
                 if ( ! empty( $input['category'] ) ) {
@@ -114,12 +132,17 @@ function snn_register_get_posts_ability() {
                 $result = array();
 
                 foreach ( $posts as $post ) {
+                    // Drop drafts/private posts the user cannot read (e.g. other authors' drafts)
+                    if ( ! current_user_can( 'read_post', $post->ID ) ) {
+                        continue;
+                    }
+
                     $author = get_userdata( $post->post_author );
 
                     $result[] = array(
                         'id'      => $post->ID,
                         'title'   => $post->post_title,
-                        'url'     => get_permalink( $post ),
+                        'url'     => (string) get_permalink( $post ),
                         'excerpt' => wp_trim_words( $post->post_content, 30 ),
                         'date'    => get_the_date( 'Y-m-d H:i:s', $post ),
                         'status'  => $post->post_status,
@@ -129,7 +152,9 @@ function snn_register_get_posts_ability() {
 
                 return $result;
             },
-            'permission_callback' => '__return_true',
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
             'meta' => array(
                 'show_in_rest' => true,
                 'readonly'     => true,

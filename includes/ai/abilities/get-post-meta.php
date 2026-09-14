@@ -37,8 +37,10 @@ function snn_register_get_post_meta_ability() {
             'execute_callback' => function( $input ) {
                 $post_id = absint( $input['post_id'] );
 
-                // Check if post exists
-                if ( ! get_post( $post_id ) ) {
+                // Check if post exists and is readable; internal post types (no admin UI) stay hidden
+                $post          = get_post( $post_id );
+                $post_type_obj = $post ? get_post_type_object( $post->post_type ) : null;
+                if ( ! $post_type_obj || ! $post_type_obj->show_ui || ! current_user_can( 'read_post', $post_id ) ) {
                     return new WP_Error(
                         'post_not_found',
                         sprintf( 'Post with ID %d not found.', $post_id ),
