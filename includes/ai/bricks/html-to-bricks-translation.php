@@ -15,27 +15,72 @@
             //   .brxe-container{ display:flex; flex-direction:column; align-items:flex-start; flex-wrap:wrap; width:1100px }
             //   .brxe-block    { display:flex; flex-direction:column; align-items:flex-start; flex-wrap:wrap; width:100% }
             //
-            // Those defaults are why generated pages came out column-when-it-should-be-
-            // row (and vice versa): a plain .my-row{display:flex} class ties .brxe-block
-            // on specificity, so the winner depended on stylesheet order.
+            // The cascade is resolved once per Bricks breakpoint, at that breakpoint's
+            // own viewport width, so min-width (mobile-first) and max-width
+            // (desktop-first) media queries both land on the breakpoints they really
+            // cover.
             // ================================================================
 
-            // Bricks' own breakpoints (includes/breakpoints.php). A native setting for a
-            // non-base breakpoint is stored as "<key>:<breakpoint>", e.g. "_direction:mobile_portrait".
-            const BRICKS_BREAKPOINTS = [
+            // Bricks' default breakpoints (includes/breakpoints.php), used only when the
+            // builder does not expose the site's own list through bricksData.
+            const DEFAULT_BREAKPOINTS = [
+                { key: 'desktop',          width: 1279, base: true },
                 { key: 'tablet_portrait',  width: 991 },
                 { key: 'mobile_landscape', width: 767 },
                 { key: 'mobile_portrait',  width: 478 }
             ];
-            const DESKTOP_CANVAS_WIDTH = 1279;
 
             // Element names Bricks treats as layout elements (Element::is_layout_element()).
             // These use _direction / _flexWrap / _columnGap; everything else uses
             // _flexDirection / _gap — Bricks defines the two sets in different files.
             const LAYOUT_ELEMENT_NAMES = new Set(['section', 'container', 'block', 'div']);
 
+            // Every setting the cascade resolver owns. Kept in one place so a re-sync can
+            // clear exactly these (and their breakpoint variants) and nothing else.
+            const NATIVE_LAYOUT_KEYS = [
+                '_display', '_direction', '_flexDirection', '_flexWrap', '_alignItems', '_justifyContent',
+                '_rowGap', '_columnGap', '_gap', '_gridGap', '_gridTemplateColumns', '_gridTemplateRows',
+                '_gridAutoColumns', '_gridAutoRows', '_gridAutoFlow', '_justifyItemsGrid', '_alignItemsGrid',
+                '_justifyContentGrid', '_alignContentGrid', '_width', '_widthMax'
+            ];
+
+            // HTML tag options of Bricks' layout elements (section.php / container.php).
+            // Anything else is written as tag:"custom" + customTag.
+            const SECTION_TAG_OPTIONS = ['section', 'header', 'footer', 'article', 'aside', 'div'];
+            const BLOCK_TAG_OPTIONS   = ['div', 'section', 'a', 'article', 'nav', 'ol', 'ul', 'li', 'aside', 'address', 'figure'];
+
             // FontAwesome utility tokens that are NOT the glyph name.
             const FA_MODIFIER = /^fa-(fw|border|inverse|li|ul|pull-left|pull-right|spin|pulse|beat|fade|bounce|shake|flip|flip-horizontal|flip-vertical|flip-both|rotate-(90|180|270|by)|stack|stack-1x|stack-2x|xs|sm|lg|xl|2xl|[0-9]+x|sharp|duotone|solid|regular|brands|light|thin)$/;
+
+            /**
+             * The site's breakpoints, arranged the way Bricks' own cascade inherits them.
+             *
+             * base.width / steps[].width are the viewport widths the CSS cascade is
+             * resolved at. Desktop-first: base at its width, then each narrower
+             * breakpoint at its max-width. Mobile-first: base just below the first
+             * breakpoint, then each wider breakpoint at its min-width.
+             */
+            function getBreakpointPlan() {
+                let list = DEFAULT_BREAKPOINTS;
+                try {
+                    const live = window.bricksData && window.bricksData.breakpoints;
+                    const parsed = (live ? Array.from(Object.values(live)) : [])
+                        .map(b => ({ key: b && b.key, width: parseInt(b && b.width, 10), base: !!(b && b.base), paused: !!(b && b.paused) }))
+                        .filter(b => b.key && b.width > 0 && !b.paused);
+                    if (parsed.length) list = parsed;
+                } catch (e) { /* builder data unavailable — defaults */ }
+
+                const base   = list.find(b => b.base) || list.reduce((a, b) => (b.width > a.width ? b : a));
+                const others = list.filter(b => b !== base);
+                const mobileFirst = others.length > 0 && others.every(b => b.width > base.width);
+                others.sort((a, b) => mobileFirst ? a.width - b.width : b.width - a.width);
+                const baseWidth = mobileFirst ? Math.min(base.width, others[0].width - 1) : base.width;
+                return {
+                    mobileFirst: mobileFirst,
+                    base:  { key: base.key, width: baseWidth },
+                    steps: others.map(b => ({ key: b.key, width: b.width }))
+                };
+            }
 
             /**
              * Parse a FontAwesome icon class string into a Bricks icon object.
@@ -77,64 +122,164 @@
             }
 
             /**
-             * Find an icon on an element: an explicit data-icon attribute, or a nested
-             * <i>/<span> carrying FontAwesome classes.
+             * Parse href → Bricks link object.
              *
-             * Buttons and links compile as leaf elements, so a nested <i> used to be
-             * dropped silently — <button><i class="fas fa-arrow-right"></i> Go</button>
-             * lost its icon entirely. The AI writes nested <i> because that is ordinary
-             * HTML; expecting it to use data-icon every time never worked.
-             */
-            function extractInlineIcon(el) {
-                const dataIcon = el.getAttribute('data-icon');
-                if (dataIcon) {
-                    const obj = parseFaIcon(dataIcon);
-                    if (obj) return { icon: obj, position: el.getAttribute('data-icon-position') || 'left', node: null };
-                }
-                let node = null;
-                for (const cand of el.querySelectorAll('i, span')) {
-                    if (parseFaIcon(cand.getAttribute('class') || '')) { node = cand; break; }
-                }
-                if (!node) return null;
-                const obj = parseFaIcon(node.getAttribute('class') || '');
-                if (!obj) return null;
-
-                // Position: is there any real text before the icon?
-                let position = 'left';
-                const html = el.innerHTML;
-                const at   = html.indexOf(node.outerHTML);
-                if (at > 0) {
-                    const before = html.slice(0, at).replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-                    if (before) position = 'right';
-                }
-                return { icon: obj, position: position, node: node };
-            }
-
-            /** innerHTML of an element with its icon node removed, for button/link text. */
-            function textWithoutIcon(el, found) {
-                const clone = el.cloneNode(true);
-                if (found && found.node) {
-                    const originals = Array.from(el.querySelectorAll('*'));
-                    const clones    = Array.from(clone.querySelectorAll('*'));
-                    const at        = originals.indexOf(found.node);
-                    if (at >= 0 && clones[at]) clones[at].remove();
-                }
-                return clone.innerHTML.replace(/\s+/g, ' ').trim();
-            }
-
-            /**
-             * Parse href → Bricks link object
+             * Bricks renders an "internal" link only from a postId, so "#pricing" and
+             * "/contact" stored as internal came out with no href at all. Every written
+             * URL is an external link — exactly what Bricks' own HTML converter stores —
+             * and a new tab is "newTab", the key Bricks' link control reads.
              */
             function parseLink(el) {
-                const href = el.getAttribute('href') || el.getAttribute('data-href') || '#';
-                const link = {
-                    type: (href.startsWith('#') || href.startsWith('/')) ? 'internal' : 'external',
-                    url: href
-                };
-                if (el.getAttribute('target') === '_blank') link.blank = true;
+                const href = (el.getAttribute('href') || el.getAttribute('data-href') || '#').trim();
+                const link = { type: 'external', url: href };
+                if (el.getAttribute('target') === '_blank') link.newTab = true;
                 const rel = el.getAttribute('rel');
                 if (rel) link.rel = rel;
                 return link;
+            }
+
+            function escapeRegExp(s) {
+                return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            // ================================================================
+            // CSS TOKENIZING
+            // ================================================================
+
+            /**
+             * Split CSS into its top-level parts: { prelude, body } for blocks and
+             * { prelude, body: null } for statements such as @import. Quotes are
+             * respected, so content:"{" does not unbalance the braces.
+             *
+             * Walking back from a "{" to the previous "}" (the old approach) glued a
+             * leading "@import url(...);" onto the first selector, and that rule was then
+             * discarded as an at-rule — its class silently lost all of its CSS.
+             */
+            function cssTopLevelBlocks(css) {
+                const out = [];
+                const text = String(css || '');
+                let depth = 0, start = 0, braceAt = -1, quote = null;
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    if (quote) { if (ch === quote && text[i - 1] !== '\\') quote = null; continue; }
+                    if (ch === '"' || ch === "'") { quote = ch; continue; }
+                    if (ch === '{') { if (depth === 0) braceAt = i; depth++; continue; }
+                    if (ch === '}') {
+                        depth--;
+                        if (depth === 0 && braceAt > -1) {
+                            out.push({ prelude: text.slice(start, braceAt).trim(), body: text.slice(braceAt + 1, i) });
+                            start = i + 1;
+                            braceAt = -1;
+                        }
+                        if (depth < 0) depth = 0;
+                        continue;
+                    }
+                    if (ch === ';' && depth === 0) {
+                        const stmt = text.slice(start, i + 1).trim();
+                        if (stmt) out.push({ prelude: stmt, body: null });
+                        start = i + 1;
+                    }
+                }
+                return out;
+            }
+
+            /** "a, :is(b, c)" → ["a", ":is(b, c)"] — commas inside parentheses or brackets stay put. */
+            function splitSelectorList(text) {
+                const out = [];
+                let depth = 0, buf = '', quote = null;
+                for (const ch of String(text || '')) {
+                    if (quote) { buf += ch; if (ch === quote) quote = null; continue; }
+                    if (ch === '"' || ch === "'") { quote = ch; buf += ch; continue; }
+                    if (ch === '(' || ch === '[') depth++;
+                    if (ch === ')' || ch === ']') depth--;
+                    if (ch === ',' && depth === 0) { if (buf.trim()) out.push(buf.trim()); buf = ''; continue; }
+                    buf += ch;
+                }
+                if (buf.trim()) out.push(buf.trim());
+                return out;
+            }
+
+            /**
+             * Visit every class token in a selector, skipping attribute selectors and
+             * quoted strings ([href$=".pdf"] is not a class). The callback may return a
+             * replacement name.
+             */
+            function mapSelectorClasses(selector, fn) {
+                const s = String(selector || '');
+                let out = '', i = 0, bracket = 0, quote = null;
+                while (i < s.length) {
+                    const ch = s[i];
+                    if (quote) { out += ch; if (ch === quote) quote = null; i++; continue; }
+                    if (ch === '"' || ch === "'") { quote = ch; out += ch; i++; continue; }
+                    if (ch === '[') bracket++;
+                    if (ch === ']') bracket--;
+                    if (ch === '.' && bracket === 0) {
+                        const m = s.slice(i + 1).match(/^-?[_a-zA-Z][\w-]*/);
+                        if (m) {
+                            const next = fn(m[0]);
+                            out += '.' + (typeof next === 'string' ? next : m[0]);
+                            i += 1 + m[0].length;
+                            continue;
+                        }
+                    }
+                    out += ch;
+                    i++;
+                }
+                return out;
+            }
+
+            /** Rename class selectors everywhere in a stylesheet: nested @media/@supports included, declarations untouched. */
+            function renameClassesInCss(css, renames) {
+                if (!css || !renames || !Object.keys(renames).length) return css;
+                const has = (n) => Object.prototype.hasOwnProperty.call(renames, n);
+                return cssTopLevelBlocks(css).map(block => {
+                    if (block.body === null) return block.prelude;
+                    const prelude = block.prelude;
+                    if (/^@(media|supports|container|layer|document)\b/i.test(prelude)) {
+                        return prelude + ' {\n' + renameClassesInCss(block.body, renames) + '\n}';
+                    }
+                    if (prelude.startsWith('@')) return prelude + ' {' + block.body + '}';
+                    return mapSelectorClasses(prelude, n => has(n) ? renames[n] : null) + ' {' + block.body + '}';
+                }).join('\n');
+            }
+
+            /** Every class name a stylesheet's selectors mention. */
+            function classNamesInCss(css) {
+                const names = new Set();
+                const walk = (text) => cssTopLevelBlocks(text).forEach(block => {
+                    if (block.body === null) return;
+                    if (/^@(media|supports|container|layer|document)\b/i.test(block.prelude)) { walk(block.body); return; }
+                    if (block.prelude.startsWith('@')) return;
+                    mapSelectorClasses(block.prelude, n => { names.add(n); return null; });
+                });
+                walk(String(css || '').replace(/\/\*[\s\S]*?\*\//g, ''));
+                return names;
+            }
+
+            /** Rename class="" tokens (and <style> selectors) inside raw HTML a setting carries. */
+            function renameClassAttrsInHtml(html, renames) {
+                if (!html || !renames || !Object.keys(renames).length) return html;
+                const has = (n) => Object.prototype.hasOwnProperty.call(renames, n);
+                return String(html)
+                    .replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/gi, (m, open, css, close) => open + renameClassesInCss(css, renames) + close)
+                    .replace(/(\sclass\s*=\s*)(["'])([^"']*)\2/gi, (m, lead, q, value) =>
+                        lead + q + value.split(/(\s+)/).map(tok => has(tok) ? renames[tok] : tok).join('') + q);
+            }
+
+            /** Apply class renames to everything a compiled element carries as text: raw HTML and element custom CSS. */
+            function applyClassRenamesToElements(content, renames) {
+                if (!renames || !Object.keys(renames).length) return;
+                (content || []).forEach(el => {
+                    const st = el.settings || {};
+                    ['text', 'content'].forEach(k => {
+                        if (typeof st[k] === 'string') st[k] = renameClassAttrsInHtml(st[k], renames);
+                    });
+                    Object.keys(st).forEach(k => {
+                        if ((k === '_cssCustom' || k.indexOf('_cssCustom:') === 0) && typeof st[k] === 'string') {
+                            st[k] = renameClassesInCss(st[k], renames);
+                        }
+                    });
+                });
             }
 
             // ================================================================
@@ -190,140 +335,176 @@
                 return out;
             }
 
+            /** Like parseDeclarations, but keeps !important values apart so they can win the cascade. */
+            function parseDeclarationsWithPriority(body) {
+                const normal = {}, important = {};
+                let count = 0;
+                splitDeclarations(body || '').forEach(decl => {
+                    const at = decl.indexOf(':');
+                    if (at === -1) return;
+                    const prop = decl.slice(0, at).trim().toLowerCase();
+                    const val  = decl.slice(at + 1).trim();
+                    if (!prop) return;
+                    count++;
+                    if (/!\s*important\s*$/i.test(val)) important[prop] = val.replace(/!\s*important\s*$/i, '').trim();
+                    else normal[prop] = val;
+                });
+                return { normal: normal, important: important, count: count };
+            }
+
+            /** The class a rule is filed under: the first class in the selector (attribute selectors ignored). */
+            function firstClassInSelector(sel) {
+                let first = null;
+                mapSelectorClasses(sel, n => { if (!first) first = n; return null; });
+                return first;
+            }
+
             function parseCSSRules(css) {
                 const classes = {};
+                const keyframes = [];
+                css = String(css || '').replace(/\/\*[\s\S]*?\*\//g, '');
 
-                // Remove comments
-                css = css.replace(/\/\*[\s\S]*?\*\//g, '');
-
-                // ── STEP 0: Identify all @media blocks first ──
-                // We MUST extract and remove @media blocks BEFORE parsing class rules,
-                // otherwise rules inside @media get double-matched (once by ruleRegex,
-                // once by the @media recursion).
-                const mediaBlocks = [];
-                const mediaRegex = /@media\s*[^{]+\{/g;
-                let m;
-                while ((m = mediaRegex.exec(css)) !== null) {
-                    const startIdx = m.index + m[0].length - 1;
-                    let depth = 1, endIdx = startIdx + 1;
-                    while (depth > 0 && endIdx < css.length) {
-                        if (css[endIdx] === '{') depth++;
-                        else if (css[endIdx] === '}') depth--;
-                        endIdx++;
-                    }
-                    mediaBlocks.push({
-                        query: m[0].substring(0, m[0].length - 1).trim(),
-                        content: css.substring(startIdx + 1, endIdx - 1),
-                        start: m.index,
-                        end: endIdx
+                // Rules are filed under their first class in source order; a rule inside
+                // @media keeps its query wrapper, so every class's CSS stays self-contained.
+                const walk = (text, mediaStack) => {
+                    cssTopLevelBlocks(text).forEach(block => {
+                        if (block.body === null) return;                          // @import, @charset ...
+                        const prelude = block.prelude;
+                        if (/^@media/i.test(prelude)) { walk(block.body, mediaStack.concat(prelude)); return; }
+                        if (/^@(-webkit-)?keyframes/i.test(prelude)) { if (!mediaStack.length) keyframes.push(block); return; }
+                        // @supports, @layer, @font-face ... are not class rules — extractGlobalCSS keeps them.
+                        if (prelude.startsWith('@')) return;
+                        splitSelectorList(prelude).forEach(sel => {
+                            const className = firstClassInSelector(sel);
+                            if (!className) return;
+                            let rule = sel + ' {\n' + formatCSSBody(block.body) + '\n}';
+                            for (let i = mediaStack.length - 1; i >= 0; i--) rule = mediaStack[i] + ' {\n' + rule + '\n}';
+                            classes[className] = (classes[className] || '') + rule + '\n\n';
+                        });
                     });
-                }
+                };
+                walk(css, []);
 
-                // Build a clean CSS string with @media blocks removed
-                mediaBlocks.sort((a, b) => b.start - a.start); // descending: remove from end
-                let cssCleaned = css;
-                mediaBlocks.forEach(b => {
-                    cssCleaned = cssCleaned.substring(0, b.start) + cssCleaned.substring(b.end);
+                // @keyframes travel with every class whose animation actually names them.
+                // Matching on a bare substring used to attach "fade" to whichever class
+                // happened to contain the text first — often one no element carries.
+                keyframes.forEach(block => {
+                    const nameMatch = block.prelude.match(/keyframes\s+([\w-]+)/i);
+                    if (!nameMatch) return;
+                    const uses = new RegExp('animation(?:-name)?\\s*:[^;{}]*?(?:^|[\\s,:])' + escapeRegExp(nameMatch[1]) + '(?![\\w-])', 'i');
+                    const text = block.prelude + ' {' + block.body + '}\n\n';
+                    Object.keys(classes).forEach(name => { if (uses.test(classes[name])) classes[name] += text; });
                 });
 
-                // ── STEP 1: Parse class rules from non-@media CSS ──
-                // parseRuleBlocks handles compound selectors (comma-separated)
-                // and only captures rules whose selector contains '.'
-                parseRuleBlocks(cssCleaned, classes);
-
-                // ── STEP 2: Process @media blocks recursively ──
-                // Restore original order for consistent CSS output
-                mediaBlocks.reverse();
-                mediaBlocks.forEach(({ query, content }) => {
-                    const innerRules = parseCSSRules(content);
-                    for (const [name, cssBlock] of Object.entries(innerRules)) {
-                        if (!classes[name]) classes[name] = '';
-                        classes[name] += query + ' {\n' + cssBlock + '\n}\n\n';
-                    }
-                });
-
-                // ── STEP 3: Handle @keyframes blocks ──
-                const keyframeRegex = /@keyframes\s+([a-zA-Z0-9_-]+)\s*\{/g;
-                while ((m = keyframeRegex.exec(css)) !== null) {
-                    const animName = m[1];
-                    const startIdx = m.index + m[0].length - 1;
-                    let depth = 1, endIdx = startIdx + 1;
-                    while (depth > 0 && endIdx < css.length) {
-                        if (css[endIdx] === '{') depth++;
-                        else if (css[endIdx] === '}') depth--;
-                        endIdx++;
-                    }
-                    const keyframeBlock = css.substring(m.index, endIdx);
-                    for (const [className, classCss] of Object.entries(classes)) {
-                        if (classCss.includes(animName)) {
-                            classes[className] += keyframeBlock + '\n\n';
-                            break;
-                        }
-                    }
-                }
-
-                // Remove excessive blank lines but keep readability
                 for (const name of Object.keys(classes)) {
                     classes[name] = classes[name].replace(/\n{3,}/g, '\n\n').trim();
                 }
-
                 return classes;
             }
 
-            /**
-             * Parse CSS rule blocks from a string that has NO @media blocks.
-             * Handles compound selectors (comma-separated) by splitting and
-             * storing the rule body under each base class name found.
-             *
-             * Example: ".hero, .banner { color: red; }"
-             *   → classes["hero"] += ".hero { color: red; }"
-             *   → classes["banner"] += ".banner { color: red; }"
-             */
-            function parseRuleBlocks(css, classes) {
-                let i = 0;
-                while (i < css.length) {
-                    const braceIdx = css.indexOf('{', i);
-                    if (braceIdx === -1) break;
+            // ================================================================
+            // MEDIA QUERIES
+            // A query is evaluated against a concrete viewport width — the width of the
+            // Bricks breakpoint being resolved — instead of being snapped onto the
+            // nearest breakpoint key.
+            // ================================================================
 
-                    // Walk back to find where the selector block starts
-                    // (after previous '}' or from beginning of string)
-                    let selStart = braceIdx - 1;
-                    while (selStart >= 0 && css[selStart] !== '}') selStart--;
-                    selStart++;
+            const mediaMatchCache = new Map();
 
-                    const selectorText = css.substring(selStart, braceIdx).trim();
+            function mediaLengthPx(num, unit) {
+                const n = parseFloat(num);
+                return (unit === 'em' || unit === 'rem') ? n * 16 : n;
+            }
 
-                    // Count braces to find matching closing brace
-                    let depth = 1, endIdx = braceIdx + 1;
-                    while (depth > 0 && endIdx < css.length) {
-                        if (css[endIdx] === '{') depth++;
-                        else if (css[endIdx] === '}') depth--;
-                        endIdx++;
-                    }
-
-                    const rawBody = css.substring(braceIdx + 1, endIdx - 1);
-
-                    // Only process class-based rules (selectors containing '.').
-                    // Skip at-rules (@supports, @layer, @font-face) — their bodies are
-                    // nested rule blocks, not declarations, and would corrupt the output.
-                    if (selectorText && selectorText.includes('.') && !selectorText.startsWith('@')) {
-                        // Split compound/comma-separated selectors
-                        const selectors = selectorText.split(',').map(s => s.trim());
-
-                        for (const sel of selectors) {
-                            // Extract the first .className from the selector
-                            const classMatch = sel.match(/\.([a-zA-Z0-9_-]+)/);
-                            if (classMatch) {
-                                const className = classMatch[1];
-                                if (!classes[className]) classes[className] = '';
-                                const body = formatCSSBody(rawBody);
-                                classes[className] += sel + ' {\n' + body + '\n}\n\n';
-                            }
-                        }
-                    }
-
-                    i = endIdx;
+            function compareWidth(width, op, px) {
+                switch (op) {
+                    case '<':  return width < px;
+                    case '<=': return width <= px;
+                    case '>':  return width > px;
+                    case '>=': return width >= px;
+                    default:   return width === px;
                 }
+            }
+
+            function flipOp(op) {
+                return { '<': '>', '<=': '>=', '>': '<', '>=': '<=', '=': '=' }[op];
+            }
+
+            /** Split on a keyword (and / or) outside parentheses. */
+            function splitTopLevelWord(str, re) {
+                const parts = [];
+                let depth = 0, start = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const ch = str[i];
+                    if (ch === '(') depth++;
+                    else if (ch === ')') depth--;
+                    else if (depth === 0 && /\s/.test(ch)) {
+                        const m = str.slice(i).match(re);
+                        if (m) { parts.push(str.slice(start, i)); i += m[0].length - 1; start = i + 1; }
+                    }
+                }
+                parts.push(str.slice(start));
+                return parts.map(s => s.trim()).filter(Boolean);
+            }
+
+            /** "(a) and (b)" is not wrapped; "((a) and (b))" is. */
+            function isWrappedInParens(str) {
+                if (!str.startsWith('(') || !str.endsWith(')')) return false;
+                let depth = 0;
+                for (let i = 0; i < str.length; i++) {
+                    if (str[i] === '(') depth++;
+                    else if (str[i] === ')') { depth--; if (depth === 0 && i < str.length - 1) return false; }
+                }
+                return true;
+            }
+
+            function mediaFeatureMatches(feature, width) {
+                const f = feature.replace(/\s+/g, ' ').trim();
+                let m = f.match(/^(min|max)-width\s*:\s*(-?\d*\.?\d+)(px|em|rem)?$/);
+                if (m) {
+                    const px = mediaLengthPx(m[2], m[3]);
+                    return m[1] === 'min' ? width >= px : width <= px;
+                }
+                m = f.match(/^(-?\d*\.?\d+)(px|em|rem)?\s*(<=|<)\s*width\s*(<=|<)\s*(-?\d*\.?\d+)(px|em|rem)?$/);
+                if (m) {
+                    return compareWidth(width, flipOp(m[3]), mediaLengthPx(m[1], m[2]))
+                        && compareWidth(width, m[4], mediaLengthPx(m[5], m[6]));
+                }
+                m = f.match(/^width\s*(<=|>=|<|>|=)\s*(-?\d*\.?\d+)(px|em|rem)?$/);
+                if (m) return compareWidth(width, m[1], mediaLengthPx(m[2], m[3]));
+                m = f.match(/^(-?\d*\.?\d+)(px|em|rem)?\s*(<=|>=|<|>|=)\s*width$/);
+                if (m) return compareWidth(width, flipOp(m[3]), mediaLengthPx(m[1], m[2]));
+                // orientation, hover, prefers-*, height, resolution ... cannot be decided from a width.
+                return false;
+            }
+
+            function mediaConditionMatches(cond, width) {
+                let c = cond.trim();
+                if (c === 'all' || c === 'screen') return true;
+                if (/^(print|speech|tty|tv|projection|handheld|braille|embossed|aural)$/.test(c)) return false;
+                while (isWrappedInParens(c)) c = c.slice(1, -1).trim();
+                if (/^not\s+/.test(c)) return !mediaConditionMatches(c.replace(/^not\s+/, ''), width);
+                const ands = splitTopLevelWord(c, /^\s+and\s+/);
+                if (ands.length > 1) return ands.every(x => mediaConditionMatches(x, width));
+                const ors = splitTopLevelWord(c, /^\s+or\s+/);
+                if (ors.length > 1) return ors.some(x => mediaConditionMatches(x, width));
+                return mediaFeatureMatches(c, width);
+            }
+
+            /** Does "@media <query>" apply at this viewport width? */
+            function mediaMatchesWidth(query, width) {
+                const key = query + '|' + width;
+                if (mediaMatchCache.has(key)) return mediaMatchCache.get(key);
+                const q = String(query || '').replace(/^@media\s*/i, '').trim().toLowerCase();
+                const result = !q || splitSelectorList(q).some(part => {
+                    let p = part.trim(), negate = false;
+                    if (/^not\s+/.test(p)) { negate = true; p = p.replace(/^not\s+/, ''); }
+                    p = p.replace(/^only\s+/, '');
+                    const ok = mediaConditionMatches(p, width);
+                    return negate ? !ok : ok;
+                });
+                mediaMatchCache.set(key, result);
+                return result;
             }
 
             // ================================================================
@@ -347,138 +528,84 @@
                 return ids * 10000 + classes * 100 + types;
             }
 
-            /**
-             * Map an @media query onto a Bricks breakpoint.
-             * Returns { bp, appliesAtDesktop }. A min-width query at or below the desktop
-             * canvas width folds into the base cascade, because that is what the designer
-             * sees in the preview at desktop size.
-             */
-            function mediaQueryToBreakpoint(query) {
-                const max = query.match(/max-width\s*:\s*(\d+(?:\.\d+)?)\s*px/i);
-                if (max) {
-                    const w = parseFloat(max[1]);
-                    let best = null, bestDiff = Infinity;
-                    BRICKS_BREAKPOINTS.forEach(bp => {
-                        const d = Math.abs(bp.width - w);
-                        if (d < bestDiff) { bestDiff = d; best = bp.key; }
-                    });
-                    return { bp: best, appliesAtDesktop: w >= DESKTOP_CANVAS_WIDTH };
-                }
-                const min = query.match(/min-width\s*:\s*(\d+(?:\.\d+)?)\s*px/i);
-                if (min) {
-                    return { bp: null, appliesAtDesktop: parseFloat(min[1]) <= DESKTOP_CANVAS_WIDTH };
-                }
-                return { bp: null, appliesAtDesktop: false };
-            }
-
             /** Selectors carrying interaction/state pseudos must not drive base layout settings. */
             const STATE_SELECTOR = /::|:(hover|focus|focus-within|focus-visible|active|visited|target|checked|disabled|placeholder)\b/i;
 
-            /** Flatten one CSS string into { selector, decls, spec, order } rules. */
-            function collectRules(css, into, orderStart, stateInto = null) {
-                let order = orderStart;
-                let i = 0;
-                while (i < css.length) {
-                    const braceIdx = css.indexOf('{', i);
-                    if (braceIdx === -1) break;
-                    let selStart = braceIdx - 1;
-                    while (selStart >= 0 && css[selStart] !== '}') selStart--;
-                    selStart++;
-                    const selectorText = css.substring(selStart, braceIdx).trim();
-                    let depth = 1, endIdx = braceIdx + 1;
-                    while (depth > 0 && endIdx < css.length) {
-                        if (css[endIdx] === '{') depth++;
-                        else if (css[endIdx] === '}') depth--;
-                        endIdx++;
-                    }
-                    const rawBody = css.substring(braceIdx + 1, endIdx - 1);
-                    if (selectorText && !selectorText.startsWith('@')) {
-                        const decls = parseDeclarations(rawBody);
-                        if (Object.keys(decls).length) {
-                            selectorText.split(',').map(s => s.trim()).forEach(sel => {
-                                if (!sel) return;
-                                if (STATE_SELECTOR.test(sel)) {
-                                    // Kept aside: they must not drive base settings, but pinned
-                                    // icon colours need them to stay reachable (see iconStateCss).
-                                    if (stateInto && !sel.includes('::')) {
-                                        stateInto.push({ selector: sel, decls: decls, spec: computeSpecificity(sel), order: order++ });
-                                    }
-                                    return;
-                                }
-                                into.push({ selector: sel, decls: decls, spec: computeSpecificity(sel), order: order++ });
-                            });
-                        }
-                    }
-                    i = endIdx;
-                }
-                return order;
-            }
+            // Longer names first, so ":focus" never half-matches ":focus-within".
+            const STATE_PSEUDO = /:(hover|focus-within|focus-visible|focus|active|visited|target|checked|disabled)\b/gi;
+            const PSEUDO_ELEMENT = /::?(before|after|first-letter|first-line|placeholder|marker|selection)\b/gi;
 
             /**
-             * Build { base: [...rules], breakpoints: { tablet_portrait: [...], ... } }
-             * from raw CSS text.
+             * Flatten a stylesheet into rules:
+             *   rules  — structural rules that drive native settings
+             *   states — :hover/:focus/... rules, kept for icon state styling
+             *   all    — every rule, pseudo-elements included, for selector rewriting
+             * Each rule keeps its @media queries (all must match) and its raw body.
              */
             function buildCssRuleSet(css) {
-                css = (css || '').replace(/\/\*[\s\S]*?\*\//g, '');
-                const base = [];
-                const breakpoints = {};
-
-                // Pull @media blocks out first so their rules are not read as base rules.
-                const mediaBlocks = [];
-                const mediaRegex = /@media\s*[^{]+\{/g;
-                let m;
-                while ((m = mediaRegex.exec(css)) !== null) {
-                    const startIdx = m.index + m[0].length - 1;
-                    let depth = 1, endIdx = startIdx + 1;
-                    while (depth > 0 && endIdx < css.length) {
-                        if (css[endIdx] === '{') depth++;
-                        else if (css[endIdx] === '}') depth--;
-                        endIdx++;
-                    }
-                    mediaBlocks.push({
-                        query: m[0].substring(0, m[0].length - 1).trim(),
-                        content: css.substring(startIdx + 1, endIdx - 1),
-                        start: m.index,
-                        end: endIdx
+                const ruleSet = { rules: [], states: [], all: [], matchCache: new WeakMap() };
+                let order = 0;
+                const walk = (text, media) => {
+                    cssTopLevelBlocks(text).forEach(block => {
+                        if (block.body === null) return;
+                        const prelude = block.prelude;
+                        if (/^@media/i.test(prelude)) {
+                            walk(block.body, media.concat(prelude.replace(/^@media\s*/i, '').trim()));
+                            return;
+                        }
+                        if (prelude.startsWith('@')) return;
+                        const decls = parseDeclarationsWithPriority(block.body);
+                        if (!decls.count) return;
+                        splitSelectorList(prelude).forEach(sel => {
+                            const rule = {
+                                selector: sel, decls: decls.normal, important: decls.important,
+                                raw: block.body, spec: computeSpecificity(sel), order: order++,
+                                media: media.length ? media : null
+                            };
+                            ruleSet.all.push(rule);
+                            if (STATE_SELECTOR.test(sel)) {
+                                if (!sel.includes('::')) ruleSet.states.push(rule);
+                                return;
+                            }
+                            ruleSet.rules.push(rule);
+                        });
                     });
-                }
-                let cssCleaned = css;
-                mediaBlocks.slice().sort((a, b) => b.start - a.start).forEach(b => {
-                    cssCleaned = cssCleaned.substring(0, b.start) + cssCleaned.substring(b.end);
-                });
-
-                const states = [];
-                let order = collectRules(cssCleaned, base, 0, states);
-
-                mediaBlocks.forEach(({ query, content }) => {
-                    const mapped = mediaQueryToBreakpoint(query);
-                    if (mapped.appliesAtDesktop) {
-                        order = collectRules(content, base, order, states);
-                    } else if (mapped.bp) {
-                        if (!breakpoints[mapped.bp]) breakpoints[mapped.bp] = [];
-                        collectRules(content, breakpoints[mapped.bp], 0);
-                    }
-                });
-
-                return { base: base, breakpoints: breakpoints, states: states };
+                };
+                walk(String(css || '').replace(/\/\*[\s\S]*?\*\//g, ''), []);
+                return ruleSet;
             }
 
-            /** Resolve the declarations that actually apply to one element. */
-            function resolveDeclsFor(el, rules) {
-                if (!rules || !rules.length) return {};
-                const matched = [];
-                for (const r of rules) {
-                    let hit = false;
-                    try { hit = el.matches(r.selector); } catch (e) { hit = false; }
-                    if (hit) matched.push(r);
+            function ruleAppliesAt(rule, width) {
+                return !rule.media || rule.media.every(q => mediaMatchesWidth(q, width));
+            }
+
+            /** Structural rules matching an element, sorted by cascade order. Width-independent, so cached per element. */
+            function matchedRulesFor(el, ruleSet) {
+                if (!ruleSet || !el || el.nodeType !== 1) return [];
+                if (!ruleSet.matchCache) ruleSet.matchCache = new WeakMap();
+                let hit = ruleSet.matchCache.get(el);
+                if (!hit) {
+                    hit = (ruleSet.rules || []).filter(r => {
+                        try { return el.matches(r.selector); } catch (e) { return false; }
+                    });
+                    hit.sort((a, b) => (a.spec - b.spec) || (a.order - b.order));
+                    ruleSet.matchCache.set(el, hit);
                 }
-                matched.sort((a, b) => (a.spec - b.spec) || (a.order - b.order));
-                const out = {};
-                matched.forEach(r => Object.assign(out, r.decls));
+                return hit;
+            }
+
+            /** The declarations that apply to one element at one viewport width. */
+            function resolveDeclsAt(el, ruleSet, width) {
+                const out = {}, important = {};
+                matchedRulesFor(el, ruleSet).forEach(r => {
+                    if (!ruleAppliesAt(r, width)) return;
+                    Object.assign(out, r.decls);
+                    Object.assign(important, r.important);
+                });
                 // A stray inline style="" wins over any stylesheet rule.
-                const inline = el.getAttribute('style');
+                const inline = el && el.getAttribute ? el.getAttribute('style') : null;
                 if (inline) Object.assign(out, parseDeclarations(inline));
-                return out;
+                return Object.assign(out, important);
             }
 
             // ================================================================
@@ -576,6 +703,46 @@
                 }
 
                 return out;
+            }
+
+            /**
+             * Resolve an element's layout at every Bricks breakpoint and store it the way
+             * Bricks does: base values unsuffixed, then only what changes, suffixed with
+             * the breakpoint key, in the order Bricks' cascade inherits values.
+             *
+             * A property the CSS stops declaring at a breakpoint is reset to
+             * revert-layer: that hands it back to Bricks' layered element defaults, which
+             * is exactly where the preview gets it from when no class rule applies.
+             */
+            function computeNativeLayout(el, bricksName, ctx) {
+                const plan   = ctx.plan;
+                const parent = el.parentElement && el.parentElement.tagName.toLowerCase() !== 'body' ? el.parentElement : null;
+                const at = (width) => deriveNativeSettings(
+                    resolveDeclsAt(el, ctx.ruleSet, width),
+                    bricksName,
+                    parent ? resolveDeclsAt(parent, ctx.ruleSet, width) : null
+                );
+
+                const out = at(plan.base.width);
+                const inherited = Object.assign({}, out);
+                plan.steps.forEach(step => {
+                    const next = at(step.width);
+                    new Set([...Object.keys(inherited), ...Object.keys(next)]).forEach(k => {
+                        const value = Object.prototype.hasOwnProperty.call(next, k) ? next[k] : 'revert-layer';
+                        if (value === inherited[k]) return;
+                        if (value === 'revert-layer' && inherited[k] === undefined) return;
+                        out[k + ':' + step.key] = value;
+                        inherited[k] = value;
+                    });
+                });
+                return out;
+            }
+
+            /** Remove every setting the cascade resolver owns, including breakpoint variants. */
+            function clearNativeLayout(settings) {
+                Object.keys(settings || {}).forEach(k => {
+                    if (NATIVE_LAYOUT_KEYS.includes(k.split(':')[0])) delete settings[k];
+                });
             }
 
             // ================================================================
@@ -742,11 +909,11 @@
             function findLineOnlyClasses(doc, ruleSet) {
                 const lineClasses = {};
                 const otherClasses = new Set();
-                const rules = (ruleSet && ruleSet.base) || [];
+                const baseWidth = getBreakpointPlan().base.width;
                 doc.body.querySelectorAll('*').forEach(el => {
                     const classes = (el.getAttribute('class') || '').split(/\s+/).filter(c => c && !isFaToken(c));
                     if (!classes.length) return;
-                    const line = isLineCandidate(el) ? analyzeLine(resolveDeclsFor(el, rules)) : null;
+                    const line = isLineCandidate(el) ? analyzeLine(resolveDeclsAt(el, ruleSet, baseWidth)) : null;
                     classes.forEach(c => {
                         if (!line) { otherClasses.add(c); return; }
                         if (!lineClasses[c]) lineClasses[c] = line.direction;
@@ -824,6 +991,36 @@
                 return null;
             }
 
+            /** A declared colour that really paints — not inherit/currentColor/none. */
+            function explicitPaint(value) {
+                const v = String(value || '').trim();
+                if (!v || /^(inherit|initial|unset|revert|currentcolor|none|transparent)$/i.test(v)) return null;
+                return v;
+            }
+
+            /** A declared length/size worth pinning — not inherit/auto. */
+            function explicitLength(value) {
+                const v = String(value || '').trim();
+                if (!v || /^(inherit|initial|unset|revert|auto)$/i.test(v)) return null;
+                return v;
+            }
+
+            /**
+             * Write a per-breakpoint setting: base unsuffixed, then "key:breakpoint"
+             * wherever the resolved value changes along Bricks' cascade.
+             */
+            function perBreakpointSetting(settings, key, ctx, resolve, convert) {
+                const plan = ctx.plan;
+                const base = resolve(plan.base.width);
+                if (base) settings[key] = convert(base);
+                let prev = base;
+                plan.steps.forEach(step => {
+                    const v = resolve(step.width);
+                    if (v && v !== prev) settings[key + ':' + step.key] = convert(v);
+                    if (v) prev = v;
+                });
+            }
+
             // ================================================================
             // ICON SIZE
             // Bricks ships .brxe-icon{font-size:60px}. The usual markup is
@@ -832,18 +1029,6 @@
             // the direct 60px rule cuts inheritance, so every such icon came out at
             // 60px. Resolve the size the icon really renders at and pin it as iconSize.
             // ================================================================
-
-            /** Declarations for a node at a breakpoint: base, then every breakpoint at least as wide, widest first. */
-            function declsAtBreakpoint(node, ruleSet, bpKey) {
-                const out = Object.assign({}, resolveDeclsFor(node, ruleSet.base));
-                if (!bpKey) return out;
-                const limit = (BRICKS_BREAKPOINTS.find(b => b.key === bpKey) || {}).width;
-                BRICKS_BREAKPOINTS
-                    .filter(b => b.width >= limit)
-                    .sort((a, b) => b.width - a.width)
-                    .forEach(b => Object.assign(out, resolveDeclsFor(node, (ruleSet.breakpoints || {})[b.key])));
-                return out;
-            }
 
             function roundCss(n) { return String(Math.round(n * 1000) / 1000); }
 
@@ -859,10 +1044,10 @@
              * The font-size an element actually renders at: its own declaration or the
              * nearest ancestor's, compounding em/% steps on the way up.
              */
-            function resolveEffectiveFontSize(el, ruleSet, bpKey) {
+            function resolveEffectiveFontSize(el, ruleSet, width) {
                 let factor = 1;
                 for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
-                    const fs = (declsAtBreakpoint(node, ruleSet, bpKey)['font-size'] || '').trim();
+                    const fs = (resolveDeclsAt(node, ruleSet, width)['font-size'] || '').trim();
                     const lower = fs.toLowerCase();
                     if (!fs || lower === 'inherit' || lower === 'unset') continue;
                     const rel = lower.match(/^(-?\d*\.?\d+)(em|%)$/);
@@ -882,9 +1067,9 @@
             // ================================================================
 
             /** The colour an element really renders in: its own, or the nearest ancestor's. */
-            function resolveEffectiveColor(el, ruleSet, bpKey) {
+            function resolveEffectiveColor(el, ruleSet, width) {
                 for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
-                    const c = (declsAtBreakpoint(node, ruleSet, bpKey)['color'] || '').trim();
+                    const c = (resolveDeclsAt(node, ruleSet, width)['color'] || '').trim();
                     if (!c || /^(inherit|unset|currentcolor)$/i.test(c)) continue;
                     if (/^initial$/i.test(c)) return null;
                     return c;
@@ -900,71 +1085,389 @@
                 return !(pct && parseFloat(pct[1]) <= 100);
             }
 
-            // Longer names first, so ":focus" never half-matches ":focus-within".
-            const STATE_PSEUDO = /:(hover|focus-within|focus-visible|focus|active|visited|target|checked|disabled)\b/gi;
-
             /**
-             * Every state rule that reaches this icon's colour (or its own font-size),
-             * rewritten against %root% so it outranks the pinned base value:
+             * Every state rule that reaches an icon's colour (or its own font-size),
+             * rewritten against %root% so it outranks the pinned base value.
+             *
+             * Standalone icon element (%root% is the icon):
              *   .card:hover .card-icon { color }  →  :is(.card:hover .card-icon) %root% { color; fill }
              *   .solo i:hover { color }           →  %root%:is(.solo i:hover) { color; fill }
+             * Icon inside a button / text link (%root% is the holder, the icon a child):
+             *   .btn:hover i { color }            →  %root% i:is(.btn:hover i) { ... }
+             *   .btn:hover { color }              →  %root%:is(.btn:hover) i { ... }
              * A rule on an ancestor is skipped when something closer sets its own colour,
              * because in HTML it would never have reached the icon either.
              */
-            function iconStateCss(el, ruleSet) {
-                const states = (ruleSet && ruleSet.states) || [];
+            function iconStateCss(node, ctx, holder = null, nodeTarget = '', colorTarget = '') {
+                const states = (ctx.ruleSet && ctx.ruleSet.states) || [];
                 if (!states.length) return '';
+                const baseWidth = ctx.plan.base.width;
                 const chain = [];
-                for (let n = el; n && n.nodeType === 1; n = n.parentElement) chain.push(n);
-                const baseDecls = chain.map(n => resolveDeclsFor(n, ruleSet.base));
+                for (let n = node; n && n.nodeType === 1; n = n.parentElement) chain.push(n);
+                const holderDepth = holder ? chain.indexOf(holder) : 0;
+                const baseDecls = chain.map(n => resolveDeclsAt(n, ctx.ruleSet, baseWidth));
                 const rules = [];
                 let transition = null;
-                states.slice().sort((a, b) => (a.spec - b.spec) || (a.order - b.order)).forEach(r => {
-                    const structural = r.selector.replace(STATE_PSEUDO, '').trim() || '*';
-                    let depth = -1;
-                    for (let i = 0; i < chain.length; i++) {
-                        let hit = false;
-                        try { hit = chain[i].matches(structural); } catch (e) { hit = false; }
-                        if (hit) { depth = i; break; }
-                    }
-                    if (depth === -1) return;
-                    const decls = [];
-                    if (r.decls['color'] && !baseDecls.slice(0, depth).some(d => d['color'])) {
-                        decls.push('color: ' + r.decls['color'], 'fill: ' + r.decls['color']);
-                    }
-                    if (r.decls['font-size'] && depth === 0) decls.push('font-size: ' + r.decls['font-size']);
-                    if (!decls.length) return;
-                    const sel = depth === 0 ? '%root%:is(' + r.selector + ')' : ':is(' + r.selector + ') %root%';
-                    rules.push(sel + ' {\n  ' + decls.join(';\n  ') + ';\n}');
-                    // In HTML an inherited colour fades with the wrapper's transition; the
-                    // icon now switches its own colour, so it needs that transition too.
-                    const t = baseDecls[depth]['transition'];
-                    if (!transition && t && /color|all/i.test(t)) transition = t.trim();
-                });
+
+                states
+                    .filter(r => ruleAppliesAt(r, baseWidth))
+                    .sort((a, b) => (a.spec - b.spec) || (a.order - b.order))
+                    .forEach(r => {
+                        const structural = r.selector.replace(STATE_PSEUDO, '').trim() || '*';
+                        let depth = -1;
+                        for (let i = 0; i < chain.length; i++) {
+                            let hit = false;
+                            try { hit = chain[i].matches(structural); } catch (e) { hit = false; }
+                            if (hit) { depth = i; break; }
+                        }
+                        if (depth === -1) return;
+                        // A wrapper removed together with the icon: its class rules are rewritten separately.
+                        if (holder && depth > 0 && depth < holderDepth) return;
+
+                        const rd = Object.assign({}, r.decls, r.important);
+                        const decls = [];
+                        if (rd['color'] && !baseDecls.slice(0, depth).some(d => d['color'])) {
+                            decls.push('color: ' + rd['color'], 'fill: ' + rd['color']);
+                        }
+                        if (rd['font-size'] && depth === 0) decls.push('font-size: ' + rd['font-size']);
+                        if (!decls.length) return;
+
+                        let sel;
+                        if (!holder) {
+                            sel = depth === 0 ? '%root%:is(' + r.selector + ')' : ':is(' + r.selector + ') %root%';
+                        } else if (depth === 0) {
+                            sel = '%root% ' + nodeTarget + ':is(' + r.selector + ')';
+                        } else if (depth === holderDepth) {
+                            sel = '%root%:is(' + r.selector + ') ' + colorTarget;
+                        } else {
+                            sel = ':is(' + r.selector + ') %root% ' + colorTarget;
+                        }
+                        rules.push(sel + ' {\n  ' + decls.join(';\n  ') + ';\n}');
+                        // In HTML an inherited colour fades with the wrapper's transition; the
+                        // icon now switches its own colour, so it needs that transition too.
+                        const t = baseDecls[depth]['transition'];
+                        if (!transition && t && /color|all/i.test(t)) transition = t.trim();
+                    });
                 if (!rules.length) return '';
-                return (transition ? '%root% {\n  transition: ' + transition + ';\n}\n' : '') + rules.join('\n');
+                const self = holder ? '%root% ' + colorTarget : '%root%';
+                return (transition ? self + ' {\n  transition: ' + transition + ';\n}\n' : '') + rules.join('\n');
             }
 
             /** Pin a font icon's size, colour and state styling as native settings. */
-            function pinIconAppearance(el, settings, ruleSet) {
-                const perBreakpoint = (key, resolve, convert) => {
-                    const base = resolve(null);
-                    if (base) settings[key] = convert(base);
-                    let prev = base;
-                    BRICKS_BREAKPOINTS.forEach(bp => {   // widest first, like Bricks' own cascade
-                        const v = resolve(bp.key);
-                        if (v && v !== prev) settings[key + ':' + bp.key] = convert(v);
-                        prev = v;
-                    });
-                };
+            function pinIconAppearance(el, settings, ctx) {
                 if (el.getAttribute('data-icon-size')) {
                     settings.iconSize = el.getAttribute('data-icon-size');
                 } else {
-                    perBreakpoint('iconSize', bp => resolveEffectiveFontSize(el, ruleSet, bp), v => v);
+                    perBreakpointSetting(settings, 'iconSize', ctx, w => resolveEffectiveFontSize(el, ctx.ruleSet, w), v => v);
                 }
-                perBreakpoint('iconColor', bp => resolveEffectiveColor(el, ruleSet, bp), toBricksColor);
-                const stateCss = iconStateCss(el, ruleSet);
+                perBreakpointSetting(settings, 'iconColor', ctx, w => resolveEffectiveColor(el, ctx.ruleSet, w), toBricksColor);
+                const stateCss = iconStateCss(el, ctx);
                 if (stateCss) settings._cssCustom = stateCss;
+            }
+
+            // ================================================================
+            // SVG → MEDIA LIBRARY
+            // Bricks renders SVG only from an attachment: the svg element's "file"
+            // source and an icon control's {library:"svg"} both need an ID, and the
+            // "code" source needs a server signature. So the chat uploads every liftable
+            // inline <svg> before the build (Bricks' own SVG sanitizer runs on the way
+            // in) and hands the compiler a map of markup → attachment.
+            // ================================================================
+
+            const svgKeyCache = new WeakMap();
+
+            /** Stable identity of an inline SVG: its XML serialization, minus the builder hint. */
+            function svgKey(svg) {
+                if (svgKeyCache.has(svg)) return svgKeyCache.get(svg);
+                const clone = svg.cloneNode(true);
+                clone.removeAttribute('data-bricks');
+                const key = new XMLSerializer().serializeToString(clone);
+                svgKeyCache.set(svg, key);
+                return key;
+            }
+
+            function svgAssetFor(svg, ctx) {
+                if (!svg || !ctx || !(ctx.svgAssets instanceof Map)) return null;
+                return ctx.svgAssets.get(svgKey(svg)) || null;
+            }
+
+            /** <use href="#x"> pointing outside the SVG (a page sprite) breaks once the SVG is a file. */
+            function svgIsSelfContained(svg) {
+                for (const use of svg.querySelectorAll('use')) {
+                    const ref = use.getAttribute('href') || use.getAttribute('xlink:href') || '';
+                    if (!ref.startsWith('#')) return false;
+                    let target = null;
+                    try { target = svg.querySelector('[id="' + ref.slice(1).replace(/"/g, '\\"') + '"]'); } catch (e) { target = null; }
+                    if (!target) return false;
+                }
+                return true;
+            }
+
+            /** An element whose only content is one <svg> (a wrapper the AI put around it). */
+            function soleSvgChild(el) {
+                if (!el || el.children.length !== 1) return null;
+                const child = el.children[0];
+                if (child.tagName.toLowerCase() !== 'svg') return null;
+                const clean = Array.from(el.childNodes).every(n => n === child || n.nodeType === 8 || (n.nodeType === 3 && !n.textContent.trim()));
+                return clean ? child : null;
+            }
+
+            /**
+             * The inline SVGs a build can turn into Bricks elements or icon settings:
+             * standalone SVGs in layout, and SVGs inside a button or text link. SVGs
+             * inside a heading, rich text or custom HTML stay raw markup.
+             */
+            function svgUploadCandidates(root) {
+                const out = [];
+                root.querySelectorAll('svg').forEach(svg => {
+                    if (svg.parentElement && svg.parentElement.closest('svg')) return;   // nested
+                    if (!svgIsSelfContained(svg)) return;
+                    let child = svg, node = svg.parentElement, holder = null;
+                    while (node && node.tagName && node.tagName.toLowerCase() !== 'body') {
+                        const name = bricksNameFor(node);
+                        const transparentWrapper = child === svg && soleSvgChild(node) === svg
+                            && (name === 'custom-html-css-script' || name === 'text-basic' || name === 'icon');
+                        if (LAYOUT_ELEMENT_NAMES.has(name) || transparentWrapper) { child = node; node = node.parentElement; continue; }
+                        if ((name === 'button' || name === 'text-link') && !holder) { holder = node; child = node; node = node.parentElement; continue; }
+                        if (holder && (name === 'text-basic' || name === 'icon')) { child = node; node = node.parentElement; continue; }   // span wrapper inside the button
+                        return;
+                    }
+                    out.push(svg);
+                });
+                return out;
+            }
+
+            // ================================================================
+            // ICONS IN BUTTONS AND TEXT LINKS
+            // Both elements have their own icon control. What Bricks stores:
+            //   button    — icon, iconPosition, iconGap, iconTypography {font-size, color}
+            //   text-link — icon, iconPosition, gap,     iconSize, iconColor
+            //   svg icon  — icon {library:"svg", svg:{id,filename,url}, width, height, fill, stroke}
+            // Anything left inside "text" as markup shows up as raw tags in the builder
+            // and loses the icon's styling, so the icon is lifted into those settings.
+            // ================================================================
+
+            const ICON_WRAPPER_TAGS = new Set(['span', 'i', 'div', 'em', 'b', 'strong', 'small']);
+
+            /** Climb single-child wrappers (<span class="btn-icon"><i ...></i></span>) so they leave with the icon. */
+            function iconRemovalNode(node, root) {
+                let cur = node;
+                while (cur.parentElement && cur.parentElement !== root) {
+                    const p = cur.parentElement;
+                    const hint = p.getAttribute('data-bricks');
+                    if (p.children.length !== 1) break;
+                    if (p.textContent.trim() !== cur.textContent.trim()) break;
+                    if (!ICON_WRAPPER_TAGS.has(p.tagName.toLowerCase()) && hint !== 'custom-html-css-script' && hint !== 'icon') break;
+                    cur = p;
+                }
+                return cur;
+            }
+
+            /** Visible text before and after a node inside root (text inside SVGs ignored). */
+            function textAround(root, node) {
+                let before = '', after = '';
+                const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+                let t;
+                while ((t = walker.nextNode())) {
+                    if (node.contains(t)) continue;
+                    if (t.parentElement && t.parentElement.closest('svg')) continue;
+                    if (node.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_PRECEDING) before += t.textContent;
+                    else after += t.textContent;
+                }
+                return { before: before, after: after };
+            }
+
+            /**
+             * The icon a button or text link should carry natively: a data-icon
+             * attribute, a FontAwesome <i>/<span>, or an uploaded inline <svg>. One at
+             * the start or end of the label is preferred; Bricks holds a single icon.
+             */
+            function findControlIcon(el, ctx) {
+                const dataIcon = el.getAttribute('data-icon');
+                if (dataIcon) {
+                    const obj = parseFaIcon(dataIcon);
+                    if (obj) return { kind: 'font', icon: obj, node: null, removal: null, before: '', after: el.textContent, position: el.getAttribute('data-icon-position') || 'left' };
+                }
+                const candidates = [];
+                el.querySelectorAll('i, span, svg').forEach(node => {
+                    if (node.parentElement && node.parentElement.closest('svg')) return;
+                    if (node.tagName.toLowerCase() === 'svg') {
+                        const asset = svgAssetFor(node, ctx);
+                        if (asset) candidates.push({ kind: 'svg', node: node, asset: asset });
+                        return;
+                    }
+                    const obj = parseFaIcon(node.getAttribute('class') || '');
+                    if (obj && !node.textContent.trim() && !node.children.length) candidates.push({ kind: 'font', node: node, icon: obj });
+                });
+                candidates.forEach(c => {
+                    c.removal = iconRemovalNode(c.node, el);
+                    const around = textAround(el, c.removal);
+                    c.before = around.before;
+                    c.after  = around.after;
+                });
+                const pick = candidates.find(c => !c.before.trim() || !c.after.trim()) || candidates[0];
+                if (!pick) return null;
+                pick.position = el.getAttribute('data-icon-position') || (pick.before.trim() ? 'right' : 'left');
+                return pick;
+            }
+
+            /** innerHTML of an element with one descendant removed, whitespace collapsed. */
+            function innerHtmlWithout(el, node) {
+                const clone = el.cloneNode(true);
+                if (node) {
+                    const originals = Array.from(el.querySelectorAll('*'));
+                    const clones    = Array.from(clone.querySelectorAll('*'));
+                    const at        = originals.indexOf(node);
+                    if (at >= 0 && clones[at]) clones[at].remove();
+                }
+                return clone.innerHTML.replace(/\s+/g, ' ').trim();
+            }
+
+            /** Space between label and icon, as the HTML laid it out. */
+            function iconGapFromCss(decls, found) {
+                const display = (decls['display'] || '').toLowerCase();
+                if (/flex|grid/.test(display)) {
+                    let col = decls['column-gap'];
+                    if (!col && decls['gap']) {
+                        const parts = splitCssTokens(decls['gap']);
+                        col = parts[1] || parts[0];
+                    }
+                    return col ? col.trim() : '0';
+                }
+                // Inline flow: the icon was spaced only by the whitespace next to it.
+                const spaced = found.position === 'right' ? /\s$/.test(found.before) : /^\s/.test(found.after);
+                return spaced ? '0.25em' : '0';
+            }
+
+            /** Top-level combinator split: ".card:hover > .btn-arrow" → { prefix: ".card:hover", last: ".btn-arrow" }. */
+            function splitLastCompound(selector) {
+                const sel = String(selector || '').trim();
+                let depth = 0, quote = null, cut = -1;
+                for (let i = 0; i < sel.length; i++) {
+                    const ch = sel[i];
+                    if (quote) { if (ch === quote) quote = null; continue; }
+                    if (ch === '"' || ch === "'") { quote = ch; continue; }
+                    if (ch === '(' || ch === '[') depth++;
+                    else if (ch === ')' || ch === ']') depth--;
+                    else if (depth === 0 && (ch === ' ' || ch === '>' || ch === '+' || ch === '~')) cut = i;
+                }
+                if (cut === -1) return { prefix: '', last: sel };
+                return { prefix: sel.slice(0, cut).replace(/[\s>+~]+$/, '').trim(), last: sel.slice(cut + 1).trim() };
+            }
+
+            /**
+             * Class rules that styled the icon node or its removed wrapper
+             * (".btn-arrow { transition }", ".btn:hover .btn-arrow { transform }").
+             * The rendered Bricks icon does not carry those classes, so each rule is
+             * re-anchored on %root% and the icon selector, @media wrappers kept.
+             */
+            function rewriteIconClassRules(holder, found, ctx, iconSelector) {
+                if (!found.node) return '';
+                const tokens = new Set();
+                const chain  = [];
+                const collect = (node) => (node.getAttribute('class') || '').split(/\s+/).forEach(c => { if (c && !isFaToken(c)) tokens.add(c); });
+                // An uploaded SVG keeps its own classes: they are part of the file's markup.
+                if (found.kind === 'font') { collect(found.node); chain.push(found.node); }
+                for (let n = found.node.parentElement; n && n !== holder && found.removal && found.removal.contains(n); n = n.parentElement) {
+                    collect(n);
+                    chain.push(n);
+                }
+                if (!tokens.size) return '';
+
+                const out = [];
+                (ctx.ruleSet.all || []).slice().sort((a, b) => a.order - b.order).forEach(r => {
+                    const parts = splitLastCompound(r.selector);
+                    let mentions = false;
+                    mapSelectorClasses(parts.last, n => { if (tokens.has(n)) mentions = true; return null; });
+                    if (!mentions) return;
+                    const structural = r.selector.replace(STATE_PSEUDO, '').replace(PSEUDO_ELEMENT, '').trim() || '*';
+                    const reaches = chain.some(n => { try { return n.matches(structural); } catch (e) { return false; } });
+                    if (!reaches) return;
+
+                    const pseudo = (parts.last.match(/::?[\w-]+(\([^)]*\))?/g) || []).join('');
+                    let selector;
+                    if (!parts.prefix) {
+                        selector = '%root% ' + iconSelector + pseudo;
+                    } else {
+                        const prefixStructural = parts.prefix.replace(STATE_PSEUDO, '').trim() || '*';
+                        let onRoot = false;
+                        try { onRoot = holder.matches(prefixStructural); } catch (e) { onRoot = false; }
+                        selector = onRoot
+                            ? '%root%:is(' + parts.prefix + ') ' + iconSelector + pseudo
+                            : ':is(' + parts.prefix + ') %root% ' + iconSelector + pseudo;
+                    }
+                    let rule = selector + ' {\n' + formatCSSBody(r.raw) + '\n}';
+                    (r.media || []).slice().reverse().forEach(q => { rule = '@media ' + q + ' {\n' + rule + '\n}'; });
+                    out.push(rule);
+                });
+                return out.join('\n');
+            }
+
+            /** Write a button's iconTypography per breakpoint: font-size and colour the icon itself declares. */
+            function iconTypographyPerBreakpoint(settings, ctx, size, color) {
+                const plan = ctx.plan;
+                const baseSize = size(plan.base.width), baseColor = color(plan.base.width);
+                const base = {};
+                if (baseSize)  base['font-size'] = baseSize;
+                if (baseColor) base.color = toBricksColor(baseColor);
+                if (Object.keys(base).length) settings.iconTypography = base;
+                let prevSize = baseSize, prevColor = baseColor;
+                plan.steps.forEach(step => {
+                    const fs = size(step.width), c = color(step.width);
+                    const t = {};
+                    if (fs && fs !== prevSize) t['font-size'] = fs;
+                    if (c && c !== prevColor)  t.color = toBricksColor(c);
+                    if (Object.keys(t).length) settings['iconTypography:' + step.key] = t;
+                    if (fs) prevSize = fs;
+                    if (c) prevColor = c;
+                });
+            }
+
+            /** Fill a button / text link's native icon settings from the lifted icon. */
+            function applyControlIcon(element, el, found, ownDecls, ctx) {
+                const s        = element.settings;
+                const isButton = element.name === 'button';
+                const tagSel   = found.kind === 'svg' ? 'svg' : 'i';
+                const nodeSel  = isButton ? tagSel : '.icon > ' + tagSel;
+
+                if (found.kind === 'svg') {
+                    s.icon = { library: 'svg', svg: { id: found.asset.id, filename: found.asset.filename, url: found.asset.url } };
+                    const d = resolveDeclsAt(found.node, ctx.ruleSet, ctx.plan.base.width);
+                    const w = explicitLength(d['width'])  || explicitLength(found.node.getAttribute('width'));
+                    const h = explicitLength(d['height']) || explicitLength(found.node.getAttribute('height'));
+                    if (w) s.icon.width  = w;
+                    if (h) s.icon.height = h;
+                    const fill   = explicitPaint(d['fill']);
+                    const stroke = explicitPaint(d['stroke']);
+                    if (fill)   s.icon.fill   = toBricksColor(fill);
+                    if (stroke) s.icon.stroke = toBricksColor(stroke);
+                } else {
+                    s.icon = found.icon;
+                    if (found.node) {
+                        // Only what the icon declares itself: an inherited size or colour keeps
+                        // inheriting in Bricks too, and pinning it would freeze hover colours.
+                        const own   = (w) => resolveDeclsAt(found.node, ctx.ruleSet, w);
+                        const size  = (w) => explicitLength(own(w)['font-size']);
+                        const color = (w) => explicitPaint(own(w)['color']);
+                        if (isButton) {
+                            iconTypographyPerBreakpoint(s, ctx, size, color);
+                        } else {
+                            perBreakpointSetting(s, 'iconSize', ctx, size, v => v);
+                            perBreakpointSetting(s, 'iconColor', ctx, color, toBricksColor);
+                        }
+                        if (color(ctx.plan.base.width)) {
+                            const stateCss = iconStateCss(found.node, ctx, el, nodeSel, isButton ? 'i' : '.icon');
+                            if (stateCss) s._cssCustom = (s._cssCustom ? s._cssCustom + '\n' : '') + stateCss;
+                        }
+                    }
+                }
+                s.iconPosition = found.position;
+
+                const gapKey = isButton ? 'iconGap' : 'gap';
+                s[gapKey] = el.getAttribute('data-icon-gap') || iconGapFromCss(ownDecls, found);
+
+                const classCss = rewriteIconClassRules(el, found, ctx, nodeSel);
+                if (classCss) s._cssCustom = (s._cssCustom ? s._cssCustom + '\n' : '') + classCss;
             }
 
             /**
@@ -1082,8 +1585,8 @@
             }
 
             /**
-             * Register every class that appears on an element but has no CSS rule of its
-             * own. Without this the compiler dropped such names entirely (classNameToId
+             * Register every class that appears on an element but has no CSS rule of
+             * its own. Without this the compiler dropped such names entirely (classNameToId
              * lookup → undefined → filtered out), so the class never reached the rendered
              * HTML and any ".parent .child" rule written against it stopped matching.
              */
@@ -1107,7 +1610,77 @@
             // Returns { content: [...], globalClasses: [...], classNameToId: {...} }
             // ================================================================
 
-            function compileHtmlToBricksJson(html, preComputedClassNameToId = null, preComputedRuleSet = null) {
+            // Tag → Bricks element type fallback. Anything not listed here falls through
+            // to 'block', which is how forms, tables, videos and inputs used to come out
+            // as empty nested boxes.
+            const TAG_TO_ELEMENT = {
+                'section': 'section', 'header': 'section', 'footer': 'section',
+                'nav': 'block', 'article': 'block', 'aside': 'block', 'main': 'block',
+                'div': 'block', 'figure': 'block', 'li': 'block',
+                'h1': 'heading', 'h2': 'heading', 'h3': 'heading',
+                'h4': 'heading', 'h5': 'heading', 'h6': 'heading',
+                'p': 'text-basic', 'span': 'text-basic', 'strong': 'text-basic',
+                'em': 'text-basic', 'small': 'text-basic', 'blockquote': 'text-basic',
+                'figcaption': 'text-basic', 'address': 'text-basic', 'time': 'text-basic',
+                'label': 'text-basic', 'ul': 'text-basic', 'ol': 'text-basic',
+                'dl': 'text-basic', 'pre': 'text-basic',
+                'a': 'text-link', 'button': 'button', 'img': 'image',
+                'i': 'icon',
+                'hr': 'divider',
+                // Rendered verbatim so nothing is lost in translation. Inline <svg> becomes
+                // Bricks' native SVG element once it has been uploaded (see svgAssets).
+                'svg': 'custom-html-css-script', 'canvas': 'custom-html-css-script',
+                'iframe': 'custom-html-css-script', 'video': 'custom-html-css-script',
+                'audio': 'custom-html-css-script', 'picture': 'custom-html-css-script',
+                'table': 'custom-html-css-script', 'form': 'custom-html-css-script',
+                'details': 'custom-html-css-script', 'input': 'custom-html-css-script',
+                'textarea': 'custom-html-css-script', 'select': 'custom-html-css-script',
+                'object': 'custom-html-css-script', 'embed': 'custom-html-css-script',
+            };
+
+            // Inline content an <li> can hold and still be plain list text.
+            const INLINE_LIST_TAGS = new Set(['a', 'abbr', 'b', 'br', 'code', 'em', 'i', 'kbd', 'mark', 's', 'small', 'span', 'strong', 'sub', 'sup', 'svg', 'time', 'u', 'wbr']);
+
+            /** A list whose items hold layout (cards, nested blocks) rather than inline text. */
+            function isStructuralList(el) {
+                if (el.querySelector('[data-bricks]')) return true;
+                return Array.from(el.children).some(li =>
+                    Array.from(li.children).some(c => !INLINE_LIST_TAGS.has(c.tagName.toLowerCase())));
+            }
+
+            /** The Bricks element an HTML node compiles to. */
+            function bricksNameFor(el) {
+                const explicit = el.getAttribute('data-bricks');
+                if (explicit) return explicit;
+                const tag = el.tagName.toLowerCase();
+                if ((tag === 'ul' || tag === 'ol') && isStructuralList(el)) return 'block';
+                return TAG_TO_ELEMENT[tag] || 'block';
+            }
+
+            /** Keep a layout element's real HTML tag — <ul>, <li>, <a>, <header> — so tag selectors and semantics survive. */
+            function applyLayoutTag(element, el, bricksName, tag) {
+                const isSection = bricksName === 'section';
+                const fallback  = isSection ? 'section' : 'div';
+                if (tag === fallback) return;
+                if ((isSection ? SECTION_TAG_OPTIONS : BLOCK_TAG_OPTIONS).includes(tag)) {
+                    element.settings.tag = tag;
+                } else {
+                    element.settings.tag = 'custom';
+                    element.settings.customTag = tag;
+                }
+                // A linked card: Bricks puts the link on a layout element whose tag is "a".
+                if (tag === 'a' && (el.getAttribute('href') || el.getAttribute('data-href'))) {
+                    element.settings.link = parseLink(el);
+                }
+            }
+
+            /**
+             * @param {string} html
+             * @param {object|null} preComputedClassNameToId  className → global class id
+             * @param {object|null} preComputedRuleSet        buildCssRuleSet() of the full design CSS
+             * @param {object} options                        { svgAssets: Map<svgKey, {id,url,filename}> }
+             */
+            function compileHtmlToBricksJson(html, preComputedClassNameToId = null, preComputedRuleSet = null, options = {}) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const content = [];
@@ -1157,50 +1730,25 @@
                         if (classMap[cn]) classMap[cn].css = stripLinePaintFromCss(classMap[cn].css, cn, lineOnly[cn]);
                     });
                 }
-                if (!ruleSet) ruleSet = { base: [], breakpoints: {} };
-                const breakpointKeys = Object.keys(ruleSet.breakpoints || {});
+                if (!ruleSet) ruleSet = { rules: [], states: [], all: [] };
 
-                // ── STEP 2b: Tag → Bricks element type fallback ──────────────
-                // Anything not listed here falls through to 'block', which is how forms,
-                // tables, videos and inputs used to come out as empty nested boxes.
-                const tagMap = {
-                    'section': 'section', 'header': 'section', 'footer': 'section',
-                    'nav': 'block', 'article': 'block', 'aside': 'block', 'main': 'block',
-                    'div': 'block', 'figure': 'block',
-                    'h1': 'heading', 'h2': 'heading', 'h3': 'heading',
-                    'h4': 'heading', 'h5': 'heading', 'h6': 'heading',
-                    'p': 'text-basic', 'span': 'text-basic', 'strong': 'text-basic',
-                    'em': 'text-basic', 'small': 'text-basic', 'blockquote': 'text-basic',
-                    'figcaption': 'text-basic', 'address': 'text-basic', 'time': 'text-basic',
-                    'label': 'text-basic', 'ul': 'text-basic', 'ol': 'text-basic',
-                    'dl': 'text-basic', 'pre': 'text-basic',
-                    'a': 'text-link', 'button': 'button', 'img': 'image',
-                    'i': 'icon',
-                    'hr': 'divider',
-                    // Rendered verbatim so nothing is lost in translation.
-                    'svg': 'custom-html-css-script', 'canvas': 'custom-html-css-script',
-                    'iframe': 'custom-html-css-script', 'video': 'custom-html-css-script',
-                    'audio': 'custom-html-css-script', 'picture': 'custom-html-css-script',
-                    'table': 'custom-html-css-script', 'form': 'custom-html-css-script',
-                    'details': 'custom-html-css-script', 'input': 'custom-html-css-script',
-                    'textarea': 'custom-html-css-script', 'select': 'custom-html-css-script',
-                    'object': 'custom-html-css-script', 'embed': 'custom-html-css-script',
-                };
+                const ctx = { ruleSet: ruleSet, plan: getBreakpointPlan(), svgAssets: options.svgAssets || null };
+                const baseWidth = ctx.plan.base.width;
 
                 // Bricks' text-basic tag control only offers these; anything else needs customTag.
                 const TEXT_TAG_OPTIONS = ['div', 'p', 'span', 'figcaption', 'address', 'figure'];
 
                 // ── STEP 2c: Walk DOM, create minimal Bricks elements ─────────
-                function walkElement(el, parentId = 0, parentDecls = null) {
+                function walkElement(el, parentId = 0) {
                     if (el.nodeType !== 1) return null;
                     const tag = el.tagName.toLowerCase();
                     if (['script', 'style', 'meta', 'link', 'title', 'br', 'wbr'].includes(tag)) return null;
 
-                    let bricksName = el.getAttribute('data-bricks') || tagMap[tag] || 'block';
                     const explicitName = el.getAttribute('data-bricks');
+                    let bricksName = bricksNameFor(el);
 
                     // Resolve the cascade once, up front — element-type detection needs it.
-                    const ownDecls = resolveDeclsFor(el, ruleSet.base);
+                    const ownDecls = resolveDeclsAt(el, ruleSet, baseWidth);
 
                     // ── Decorative lines → Bricks divider, judged by what the CSS draws ──
                     let lineInfo = null;
@@ -1221,6 +1769,18 @@
                         bricksName = 'icon';
                     }
 
+                    // ── Inline SVG → Bricks' native SVG element (from its uploaded file) ──
+                    let svgNode = null;
+                    if (bricksName === 'custom-html-css-script' || bricksName === 'svg') {
+                        const candidate = tag === 'svg' ? el : soleSvgChild(el);
+                        if (candidate && svgAssetFor(candidate, ctx)) {
+                            bricksName = 'svg';
+                            svgNode = candidate;
+                        } else if (bricksName === 'svg') {
+                            bricksName = 'custom-html-css-script';
+                        }
+                    }
+
                     const id = genId();  // Every element MUST have a unique 6-letter ID
 
                     const element = {
@@ -1233,9 +1793,11 @@
                     };
 
                     // ── Styling: _cssGlobalClasses (array of global class IDs) ──
-                    // Visual styling stays in the global class CSS, untranslated.
+                    // Visual styling stays in the global class CSS, untranslated. Custom HTML
+                    // keeps its classes on its own markup: its wrapper wearing them too would
+                    // apply every padding, border and background twice.
                     const htmlClass = el.getAttribute('class');
-                    if (htmlClass) {
+                    if (htmlClass && bricksName !== 'custom-html-css-script') {
                         const classNames = htmlClass.split(/\s+/).filter(c => c && !isFaToken(c));
                         const globalClassIds = classNames
                             .map(cn => classNameToId[cn])
@@ -1245,30 +1807,19 @@
                         }
                     }
 
-                    // ── Translate the layout-critical part of the resolved cascade into
-                    //    native Bricks settings so it wins against Bricks' own .brxe-*
-                    //    defaults (ID beats class).
-                    const baseSettings = deriveNativeSettings(ownDecls, bricksName, parentDecls);
-                    Object.assign(element.settings, baseSettings);
+                    // ── Layout-critical part of the cascade → native Bricks settings, per
+                    //    breakpoint, so it wins against Bricks' own .brxe-* defaults.
+                    if (bricksName === 'custom-html-css-script') {
+                        // The wrapper div must not exist as a box: its markup lays out
+                        // directly in the parent, exactly as in the preview.
+                        element.settings._display = 'contents';
+                    } else {
+                        Object.assign(element.settings, computeNativeLayout(el, bricksName, ctx));
+                    }
 
-                    // Responsive: emit the same properties per Bricks breakpoint, so the
-                    // ID-level desktop rule never strands the @media rules written in CSS.
-                    breakpointKeys.forEach(bpKey => {
-                        const bpDecls = Object.assign({}, ownDecls, resolveDeclsFor(el, ruleSet.breakpoints[bpKey]));
-                        const bpSettings = deriveNativeSettings(bpDecls, bricksName, parentDecls);
-                        Object.keys(bpSettings).forEach(k => {
-                            if (bpSettings[k] !== baseSettings[k]) {
-                                element.settings[k + ':' + bpKey] = bpSettings[k];
-                            }
-                        });
-                    });
-
-                    // ── Semantic HTML tag override for layout elements ──────
-                    if (['block', 'container', 'section'].includes(bricksName)) {
-                        if (['header', 'footer', 'nav', 'article', 'aside', 'main', 'section',
-                             'figure', 'figcaption'].includes(tag)) {
-                            element.settings.tag = tag;
-                        }
+                    // ── Real HTML tag for layout elements ───────────────────
+                    if (LAYOUT_ELEMENT_NAMES.has(bricksName)) {
+                        applyLayoutTag(element, el, bricksName, tag);
                     }
 
                     // ── Element-specific content handling ───────────────────
@@ -1282,10 +1833,9 @@
                             break;
 
                         case 'text-basic':
-                            if (['ul','ol','dl','table','blockquote','pre'].includes(tag)) {
-                                element.settings.text = el.outerHTML.trim();
-                                return element;
-                            }
+                            // <ul>, <ol>, <blockquote>, <pre> keep their own tag and their
+                            // inner markup. These used to return before being added to the
+                            // output, so every simple list and quote silently vanished.
                             element.settings.text = el.innerHTML.trim();
                             // Bricks renders text-basic as <div> by default. Without this,
                             // every "<p class=...>" became a <div> and any ".card p" rule
@@ -1309,50 +1859,38 @@
                             if (iconObj) {
                                 element.settings.icon = iconObj;
                             } else {
-                                // Not a font icon (inline <svg>, sprite, ...) — keep it verbatim
+                                // Not a font icon (sprite, unknown icon font, ...) — keep it verbatim
                                 element.name = 'custom-html-css-script';
-                                element.settings.content = el.outerHTML;
+                                element.settings = { content: el.outerHTML, _display: 'contents' };
                             }
                             if (element.name === 'icon') {
                                 // Pin what the icon really renders as. Size and colour usually
                                 // come from a wrapper in HTML; Bricks' .brxe-icon{font-size:60px}
                                 // cuts that inheritance, and the colour did not survive either.
-                                pinIconAppearance(el, element.settings, ruleSet);
-                            } else if (el.getAttribute('data-icon-size')) {
-                                element.settings.iconSize = el.getAttribute('data-icon-size');
+                                pinIconAppearance(el, element.settings, ctx);
                             }
                             isLeaf = true;
                             break;
                         }
 
-                        case 'text-link': {
-                            const found = extractInlineIcon(el);
+                        case 'text-link':
+                        case 'button': {
+                            const found = findControlIcon(el, ctx);
                             // innerHTML (not textContent) so <a>Read <strong>more</strong></a>
                             // keeps its formatting.
-                            element.settings.text = textWithoutIcon(el, found);
-                            element.settings.link = parseLink(el);
-                            if (found) {
-                                element.settings.icon = found.icon;
-                                element.settings.iconPosition = el.getAttribute('data-icon-position') || found.position;
-                            }
-                            if (el.getAttribute('data-icon-gap')) {
-                                element.settings.iconGap = el.getAttribute('data-icon-gap');
-                            }
-                            isLeaf = true;
-                            break;
-                        }
-
-                        case 'button': {
-                            const found = extractInlineIcon(el);
-                            element.settings.text = textWithoutIcon(el, found);
+                            element.settings.text = innerHtmlWithout(el, found ? found.removal : null);
                             const href = el.getAttribute('href') || el.getAttribute('data-href');
-                            if (href) element.settings.link = parseLink(el);
-                            if (found) {
-                                element.settings.icon = found.icon;
-                                element.settings.iconPosition = el.getAttribute('data-icon-position') || found.position;
+                            if (bricksName === 'text-link' || href) {
+                                element.settings.link = parseLink(el);
+                            } else if (tag === 'button') {
+                                // Bricks' button supports the real tag; <span> dropped every
+                                // ".card button" rule and the button semantics with it.
+                                element.settings.tag = 'button';
                             }
-                            if (el.getAttribute('data-icon-gap')) {
-                                element.settings.iconGap = el.getAttribute('data-icon-gap');
+                            if (found) {
+                                applyControlIcon(element, el, found, ownDecls, ctx);
+                            } else if (el.getAttribute('data-icon-gap')) {
+                                element.settings[bricksName === 'button' ? 'iconGap' : 'gap'] = el.getAttribute('data-icon-gap');
                             }
                             isLeaf = true;
                             break;
@@ -1362,7 +1900,27 @@
                             const src = el.getAttribute('src') || el.getAttribute('data-src');
                             if (src) element.settings.image = { url: src, size: 'full', external: true };
                             const alt = el.getAttribute('alt');
-                            if (alt) element.settings.alt = alt;
+                            if (alt) element.settings.altText = alt;   // Bricks' image control reads altText
+                            isLeaf = true;
+                            break;
+                        }
+
+                        case 'svg': {
+                            const node  = svgNode || el;
+                            const asset = svgAssetFor(node, ctx);
+                            element.settings.file = { id: asset.id, filename: asset.filename, url: asset.url };
+                            const d = node === el ? ownDecls : resolveDeclsAt(node, ruleSet, baseWidth);
+                            const w = explicitLength(d['width'])  || explicitLength(node.getAttribute('width'));
+                            const h = explicitLength(d['height']) || explicitLength(node.getAttribute('height'));
+                            // The svg element's own width/height controls size the root; a
+                            // duplicate _width would only compete with them.
+                            Object.keys(element.settings).forEach(k => { if (k.split(':')[0] === '_width') delete element.settings[k]; });
+                            if (w) element.settings.width  = w;
+                            if (h) element.settings.height = h;
+                            const fill   = explicitPaint(d['fill']);
+                            const stroke = explicitPaint(d['stroke']);
+                            if (fill)   element.settings.fill   = toBricksColor(fill);
+                            if (stroke) element.settings.stroke = toBricksColor(stroke);
                             isLeaf = true;
                             break;
                         }
@@ -1411,19 +1969,22 @@
                     }
 
                     // ── HTML data attributes → Bricks custom attributes ────
-                    const ignoredAttrs = new Set([
-                        'id', 'class', 'style', 'data-bricks',
-                        'data-loop', 'data-loop-posts-per-page', 'data-loop-orderby', 'data-loop-order',
-                        'data-icon', 'data-icon-position', 'data-icon-gap', 'data-icon-size',
-                        'data-href', 'href', 'src', 'alt', 'target', 'rel'
-                    ]);
-                    const customAttrs = [];
-                    for (const attr of el.attributes) {
-                        if (!ignoredAttrs.has(attr.name)) {
-                            customAttrs.push({ _id: genId(), name: attr.name, value: attr.value });
+                    // Custom HTML and SVG files already carry their attributes in their markup.
+                    if (element.name !== 'custom-html-css-script' && element.name !== 'svg') {
+                        const ignoredAttrs = new Set([
+                            'id', 'class', 'style', 'data-bricks',
+                            'data-loop', 'data-loop-posts-per-page', 'data-loop-orderby', 'data-loop-order',
+                            'data-icon', 'data-icon-position', 'data-icon-gap', 'data-icon-size',
+                            'data-href', 'href', 'src', 'alt', 'target', 'rel'
+                        ]);
+                        const customAttrs = [];
+                        for (const attr of el.attributes) {
+                            if (!ignoredAttrs.has(attr.name)) {
+                                customAttrs.push({ _id: genId(), name: attr.name, value: attr.value });
+                            }
                         }
+                        if (customAttrs.length) element.settings._attributes = customAttrs;
                     }
-                    if (customAttrs.length) element.settings._attributes = customAttrs;
 
                     // ── Add to content array ────────────────────────────────
                     content.push(element);
@@ -1442,7 +2003,7 @@
                                     element.children.push(textId);
                                 }
                             } else {
-                                const childEl = walkElement(child, id, ownDecls);
+                                const childEl = walkElement(child, id);
                                 if (childEl) element.children.push(childEl.id);
                             }
                         });
@@ -1452,7 +2013,7 @@
                 }
 
                 // Start compilation from body
-                Array.from(doc.body.children).forEach(el => walkElement(el, 0, null));
+                Array.from(doc.body.children).forEach(el => walkElement(el, 0));
 
                 // ── STEP 2d: Build globalClasses array in Bricks-native format ──
                 // CRITICAL: name === className (e.g. "hero-heading") — Bricks uses

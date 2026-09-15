@@ -122,6 +122,11 @@ class SNN_Bricks_Chat_Overlay {
             'agentNonce'       => wp_create_nonce( 'snn_ai_agent_nonce' ),
             'pageContext'      => $page_context,
             'previewAssets'    => $preview_assets,
+            // Inline SVGs are uploaded at build time so Bricks can render them natively
+            // (svg element file source, button/link icon control). Mirrors Bricks' own policy.
+            'canUploadSvg'     => current_user_can( 'upload_files' )
+                && class_exists( '\Bricks\Capabilities' )
+                && \Bricks\Capabilities::current_user_can_upload_svg(),
             'ai'               => $ai_config,
             'settings'         => array(
                 'debugMode'        => $main_chat->is_debug_enabled(),
@@ -495,14 +500,12 @@ Fitness</button>
                         let finalName = gc.name;
                         let cssCustom = gc.cssCustom || (gc.settings && gc.settings._cssCustom) || '';
                         if (existingNames.has(finalName)) {
+                            // Builds plan unique names up front (planClassNames) and rename the
+                            // markup to match; this is only a last-resort guard for other callers.
                             let suffix = 1;
                             while (existingNames.has(finalName + '-' + suffix)) suffix++;
                             finalName = finalName + '-' + suffix;
-                            // CRITICAL: Rewrite CSS selectors to use the new deduplicated name
-                            // ".hero { ... }" → ".hero-1 { ... }", ".hero:hover { ... }" → ".hero-1:hover { ... }"
-                            const escapedOld = gc.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            const selectorRegex = new RegExp('\\.' + escapedOld + '(?=\\s*[{,:])', 'g');
-                            cssCustom = cssCustom.replace(selectorRegex, '.' + finalName);
+                            cssCustom = renameClassesInCss(cssCustom, { [gc.name]: finalName });
                         }
                         s.globalClasses.push({
                             id: gc.id,
@@ -724,6 +727,15 @@ Fitness</button>
                     return txt.length > max ? txt.slice(0, max) + '…' : txt;
                 },
 
+                /** An element's native icon setting, e.g. "fas fa-arrow-right (right)". */
+                iconOf(el) {
+                    const ic = el && el.settings && el.settings.icon;
+                    if (!ic || typeof ic !== 'object') return '';
+                    const name = ic.icon || (ic.svg && (ic.svg.filename || 'svg')) || ic.library || '';
+                    const pos  = el.settings.iconPosition ? ' (' + el.settings.iconPosition + ')' : '';
+                    return name ? name + pos : '';
+                },
+
                 /** The element id the user last selected on the canvas (or Bricks' own active element). */
                 getSelectionId() {
                     if (ChatState.selectionId) {
@@ -797,6 +809,8 @@ Fitness</button>
                         let   line    = pad + '[' + el.id + '] ' + (el.name || 'block');
                         if (classes) line += '  ' + classes;
                         if (txt)     line += '  "' + txt + '"';
+                        const icon = this.iconOf(el);
+                        if (icon)    line += '  icon=' + icon;
                         if (el.id === selId) line += '   <-- SELECTED';
                         lines.push(line);
 
@@ -1200,6 +1214,22 @@ Fitness</button>
                     return (existingCSS ? existingCSS.trimEnd() + '\n\n' : '') + rule;
                 },
 
+                /**
+                 * Separate a FontAwesome icon from a button/link label:
+                 * '<i class="fas fa-arrow-right"></i> Go' → { text: 'Go', icon, position: 'left' }.
+                 */
+                splitIconFromLabel(html) {
+                    const doc  = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+                    const root = doc.body.firstElementChild;
+                    const node = root && Array.from(root.querySelectorAll('i, span')).find(n =>
+                        !n.textContent.trim() && !n.children.length && parseFaIcon(n.getAttribute('class') || ''));
+                    if (!node) return { text: html, icon: null, position: null };
+                    const before = textAround(root, node).before;
+                    const icon   = parseFaIcon(node.getAttribute('class') || '');
+                    node.remove();
+                    return { text: root.innerHTML.replace(/\s+/g, ' ').trim(), icon: icon, position: before.trim() ? 'right' : 'left' };
+                },
+
                 // ── Individual operations ───────────────────────────────────
                 // Each returns { success, message } or { success:false, error, candidates }.
 
@@ -1208,10 +1238,53 @@ Fitness</button>
                     if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
                     const el = idx.byId[r.id];
                     if (!el.settings) el.settings = {};
+                    let text = op.text;
+                    // A button or link label never carries icon markup: lift it into the icon setting.
+                    if (el.name === 'button' || el.name === 'text-link') {
+                        const split = this.splitIconFromLabel(String(text == null ? '' : text));
+                        text = split.text;
+                        if (split.icon) {
+                            el.settings.icon = split.icon;
+                            el.settings.iconPosition = split.position;
+                        }
+                    }
                     // Preserve whichever key this element type actually uses.
-                    if (el.settings.content != null && el.settings.text == null) el.settings.content = op.text;
-                    else el.settings.text = op.text;
+                    if (el.settings.content != null && el.settings.text == null) el.settings.content = text;
+                    else el.settings.text = text;
                     return { success: true, message: 'Text updated on [' + r.id + ']', touched: [r.id] };
+                },
+
+                /** Set, restyle or remove the native icon of a button, text link or icon element. */
+                set_icon(op, idx) {
+                    const r = this.resolveTarget(op.target, idx);
+                    if (!r.ok) return { success: false, error: r.error, candidates: r.candidates };
+                    const el = idx.byId[r.id];
+                    if (!['button', 'text-link', 'icon'].includes(el.name)) {
+                        return { success: false, error: 'set_icon works on button, text-link and icon elements; [' + r.id + '] is a ' + el.name };
+                    }
+                    if (!el.settings) el.settings = {};
+                    if (op.icon === null || op.icon === '' || op.remove) {
+                        if (el.name === 'icon') return { success: false, error: 'An icon element needs an icon — delete the element instead' };
+                        delete el.settings.icon;
+                        delete el.settings.iconPosition;
+                        return { success: true, message: 'Icon removed from [' + r.id + ']', touched: [r.id] };
+                    }
+                    if (op.icon !== undefined) {
+                        const icon = parseFaIcon(String(op.icon));
+                        if (!icon) return { success: false, error: 'icon must be FontAwesome classes such as "fas fa-arrow-right" or "fab fa-github"' };
+                        el.settings.icon = icon;
+                    }
+                    if (el.name !== 'icon' && op.position) el.settings.iconPosition = op.position === 'left' ? 'left' : 'right';
+                    if (op.size) {
+                        if (el.name === 'button') el.settings.iconTypography = Object.assign({}, el.settings.iconTypography, { 'font-size': String(op.size) });
+                        else el.settings.iconSize = String(op.size);
+                    }
+                    if (op.color) {
+                        if (el.name === 'button') el.settings.iconTypography = Object.assign({}, el.settings.iconTypography, { color: toBricksColor(op.color) });
+                        else el.settings.iconColor = toBricksColor(op.color);
+                    }
+                    if (op.gap != null && el.name !== 'icon') el.settings[el.name === 'button' ? 'iconGap' : 'gap'] = String(op.gap);
+                    return { success: true, message: 'Icon updated on [' + r.id + ']', touched: [r.id] };
                 },
 
                 set_image(op, idx) {
@@ -1255,7 +1328,14 @@ Fitness</button>
                         : this.mergeClassCSS(current, name, op.declarations || {});
                     gc.modified = Math.floor(Date.now() / 1000);
                     s.globalClasses = [...s.globalClasses];
-                    return { success: true, message: 'Class .' + name + ' updated', classChanged: name };
+                    // AI-built elements mirror their layout into native settings, which outrank
+                    // class CSS — re-derive them, or a layout edit here would never show.
+                    const synced = NativeLayoutSync.touchesLayout(op) ? NativeLayoutSync.refresh(gc.id) : 0;
+                    return {
+                        success: true,
+                        message: 'Class .' + name + ' updated' + (synced ? ' (layout re-synced on ' + synced + ' element(s))' : ''),
+                        classChanged: name
+                    };
                 },
 
                 delete(op, idx) {
@@ -1398,6 +1478,16 @@ Fitness</button>
                     const newId    = this.genId(idx);
                     const settings = Object.assign({}, op.settings || {});
                     if (op.text != null) settings.text = op.text;
+                    if (['button', 'text-link'].includes(op.name) && typeof settings.text === 'string') {
+                        const split = this.splitIconFromLabel(settings.text);
+                        settings.text = split.text;
+                        if (split.icon) { settings.icon = split.icon; settings.iconPosition = split.position; }
+                    }
+                    if (op.icon && ['button', 'text-link', 'icon'].includes(op.name)) {
+                        const icon = parseFaIcon(String(op.icon));
+                        if (icon) settings.icon = icon;
+                        if (icon && op.name !== 'icon') settings.iconPosition = op.iconPosition === 'left' ? 'left' : 'right';
+                    }
                     const classIds = this._classIds(op.classes);
                     if (classIds.length) settings._cssGlobalClasses = classIds;
 
@@ -1485,7 +1575,7 @@ Fitness</button>
                     return { success: true, message: 'Unwrapped [' + r.id + '], promoted ' + kids.length + ' child element(s)' };
                 },
 
-                OPS: ['set_text','set_image','set_settings','update_class','delete','move','duplicate','insert','wrap','unwrap'],
+                OPS: ['set_text','set_image','set_icon','set_settings','update_class','delete','move','duplicate','insert','wrap','unwrap'],
 
                 /**
                  * Dry-run: describe what a set of ops would do, without mutating.
@@ -1529,6 +1619,8 @@ Fitness</button>
                             rows.push({ kind, sign: '-', label: name, id: r.id, detail: PageContext.textOf(el, 32) });
                         } else if (kind === 'set_image') {
                             rows.push({ kind, sign: '~', label: name, id: r.id, detail: 'image -> ' + String(op.url).slice(0, 40) });
+                        } else if (kind === 'set_icon') {
+                            rows.push({ kind, sign: '~', label: name, id: r.id, detail: 'icon -> ' + (op.icon || (op.remove ? 'none' : 'restyled')) });
                         } else if (kind === 'set_settings') {
                             rows.push({ kind, sign: '~', label: name, id: r.id, detail: Object.keys(op.settings || {}).join(', ') });
                         } else {
@@ -1597,6 +1689,197 @@ Fitness</button>
 
 
             // ================================================================
+            // SvgAssets — inline SVG → media library, at build time.
+            // Bricks renders SVG natively only from an attachment (svg element "file"
+            // source, icon control {library:"svg"}); the "code" source needs a server
+            // signature. Uploads go through snn_upload_design_svg, which honours Bricks'
+            // SVG upload permission and runs Bricks' own SVG sanitizer.
+            // ================================================================
+
+            const SvgAssets = {
+                MAX_BYTES: 64 * 1024,
+                cache: new Map(),   // svg markup → { id, url, filename }
+
+                /**
+                 * Upload every liftable inline SVG in the HTML.
+                 * @return {Promise<{assets: Map, uploaded: number, reused: number, skipped: string[], notAllowed: number}>}
+                 */
+                async prepare(html) {
+                    const result = { assets: new Map(), uploaded: 0, reused: 0, skipped: [], notAllowed: 0 };
+                    const doc  = new DOMParser().parseFromString(String(html || ''), 'text/html');
+                    const svgs = svgUploadCandidates(doc);
+                    if (!svgs.length) return result;
+                    if (!snnBricksChatConfig.canUploadSvg) {
+                        result.notAllowed = svgs.length;
+                        return result;
+                    }
+                    for (const svg of svgs) {
+                        const key = svgKey(svg);
+                        if (result.assets.has(key)) continue;
+                        if (this.cache.has(key)) {
+                            result.assets.set(key, this.cache.get(key));
+                            result.reused++;
+                            continue;
+                        }
+                        const markup = sanitizeSvg(key);
+                        if (!markup) { result.skipped.push('unreadable SVG'); continue; }
+                        if (markup.length > this.MAX_BYTES) { result.skipped.push('SVG over ' + Math.round(this.MAX_BYTES / 1024) + ' KB'); continue; }
+                        try {
+                            const asset = await this.upload(markup, this.fileName(svg));
+                            this.cache.set(key, asset);
+                            result.assets.set(key, asset);
+                            result.uploaded++;
+                        } catch (e) {
+                            result.skipped.push(e.message || String(e));
+                        }
+                    }
+                    return result;
+                },
+
+                async upload(markup, name) {
+                    const fd = new FormData();
+                    fd.append('action', 'snn_upload_design_svg');
+                    fd.append('nonce', snnBricksChatConfig.agentNonce);
+                    fd.append('svg', markup);
+                    fd.append('name', name);
+                    const res  = await fetch(snnBricksChatConfig.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' });
+                    const json = await res.json().catch(() => null);
+                    if (!json || !json.success || !json.data || !json.data.id) {
+                        throw new Error((json && json.data && json.data.message) || 'server rejected the SVG (HTTP ' + res.status + ')');
+                    }
+                    return { id: json.data.id, url: json.data.url, filename: json.data.filename };
+                },
+
+                /** A readable file name: the SVG's aria-label, title or first class, else "icon". */
+                fileName(svg) {
+                    const title = svg.querySelector('title');
+                    const label = svg.getAttribute('aria-label')
+                        || (title && title.textContent)
+                        || (svg.getAttribute('class') || '').split(/\s+/)[0]
+                        || 'icon';
+                    return (String(label).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'icon') + '.svg';
+                },
+
+                /** One chat line summarising the SVG step, or null when there was nothing to report. */
+                describe(r) {
+                    if (!r) return null;
+                    if (r.notAllowed) {
+                        return r.notAllowed + ' inline SVG' + (r.notAllowed === 1 ? '' : 's') + ' kept as code: SVG uploads are not enabled for your role in Bricks settings, so they cannot become native Bricks SVG elements or button icons.';
+                    }
+                    const parts = [];
+                    if (r.uploaded) parts.push('uploaded ' + r.uploaded + ' to the media library');
+                    if (r.reused)   parts.push('reused ' + r.reused + ' already uploaded');
+                    if (r.skipped.length) parts.push(r.skipped.length + ' kept as inline code (' + [...new Set(r.skipped)].slice(0, 3).join('; ') + ')');
+                    return parts.length ? 'SVGs: ' + parts.join(', ') + '.' : null;
+                }
+            };
+
+            // ================================================================
+            // NativeLayoutSync — keep AI-built elements' native layout in step with
+            // their classes. The compiler mirrors display/flex/grid/gap/width into
+            // element settings (ID specificity, so they beat Bricks' .brxe-* defaults);
+            // without a re-sync, a class edit to any of those never showed.
+            // ================================================================
+
+            const NativeLayoutSync = {
+                LAYOUT_PROP: /^(display|flex|flex-direction|flex-wrap|flex-flow|align-items|align-content|justify-items|justify-content|gap|row-gap|column-gap|grid-gap|grid-template|grid-template-columns|grid-template-rows|grid-auto-columns|grid-auto-rows|grid-auto-flow|width|max-width)$/i,
+
+                /** Does an update_class op change a property the compiler mirrors natively? */
+                touchesLayout(op) {
+                    if (op.css) {
+                        const css = String(op.css);
+                        return /@media/i.test(css)
+                            || Object.keys(parseDeclarations(css.replace(/[{}]/g, ';'))).some(p => this.LAYOUT_PROP.test(p));
+                    }
+                    return Object.keys(op.declarations || {}).some(p => this.LAYOUT_PROP.test(String(p).trim()));
+                },
+
+                /**
+                 * Re-derive native layout for AI-built sections that use a class.
+                 * Only sections in the SectionManifest are touched: hand-built elements
+                 * keep whatever layout settings their author chose.
+                 * @return {number} elements updated
+                 */
+                refresh(classId) {
+                    const s   = BricksHelper.getState();
+                    const idx = PageContext.index();
+                    if (!s || !idx.content.length) return 0;
+                    const scopes = SectionManifest.entries
+                        .map(e => e.rootId)
+                        .filter(id => idx.byId[id])
+                        .map(rid => [rid, ...PageContext.descendantsOf(rid, idx)])
+                        .filter(ids => ids.some(id => ((idx.byId[id].settings || {})._cssGlobalClasses || []).includes(classId)));
+                    if (!scopes.length) return 0;
+
+                    const nodeFor = this.buildShadowDom(idx, s);
+                    const ctx = { ruleSet: buildCssRuleSet(this.pageCss(s, idx)), plan: getBreakpointPlan() };
+                    let touched = 0;
+                    scopes.forEach(ids => ids.forEach(id => {
+                        const el = idx.byId[id], node = nodeFor.get(id);
+                        if (!el || !node || !el.settings) return;
+                        if (['custom-html-css-script', 'divider', 'svg'].includes(el.name)) return;
+                        clearNativeLayout(el.settings);
+                        Object.assign(el.settings, computeNativeLayout(node, el.name, ctx));
+                        touched++;
+                    }));
+                    return touched;
+                },
+
+                /** Every stylesheet the page renders: global classes (with %root% resolved) and page CSS elements. */
+                pageCss(s, idx) {
+                    return [
+                        pageStyleCss(idx.content),
+                        ...((s.globalClasses) || []).map(globalClassCss)
+                    ].join('\n');
+                },
+
+                /** The HTML tag a Bricks element renders as — what CSS selectors match against. */
+                tagFor(el) {
+                    const st     = el.settings || {};
+                    const custom = st.tag === 'custom' && st.customTag ? String(st.customTag).split(/\s+/)[0] : '';
+                    const pick   = (t, fallback) => /^[a-z][a-z0-9-]*$/i.test(t || '') ? t : fallback;
+                    switch (el.name) {
+                        case 'section':    return pick(custom || st.tag, 'section');
+                        case 'container':
+                        case 'block':
+                        case 'div':        return pick(custom || st.tag, 'div');
+                        case 'heading':    return pick(custom || st.tag, 'h3');
+                        case 'text-basic': return pick(custom || st.tag, 'div');
+                        case 'button':     return st.link ? 'a' : pick(st.tag, 'span');
+                        case 'text-link':  return st.link ? 'a' : 'span';
+                        case 'image':      return 'img';
+                        case 'icon':       return 'i';
+                        case 'svg':        return 'svg';
+                        default:           return 'div';
+                    }
+                },
+
+                /** A detached DOM mirroring the Bricks tree: real tags, class names, leaf markup. */
+                buildShadowDom(idx, s) {
+                    const doc     = document.implementation.createHTMLDocument('snn-layout-sync');
+                    const names   = new Map(((s.globalClasses) || []).map(gc => [gc.id, gc.name]));
+                    const nodeFor = new Map();
+                    const make = (id, parentNode) => {
+                        const el = idx.byId[id];
+                        if (!el || nodeFor.has(id)) return;
+                        const node = doc.createElement(this.tagFor(el));
+                        const classes = ((el.settings || {})._cssGlobalClasses || []).map(cid => names.get(cid)).filter(Boolean);
+                        if (classes.length) node.setAttribute('class', classes.join(' '));
+                        parentNode.appendChild(node);
+                        nodeFor.set(id, node);
+                        const kids = PageContext.childrenOf(id, idx);
+                        if (kids.length) {
+                            kids.forEach(k => make(k, node));
+                        } else if (['heading', 'text-basic', 'text'].includes(el.name) && typeof (el.settings || {}).text === 'string') {
+                            try { node.innerHTML = el.settings.text; } catch (e) { /* malformed markup — the structure is enough */ }
+                        }
+                    };
+                    idx.roots.forEach(r => make(r, doc.body));
+                    return nodeFor;
+                }
+            };
+
+            // ================================================================
             // AgentTools — read + write tools for the editing loop.
             // The agent reads the page, decides, writes, then re-reads to
             // verify, instead of taking one blind shot at a patch.
@@ -1621,12 +1904,14 @@ Fitness</button>
                     return [
                         '{"op":"set_text","target":{"id":"abcdef"},"text":"New heading"}',
                         '{"op":"set_image","target":{"id":"abcdef"},"url":"https://...","background":false}',
+                        '{"op":"set_icon","target":{"id":"abcdef"},"icon":"fas fa-arrow-right","position":"right","size":"18px","color":"#ffffff"}',
                         '{"op":"set_settings","target":{"id":"abcdef"},"settings":{"_padding":{"top":"40"}}}',
                         '{"op":"update_class","class":"snn-hero__title","declarations":{"font-size":"3.5rem","color":"#111"}}',
                         '{"op":"delete","target":{"id":"abcdef"}}',
                         '{"op":"move","target":{"id":"abcdef"},"before":{"id":"ghijkl"}}',
                         '{"op":"duplicate","target":{"id":"abcdef"}}',
                         '{"op":"insert","parent":{"id":"abcdef"},"index":1,"name":"heading","text":"Hello","classes":["snn-hero__title"]}',
+                        '{"op":"insert","parent":{"id":"abcdef"},"name":"button","text":"Get started","icon":"fas fa-arrow-right","iconPosition":"right","classes":["btn"]}',
                         '{"op":"wrap","targets":[{"id":"a"},{"id":"b"}],"name":"block","classes":["row"]}',
                         '{"op":"unwrap","target":{"id":"abcdef"}}'
                     ].join('\n');
@@ -1756,13 +2041,14 @@ ${this.opsSpec()}
 
 RULES
 1. The structure above is already current — only call get_page_tree again after an edit, or if you need a different scope.
-2. STYLE CHANGES GO TO GLOBAL CLASSES. This page is class-based: use update_class with declarations. Only use set_settings for a genuinely one-off element tweak.
+2. STYLE CHANGES GO TO GLOBAL CLASSES. This page is class-based: use update_class with declarations. Only use set_settings for a genuinely one-off element tweak. Layout properties (display, flex, grid, gap, width, max-width) of AI-built sections are re-synced into element settings automatically after update_class.
 3. Never invent element ids. Use ids from the structure, or call find_elements first.
 4. If a target is ambiguous, call find_elements and pick by id — do not guess.
 5. For a big restructure of an AI-built section, prefer regenerate_section over many small ops.
 6. Respect the REQUEST SCOPE stated above.
 7. When the work is done (or if the request needs no edit at all), call answer with a short, concrete reply — say what you changed, referencing ids like [abcdef].
-8. You have at most ${this.MAX_STEPS} steps. Don't waste them re-reading unchanged state.`;
+8. You have at most ${this.MAX_STEPS} steps. Don't waste them re-reading unchanged state.
+9. Buttons, text links and icon elements have a native icon setting (shown as icon=... in the structure). Change it with set_icon, or pass "icon" on insert. Never put <i> or <svg> markup into a button or link text.`;
                 }
             };
 
@@ -1860,23 +2146,28 @@ RULES
                 const newHtml = extractHTMLFromResponse(response);
                 if (!newHtml) return 'Regeneration failed — the model did not return usable HTML.';
 
+                setAgentState('designing', 'Preparing SVGs for "' + entry.label + '"...');
+                const svgPrep = await SvgAssets.prepare(newHtml);
+                const svgNote = SvgAssets.describe(svgPrep);
+                if (svgNote) addMessage('assistant', svgNote);
+
                 const checkpointId = History.checkpoint('Regenerate "' + entry.label + '"');
                 const result = History.transaction('regenerate', () => {
-                    // Drop the old subtree, then compile and inject the replacement in its place.
-                    const doomed = new Set([sectionId, ...PageContext.descendantsOf(sectionId, idx)]);
                     const s = BricksHelper.getState();
+                    const doomed = new Set([sectionId, ...PageContext.descendantsOf(sectionId, idx)]);
+
+                    // Compile against the page's real classes and the new <style> first, so a
+                    // failed compile leaves the old section untouched.
+                    const build = compileRegeneratedSection(newHtml, doomed, svgPrep.assets);
+                    if (!build) return { success: false, error: 'Compiler returned no elements' };
+
                     const insertAt = s.content.findIndex(e => e.id === sectionId);
                     s.content = s.content.filter(e => !doomed.has(e.id));
+                    s.content.splice(Math.max(0, insertAt), 0, ...build.content);
+                    build.commitClasses();
 
-                    const compiled = compileHtmlToBricksJson(newHtml, buildClassMapFromState());
-                    if (!compiled || !compiled.content || !compiled.content.length) {
-                        return { success: false, error: 'Compiler returned no elements' };
-                    }
-                    const { data } = validateAndFixBricksJSON(compiled);
-                    s.content.splice(Math.max(0, insertAt), 0, ...data.content);
-
-                    const newRoot = data.content.find(e => e.parent === 0 || e.parent === '0');
-                    return { success: true, newRootId: newRoot ? newRoot.id : null, count: data.content.length };
+                    const newRoot = build.content.find(e => e.parent === 0 || e.parent === '0');
+                    return { success: true, newRootId: newRoot ? newRoot.id : null, count: build.content.length, classes: build.classNames };
                 });
 
                 if (!result.success) return 'Regeneration failed: ' + result.error;
@@ -1885,7 +2176,7 @@ RULES
                 if (result.newRootId) {
                     SectionManifest.record({
                         rootId: result.newRootId, label: entry.label, html: newHtml,
-                        prompt: instruction, theme: entry.theme, classes: entry.classes
+                        prompt: instruction, theme: entry.theme, classes: result.classes || entry.classes
                     });
                 }
                 renderAppliedChange(
@@ -1896,14 +2187,150 @@ RULES
                        (result.newRootId ? ' (new root [' + result.newRootId + '])' : '') + '.';
             }
 
-            /** Reuse already-registered global classes when compiling regenerated HTML. */
-            function buildClassMapFromState() {
-                const s = BricksHelper.getState();
-                const map = {};
-                if (s && Array.isArray(s.globalClasses)) {
-                    s.globalClasses.forEach(gc => { map[gc.name] = gc.id; });
+            /** <style> blocks the page carries in custom HTML elements (a build's page CSS), optionally skipping a subtree. */
+            function pageStyleCss(content, skip = null) {
+                const parts = [];
+                (content || []).forEach(el => {
+                    if (el.name !== 'custom-html-css-script' || (skip && skip.has(el.id))) return;
+                    const html = String((el.settings && el.settings.content) || '');
+                    const re = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+                    let m;
+                    while ((m = re.exec(html)) !== null) parts.push(m[1]);
+                });
+                return parts.join('\n');
+            }
+
+            /** A global class's CSS as plain selectors: Bricks' %root% placeholder stands for the class itself. */
+            function globalClassCss(gc) {
+                return String((gc && gc.settings && gc.settings._cssCustom) || '').replace(/%root%/g, '.' + gc.name);
+            }
+
+            /**
+             * Compile a regenerated section against the page it lands in.
+             *
+             * The old path passed only a name→id map, so the compiler saw no CSS at all:
+             * every flex or grid layout was forced to display:block, icons fell back to
+             * 16px, and new classes and changed rules were silently dropped.
+             *
+             * Class handling:
+             *  - defined in the new HTML, used only by this section → its CSS is updated
+             *  - also used by other elements on the page → left as it is (shared)
+             *  - new, carried by an element → registered as a global class
+             *  - used only inside raw markup (heading spans, labels) → its CSS goes into a
+             *    <style> element inside the section: Bricks outputs a global class's CSS
+             *    only for classes attached to an element
+             * Returns { content, classNames, commitClasses() } or null. Bricks state is not
+             * touched until commitClasses() runs.
+             */
+            function compileRegeneratedSection(html, doomed, svgAssets) {
+                const s        = BricksHelper.getState();
+                const existing = (s && Array.isArray(s.globalClasses)) ? s.globalClasses : [];
+                const byName   = new Map(existing.map(gc => [gc.name, gc]));
+                const doc      = new DOMParser().parseFromString(html, 'text/html');
+                const norm     = (css) => String(css || '').replace(/\s+/g, ' ').trim();
+
+                const usedOutside = new Set();
+                ((s && s.content) || []).forEach(el => {
+                    if (doomed.has(el.id)) return;
+                    ((el.settings && el.settings._cssGlobalClasses) || []).forEach(id => usedOutside.add(id));
+                });
+
+                const takenIds = new Set(existing.map(gc => gc.id));
+                const LETTERS  = 'abcdefghijklmnopqrstuvwxyz';
+                const genClassId = () => {
+                    let id;
+                    do { id = Array.from({ length: 6 }, () => LETTERS[Math.floor(Math.random() * 26)]).join(''); }
+                    while (takenIds.has(id) || ChatState.globalUsedIds.has(id));
+                    takenIds.add(id);
+                    ChatState.globalUsedIds.add(id);
+                    return id;
+                };
+
+                const newCss        = Array.from(doc.querySelectorAll('style')).map(st => st.textContent).join('\n');
+                const classMap      = {};
+                const classNameToId = {};
+                Object.entries(parseCSSRules(newCss)).forEach(([name, css]) => {
+                    const current = byName.get(name);
+                    if (current) {
+                        const shared = usedOutside.has(current.id);
+                        classMap[name] = { id: current.id, css: shared ? globalClassCss(current) : css, existing: current, update: !shared };
+                    } else {
+                        classMap[name] = { id: genClassId(), css: css, existing: null, update: false };
+                    }
+                    classNameToId[name] = classMap[name].id;
+                });
+                doc.querySelectorAll('[class]').forEach(node => {
+                    (node.getAttribute('class') || '').split(/\s+/).forEach(cn => {
+                        if (!cn || isFaToken(cn) || classMap[cn]) return;
+                        const current = byName.get(cn);
+                        classMap[cn] = current
+                            ? { id: current.id, css: globalClassCss(current), existing: current, update: false }
+                            : { id: genClassId(), css: '', existing: null, update: false };
+                        classNameToId[cn] = classMap[cn].id;
+                    });
+                });
+
+                // The cascade sees what the page will really render.
+                const ruleSet = buildCssRuleSet([
+                    pageStyleCss(s.content, doomed),
+                    extractGlobalCSS(newCss),
+                    ...Object.values(classMap).map(c => c.css)
+                ].join('\n'));
+
+                const lineOnly = findLineOnlyClasses(doc, ruleSet);
+                Object.keys(lineOnly).forEach(cn => {
+                    const c = classMap[cn];
+                    if (c && (!c.existing || c.update)) c.css = stripLinePaintFromCss(c.css, cn, lineOnly[cn]);
+                });
+
+                const compiled = compileHtmlToBricksJson(html, classNameToId, ruleSet, { svgAssets: svgAssets });
+                if (!compiled || !compiled.content || !compiled.content.length) return null;
+                const { data } = validateAndFixBricksJSON(compiled);
+
+                const attached = new Set();
+                data.content.forEach(el => ((el.settings && el.settings._cssGlobalClasses) || []).forEach(id => attached.add(id)));
+
+                const toRegister = [], toUpdate = [], loose = [];
+                Object.entries(classMap).forEach(([name, c]) => {
+                    const css = c.css.trim();
+                    if (attached.has(c.id)) {
+                        if (!c.existing) toRegister.push({ id: c.id, name: name, cssCustom: css });
+                        else if (c.update && norm(c.existing.settings && c.existing.settings._cssCustom) !== norm(css)) toUpdate.push({ gc: c.existing, css: css });
+                    } else if (css && !(c.existing && usedOutside.has(c.id))) {
+                        loose.push(css);
+                    }
+                });
+
+                const root = data.content.find(e => e.parent === 0 || e.parent === '0');
+                if (loose.length && root) {
+                    const styleEl = {
+                        id: EditOps.genId(PageContext.index()),
+                        name: 'custom-html-css-script',
+                        parent: root.id,
+                        children: [],
+                        settings: { content: '<style>' + loose.join('\n') + '</style>', _display: 'contents' },
+                        themeStyles: []
+                    };
+                    data.content.splice(data.content.indexOf(root) + 1, 0, styleEl);
+                    root.children.unshift(styleEl.id);
                 }
-                return map;
+
+                return {
+                    content: data.content,
+                    classNames: Object.keys(classMap),
+                    commitClasses() {
+                        if (toRegister.length) BricksHelper.writeGlobalClassesToState(toRegister);
+                        if (toUpdate.length) {
+                            const now = Math.floor(Date.now() / 1000);
+                            toUpdate.forEach(u => {
+                                if (!u.gc.settings) u.gc.settings = {};
+                                u.gc.settings._cssCustom = u.css;
+                                u.gc.modified = now;
+                            });
+                            s.globalClasses = [...s.globalClasses];
+                        }
+                    }
+                };
             }
 
 
@@ -2820,12 +3247,12 @@ Output as a \`\`\`html block.`;
              * @param {number} sectionIndex - Section number (1-based)
              * @return {object} - Bricks JSON {content: [...]}
              */
-            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex, classNameToId = null, ruleSet = null) {
+            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex, classNameToId = null, ruleSet = null, options = {}) {
                 try {
                     // CLASS-BASED compiler — classNameToId and the cascade rule set are
                     // pre-computed from the FULL HTML <style> blocks, so a section that
                     // relies on a rule declared elsewhere still resolves correctly.
-                    const bricksData = compileHtmlToBricksJson(sectionHtml, classNameToId, ruleSet);
+                    const bricksData = compileHtmlToBricksJson(sectionHtml, classNameToId, ruleSet, options);
                     
                     if (!bricksData || !bricksData.content || !bricksData.content.length) {
                         throw new Error('Compiler returned empty content');
@@ -2839,6 +3266,49 @@ Output as a \`\`\`html block.`;
                     debugLog('✗ Compilation error for "' + sectionLabel + '":', error);
                     throw new Error('Failed to compile section: ' + error.message);
                 }
+            }
+
+            /**
+             * Decide final class names for a build against the site-wide global classes.
+             *
+             * A name that already exists with identical CSS is reused as is; one with
+             * different CSS gets a free "-N" name. A reused class whose selectors mention a
+             * renamed class cannot stay reused — its rules would still target the old
+             * name — so it is renamed too.
+             * @return {{renames: Object<string,string>, reuse: Object<string,string>}}
+             */
+            function planClassNames(classMap) {
+                const s        = BricksHelper.getState();
+                const existing = (s && Array.isArray(s.globalClasses)) ? s.globalClasses : [];
+                const byName   = new Map(existing.map(gc => [gc.name, gc]));
+                const taken    = new Set([...existing.map(gc => gc.name), ...Object.keys(classMap)]);
+                const norm     = (css) => String(css || '').replace(/\s+/g, ' ').trim();
+                const renames  = {}, reuse = {};
+
+                const rename = (name) => {
+                    let n = 1;
+                    while (taken.has(name + '-' + n)) n++;
+                    renames[name] = name + '-' + n;
+                    taken.add(renames[name]);
+                    delete reuse[name];
+                };
+
+                Object.entries(classMap).forEach(([name, gc]) => {
+                    const current = byName.get(name);
+                    if (!current) return;
+                    if (norm(current.settings && current.settings._cssCustom) === norm(gc.css)) reuse[name] = current.id;
+                    else rename(name);
+                });
+
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    Object.keys(reuse).forEach(name => {
+                        const mentioned = classNamesInCss(classMap[name].css);
+                        if (Object.keys(renames).some(r => mentioned.has(r))) { rename(name); changed = true; }
+                    });
+                }
+                return { renames, reuse };
             }
 
             /**
@@ -2870,7 +3340,17 @@ Output as a \`\`\`html block.`;
                     (actionType === 'replace' ? 'Rebuild page' : 'Add') + ' — ' + total + ' section(s)');
                 addMessage('assistant', 'Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with class-based compiler...');
 
-                // ── PHASE 0: Extract CSS, fonts, and variables from FULL HTML <style> blocks ──
+                // ── PHASE 0: Inline SVGs → media library ──
+                // Bricks renders SVG natively only from an attachment, so every inline <svg>
+                // the build can lift (standalone graphics, button/link icons) is uploaded
+                // first. Bricks' own SVG sanitizer runs on the way in.
+                setAgentState('compiling', 'Preparing SVG graphics...');
+                const svgPrep = await SvgAssets.prepare(sections.map(sec => sec.html).join('\n'));
+                const svgNote = SvgAssets.describe(svgPrep);
+                if (svgNote) addMessage('assistant', svgNote);
+                if (!ChatState.isProcessing) { addMessage('assistant', 'Build stopped.'); return; }
+
+                // ── PHASE 0b: Extract CSS, fonts, and variables from FULL HTML <style> blocks ──
                 // CRITICAL: <style> tags are children of <body>, but parseHTMLIntoSections
                 // only captures semantic elements. We extract everything here BEFORE splitting.
                 const fullDoc = new DOMParser().parseFromString(fullHTML, 'text/html');
@@ -2911,8 +3391,9 @@ Output as a \`\`\`html block.`;
                 // Flatten the full stylesheet into a cascade rule set once, so every
                 // section resolves its layout against the same rules the preview used.
                 const cssRuleSet = buildCssRuleSet(allStyleCSS);
-                debugLog('Cascade rule set: ' + cssRuleSet.base.length + ' base rules, breakpoints: ' +
-                         (Object.keys(cssRuleSet.breakpoints).join(', ') || 'none'));
+                const bpPlan = getBreakpointPlan();
+                debugLog('Cascade rule set: ' + cssRuleSet.rules.length + ' rules, ' + cssRuleSet.states.length +
+                         ' state rules; resolved at ' + [bpPlan.base, ...bpPlan.steps].map(b => b.key + '@' + b.width + 'px').join(', '));
 
                 // Decorative lines compile to Bricks dividers, which draw the line from
                 // their own settings. Strip the line paint from classes only those lines
@@ -2925,36 +3406,27 @@ Output as a \`\`\`html block.`;
                     debugLog('Line paint moved into divider settings for: ' + Object.keys(lineOnlyClasses).join(', '));
                 }
 
-                // Build global classes array from extracted CSS
-                const allGlobalClasses = Object.entries(tempClassMap).map(([className, gc]) => ({
-                    id: gc.id,
-                    name: className,
-                    cssCustom: gc.css.trim()
-                }));
-                debugLog('Extracted ' + allGlobalClasses.length + ' CSS classes from full HTML <style> blocks');
-
-                // ── PHASE 0b: Build combined CSS injection element ──
-                // Contains ALL non-class CSS: @import, :root, body, *, @font-face, etc.
-                // This is injected via a <style> tag as a custom-html-css-script element.
-                // CRITICAL: parseCSSRules only captures .class rules. Everything else
-                // (body{}, :root{}, @font-face{}, etc.) must be injected directly so
-                // tag-level styles and CSS custom properties survive.
-                const globalCSS = extractGlobalCSS(allStyleCSS);
-                debugLog('Global CSS extracted: ' + (globalCSS ? globalCSS.length + ' chars' : 'none'));
-
-                let cssInjectionElement = null;
-                if (globalCSS) {
-                    const cssElId = genClassId();
-                    cssInjectionElement = {
-                        id: cssElId,
-                        name: 'custom-html-css-script',
-                        parent: 0,
-                        children: [],
-                        settings: { content: '<style>' + globalCSS + '</style>' },
-                        themeStyles: []
-                    };
-                    debugLog('CSS injection element built');
+                // ── PHASE 0c: Class names vs the site's existing global classes ──
+                // Global classes are site-wide. Same name + same CSS is reused; same name +
+                // different CSS gets a free "-N" name, applied to every selector that
+                // mentions it and (after compiling) to raw markup and element custom CSS.
+                const naming  = planClassNames(tempClassMap);
+                const renames = naming.renames;
+                if (Object.keys(renames).length) {
+                    Object.values(tempClassMap).forEach(gc => { gc.css = renameClassesInCss(gc.css, renames); });
+                    debugLog('Renamed classes that already exist site-wide with different CSS:', renames);
                 }
+                Object.entries(naming.reuse).forEach(([name, id]) => {
+                    tempClassMap[name].id     = id;
+                    tempClassMap[name].reused = true;
+                    classNameToId[name]       = id;
+                });
+
+                // ── PHASE 0d: Non-class CSS (@import, :root, body, *, @font-face ...) ──
+                // parseCSSRules only captures .class rules; everything else is injected
+                // through the page CSS element so tag-level styles and variables survive.
+                const globalCSS = renameClassesInCss(extractGlobalCSS(allStyleCSS), renames);
+                debugLog('Global CSS extracted: ' + (globalCSS ? globalCSS.length + ' chars' : 'none'));
 
                 // ── PHASE 0c: Best-effort: write resolvable variables to Bricks palette/vars ──
                 const rootVars = extractRootVariables(allStyleCSS);
@@ -2992,30 +3464,8 @@ Output as a \`\`\`html block.`;
                     }
                 }
 
-                // ── PHASE 1: Register ALL global classes FIRST (before any elements) ──
-                if (allGlobalClasses.length) {
-                    setAgentState('compiling', 'Registering ' + allGlobalClasses.length + ' CSS classes...');
-                    const addedCount = BricksHelper.writeGlobalClassesToState(allGlobalClasses);
-                    addMessage('assistant', 'Registered ' + addedCount + ' new CSS classes as Bricks Global Classes');
-                }
-
-                // ── PHASE 1.5: Inject CSS element (fonts + :root) BEFORE any sections ──
-                // This MUST happen before elements because global class CSS references
-                // :root variables like var(--font-header) and var(--primary).
-                // ALWAYS inject regardless of actionType — the old isFirst/replace-only
-                // logic was broken and fonts/root vars were NEVER injected.
-                //
-                // A 'replace' build has to clear the page HERE, before the CSS element
-                // lands. Doing the clear later (when the first section is written) wiped
-                // the CSS element that had just been injected, taking the fonts and
-                // :root variables with it.
-                if (actionType === 'replace') {
-                    BricksHelper.writeElementsToState([], 'replace');
-                }
-                if (cssInjectionElement) {
-                    BricksHelper.writeElementsToState([cssInjectionElement], 'append');
-                    debugLog('Injected CSS element (fonts + :root)');
-                }
+                // Global classes and the page CSS element are written in PHASE 2.5, once
+                // compilation shows which classes actually landed on Bricks elements.
 
                 // ── PHASE 2: Compile each section with the pre-computed classNameToId map ──
                 const allCompiledData = [];
@@ -3025,13 +3475,13 @@ Output as a \`\`\`html block.`;
                     setAgentState('compiling', 'Compiling "' + label + '" (' + (i + 1) + '/' + total + ')...');
                     let bricksData = null;
                     try {
-                        bricksData = await compileSingleSection(html, label, i + 1, classNameToId, cssRuleSet);
+                        bricksData = await compileSingleSection(html, label, i + 1, classNameToId, cssRuleSet, { svgAssets: svgPrep.assets });
                     } catch(compileErr) {
                         debugLog('Compilation failed for "' + label + '":', compileErr.message);
                         addMessage('assistant', '"' + label + '" had issues. Auto-correcting...');
                         try {
                             const fixedHtml = await selfCorrectHTML(html, compileErr.message);
-                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1, classNameToId, cssRuleSet);
+                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1, classNameToId, cssRuleSet, { svgAssets: svgPrep.assets });
                         } catch(retryErr) {
                             debugLog('Self-correction failed for "' + label + '":', retryErr.message);
                             if (retryErr.name !== 'AbortError') {
@@ -3049,6 +3499,54 @@ Output as a \`\`\`html block.`;
                 }
 
                 if (!ChatState.isProcessing) return;
+
+                // ── PHASE 2.5: Register classes + page CSS ──
+                // Bricks outputs a global class's CSS only when an element carries it. A class
+                // used only inside raw markup (a <span> in a heading, a link label, pure
+                // selector context) rendered in the builder and vanished on the live page, so
+                // those rules go into the page CSS element instead.
+                const attachedIds = new Set();
+                allCompiledData.forEach(c => c.data.content.forEach(el =>
+                    ((el.settings && el.settings._cssGlobalClasses) || []).forEach(id => attachedIds.add(id))));
+                allCompiledData.forEach(c => applyClassRenamesToElements(c.data.content, renames));
+
+                const allGlobalClasses = [];
+                const looseClassCss    = [];
+                Object.entries(tempClassMap).forEach(([className, gc]) => {
+                    const css = gc.css.trim();
+                    if (attachedIds.has(gc.id)) {
+                        if (!gc.reused) allGlobalClasses.push({ id: gc.id, name: renames[className] || className, cssCustom: css });
+                    } else if (css) {
+                        looseClassCss.push(css);
+                    }
+                });
+                debugLog('Classes: ' + allGlobalClasses.length + ' to register, ' + Object.keys(naming.reuse).length +
+                         ' reused, ' + looseClassCss.length + ' markup-only moved to page CSS');
+
+                if (allGlobalClasses.length) {
+                    setAgentState('compiling', 'Registering ' + allGlobalClasses.length + ' CSS classes...');
+                    const addedCount = BricksHelper.writeGlobalClassesToState(allGlobalClasses);
+                    addMessage('assistant', 'Registered ' + addedCount + ' new CSS classes as Bricks Global Classes');
+                }
+
+                // The page CSS element (fonts, :root, tag rules, markup-only classes) lands
+                // before any section, because class CSS references its variables. A 'replace'
+                // build clears the page first — clearing later wiped the element just injected.
+                if (actionType === 'replace') {
+                    BricksHelper.writeElementsToState([], 'replace');
+                }
+                const pageCss = [globalCSS, ...looseClassCss].filter(Boolean).join('\n');
+                if (pageCss) {
+                    BricksHelper.writeElementsToState([{
+                        id: genClassId(),
+                        name: 'custom-html-css-script',
+                        parent: 0,
+                        children: [],
+                        settings: { content: '<style>' + pageCss + '</style>', _display: 'contents' },
+                        themeStyles: []
+                    }], 'append');
+                    debugLog('Injected page CSS element (fonts, :root, markup-only classes)');
+                }
 
                 // ── PHASE 3: Inject elements into Bricks ──
                 // Global classes (with full CSS in settings._cssCustom) are already registered
@@ -3093,7 +3591,7 @@ Output as a \`\`\`html block.`;
                                 html:    (sections[index] && sections[index].html) || '',
                                 prompt:  ChatState.messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '',
                                 theme:   ChatState.currentTheme,
-                                classes: Object.keys(classNameToId)
+                                classes: Object.keys(classNameToId).map(n => renames[n] || n)
                             });
                         }
                         addMessage('assistant', 'Built "' + label + '" (' + builtCount + '/' + allCompiledData.length + ')');
@@ -3373,16 +3871,22 @@ HTML RULES:
   data-bricks="text-link" — inline text links (<a> tags)
   data-bricks="image"    — img elements (use src for URL)
   data-bricks="icon"     — FontAwesome <i class="fas fa-icon"> (also fab, far)
-  data-bricks="custom-html-css-script" — raw HTML/SVG/iframes
+  data-bricks="custom-html-css-script" — raw HTML: iframes, video embeds, forms, tables
   data-bricks="divider" — <hr> or <div> with decorative line classes (short-line, long-line, divider, separator)
 - Icons: <i class="fas fa-star"> or <i class="fab fa-twitter"> — style with a CSS class.
-  Nesting an icon inside a button or link is fine and preferred — write it as ordinary
-  HTML (<button class="btn"><i class="fas fa-arrow-right"></i> Get Started</button>) and
-  the compiler lifts it into the element's real icon setting, keeping its side. Use "fas"
-  or "fab"; avoid "far" unless you specifically want a FontAwesome Regular glyph, since
-  the free set contains very few of them.
+- Icons in buttons and links: put ONE icon DIRECTLY inside the button/link, at the start or the
+  end of the label — a FontAwesome <i> or one inline <svg>:
+    <a data-bricks="button" class="btn" href="#start">Get Started <i class="fas fa-arrow-right"></i></a>
+  The compiler moves it into the button's own icon setting with its side, size, colour and gap.
+  Never wrap that icon in a data-bricks element, never put two icons in one button, and never
+  use other icon fonts (Lucide data-lucide, Material Symbols, Bootstrap Icons) — they cannot
+  become Bricks icons. Use "fas" or "fab"; avoid "far" unless you specifically want a
+  FontAwesome Regular glyph, since the free set contains very few of them.
+- Standalone SVG graphics (logos, illustrations, shapes): write the <svg> directly with no
+  data-bricks wrapper — it becomes a native Bricks SVG element.
+- Links: always write the real href ("#pricing", "/contact", "https://..."); target="_blank" opens a new tab.
 - Structure: section > container > content elements
-- Any tag the list above does not name (form, table, video, svg, input, details, ...) is
+- Any tag the list above does not name (form, table, video, input, details, ...) is
   preserved verbatim — write normal HTML and it will survive intact.
 - Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS
 
@@ -3418,6 +3922,7 @@ Respond with a patch block containing edit operations:
 {"ops":[
   {"op":"set_text","target":{"id":"abcdef"},"text":"New heading"},
   {"op":"update_class","class":"snn-hero__title","declarations":{"font-size":"3.5rem"}},
+  {"op":"set_icon","target":{"id":"abcdef"},"icon":"fas fa-arrow-right","position":"right"},
   {"op":"set_settings","target":{"id":"abcdef"},"settings":{"_padding":{"top":"40"}}},
   {"op":"delete","target":{"id":"abcdef"}},
   {"op":"duplicate","target":{"id":"abcdef"}},
@@ -3429,7 +3934,8 @@ RULES
 1. STYLE CHANGES GO TO GLOBAL CLASSES via update_class — this page is class-based. Only use set_settings for a genuinely one-off tweak on a single element.
 2. Use real ids from the structure above. Never invent one.
 3. Respect the REQUEST SCOPE stated above.
-4. After the patch block, confirm what changed in one sentence, referencing ids like [abcdef].
+4. Buttons, text links and icon elements have a native icon setting: change it with set_icon ("fas fa-..."). Never put <i> or <svg> markup into their text.
+5. After the patch block, confirm what changed in one sentence, referencing ids like [abcdef].
 Do NOT produce HTML.`;
             }
 
@@ -4424,10 +4930,35 @@ IMPORTANT RULES:
             // A design export is read, rendered and rewritten entirely in the
             // browser: JSZip unpacks it, raster assets are pushed into the WP
             // media library so the design keeps working once it is a real page,
-            // SVGs are inlined (never uploaded — an uploaded SVG is a script
-            // vector), and the resulting HTML+CSS is handed to the conversion
-            // agent. Nothing is written to disk server-side except the images.
+            // SVGs are inlined into the markup, and the resulting HTML+CSS is
+            // handed to the conversion agent. SVGs only become media files at
+            // build time (SvgAssets), through Bricks' SVG permission and sanitizer.
             // ================================================================
+
+            /** Strip anything executable before an SVG is inlined into the page or uploaded. */
+            function sanitizeSvg(text) {
+                let doc;
+                try { doc = new DOMParser().parseFromString(text, 'image/svg+xml'); } catch(e) { return ''; }
+                const svg = doc.documentElement;
+                if (!svg || svg.nodeName.toLowerCase() !== 'svg' || doc.querySelector('parsererror')) return '';
+                svg.querySelectorAll('script, foreignObject, animate, set, handler').forEach(n => n.remove());
+                const walk = (el) => {
+                    Array.from(el.attributes || []).forEach(a => {
+                        const name = a.name.toLowerCase();
+                        const val  = (a.value || '').trim().toLowerCase();
+                        if (name.startsWith('on')) { el.removeAttribute(a.name); return; }
+                        // Links may only point inside the document (gradients, clip paths).
+                        if (name === 'href' || name === 'xlink:href') {
+                            if (!val.startsWith('#')) el.removeAttribute(a.name);
+                            return;
+                        }
+                        if (name !== 'style' && /^javascript:/i.test(val)) el.removeAttribute(a.name);
+                    });
+                    Array.from(el.children).forEach(walk);
+                };
+                walk(svg);
+                return new XMLSerializer().serializeToString(svg);
+            }
 
             const ZipImport = (function() {
 
@@ -4798,31 +5329,6 @@ IMPORTANT RULES:
                     return report;
                 }
 
-                /** Strip anything executable before an SVG is inlined into the page. */
-                function sanitizeSvg(text) {
-                    let doc;
-                    try { doc = new DOMParser().parseFromString(text, 'image/svg+xml'); } catch(e) { return ''; }
-                    const svg = doc.documentElement;
-                    if (!svg || svg.nodeName.toLowerCase() !== 'svg' || doc.querySelector('parsererror')) return '';
-                    svg.querySelectorAll('script, foreignObject, animate, set, handler').forEach(n => n.remove());
-                    const walk = (el) => {
-                        Array.from(el.attributes || []).forEach(a => {
-                            const name = a.name.toLowerCase();
-                            const val  = (a.value || '').trim().toLowerCase();
-                            if (name.startsWith('on')) { el.removeAttribute(a.name); return; }
-                            // Links may only point inside the document (gradients, clip paths).
-                            if (name === 'href' || name === 'xlink:href') {
-                                if (!val.startsWith('#')) el.removeAttribute(a.name);
-                                return;
-                            }
-                            if (name !== 'style' && /^javascript:/i.test(val)) el.removeAttribute(a.name);
-                        });
-                        Array.from(el.children).forEach(walk);
-                    };
-                    walk(svg);
-                    return new XMLSerializer().serializeToString(svg);
-                }
-
                 function uploadImage(blob, fileName, mime) {
                     const fd = new FormData();
                     fd.append('action', 'snn_upload_design_asset');
@@ -5045,7 +5551,8 @@ THIS IS A CONVERSION, NOT A REDESIGN.
 - Reproduce the given design faithfully: same text, same colors, same fonts, same order, same imagery.
 - Never invent content, never substitute Lorem Ipsum, never drop a section.
 - Keep every image URL EXACTLY as given — they are already WordPress media library URLs. Do not rewrite, shorten or replace them.
-- Inline <svg> in the source stays as <svg>, wrapped in data-bricks="custom-html-css-script".
+- Inline <svg> in the source stays as a plain <svg> with no data-bricks wrapper (it becomes a native Bricks SVG element). An icon inside a button or link stays DIRECTLY inside that button/link, one icon per button, at the start or end of the label.
+- Links keep their real href; target="_blank" opens a new tab.
 
 WHAT YOU MUST FIX (design tools export unusable markup):
 - Absolute positioning and fixed pixel canvas widths (e.g. width:1440px, position:absolute, left/top offsets) MUST become normal flow: flex/grid, max-width containers, percentage or auto widths.
@@ -5074,7 +5581,7 @@ REQUIRED data-bricks ATTRIBUTES on every structural element:
   data-bricks="image"     — <img> (keep src verbatim)
   data-bricks="icon"      — FontAwesome <i class="fas fa-x">
   data-bricks="divider"   — <hr> and decorative line divs
-  data-bricks="custom-html-css-script" — raw SVG / embeds
+  data-bricks="custom-html-css-script" — raw embeds: iframes, forms, tables
 Structure must be: section > container > content. Never a container inside a block.
 Use class="..." only — NO inline style="" attributes anywhere in the output.
 ${note ? '\nUSER INSTRUCTIONS (these override the source design where they conflict):\n' + note + '\n' : ''}
@@ -5713,9 +6220,10 @@ function snn_save_image_to_library_handler() {
  * browser and posts each raster asset here so the converted page references real
  * media library attachments instead of paths that only existed inside the zip.
  *
- * Only raster images are accepted. SVGs are deliberately NOT uploadable through
- * this endpoint — the importer inlines them into the markup instead, so a crafted
- * SVG never becomes a file served from the uploads directory.
+ * Only raster images are accepted. SVGs never go through this endpoint: the
+ * importer inlines them, and they become files only at build time through
+ * snn_upload_design_svg, which requires Bricks' SVG upload permission and runs
+ * Bricks' SVG sanitizer.
  */
 add_action( 'wp_ajax_snn_upload_design_asset', 'snn_upload_design_asset_handler' );
 
@@ -5794,6 +6302,125 @@ function snn_upload_design_asset_handler() {
         'attachment_id' => $attachment_id,
         'url'           => wp_get_attachment_url( $attachment_id ),
     ) );
+}
+
+/**
+ * Store One Inline SVG From an AI Build
+ *
+ * Bricks renders SVG natively only from a media-library attachment: the SVG
+ * element's "file" source and an icon control's {library:"svg"} both need an ID,
+ * and the "code" source needs a server signature. The builder posts each inline
+ * <svg> it lifts here before compiling.
+ *
+ * Bricks' own rules apply: the role must be allowed to upload SVGs (Bricks >
+ * Settings > Builder access), and the file passes through Bricks' SVG sanitizer
+ * (hooked on wp_handle_upload_prefilter). Identical markup reuses its attachment.
+ */
+add_action( 'wp_ajax_snn_upload_design_svg', 'snn_upload_design_svg_handler' );
+
+function snn_design_svg_payload( $attachment_id ) {
+    return array(
+        'id'       => (int) $attachment_id,
+        'url'      => wp_get_attachment_url( $attachment_id ),
+        'filename' => basename( (string) get_attached_file( $attachment_id ) ),
+    );
+}
+
+function snn_upload_design_svg_handler() {
+    check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+
+    if ( ! current_user_can( 'upload_files' ) ) {
+        wp_send_json_error( array( 'message' => 'Insufficient permissions to upload files.' ) );
+    }
+
+    if ( ! class_exists( '\Bricks\Capabilities' ) || ! \Bricks\Capabilities::current_user_can_upload_svg() ) {
+        wp_send_json_error( array( 'message' => 'SVG uploads are not enabled for your role in Bricks settings.', 'code' => 'svg_not_allowed' ) );
+    }
+
+    $markup = isset( $_POST['svg'] ) ? trim( (string) wp_unslash( $_POST['svg'] ) ) : '';
+    if ( '' === $markup || strlen( $markup ) > 64 * 1024 ) {
+        wp_send_json_error( array( 'message' => 'SVG is empty or larger than 64 KB.' ) );
+    }
+    if ( ! preg_match( '/^<svg[\s>]/i', $markup ) || preg_match( '/<\?(php|=)?/i', $markup ) ) {
+        wp_send_json_error( array( 'message' => 'Not an SVG document.' ) );
+    }
+
+    $hash     = md5( $markup );
+    $existing = get_posts( array(
+        'post_type'      => 'attachment',
+        'post_status'    => 'inherit',
+        'posts_per_page' => 1,
+        'fields'         => 'ids',
+        'meta_key'       => '_snn_design_svg_hash',
+        'meta_value'     => $hash,
+    ) );
+    if ( $existing ) {
+        $path = get_attached_file( $existing[0] );
+        if ( $path && file_exists( $path ) ) {
+            wp_send_json_success( snn_design_svg_payload( $existing[0] ) );
+        }
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    $base = isset( $_POST['name'] ) ? sanitize_file_name( wp_unslash( $_POST['name'] ) ) : '';
+    $base = preg_replace( '/\.svg$/i', '', (string) $base );
+    if ( '' === $base ) {
+        $base = 'icon';
+    }
+
+    $tmp = wp_tempnam( $base . '.svg' );
+    if ( ! $tmp || false === file_put_contents( $tmp, $markup ) ) {
+        wp_send_json_error( array( 'message' => 'Could not write a temporary file.' ) );
+    }
+
+    $file = array(
+        'name'     => $base . '.svg',
+        'type'     => 'image/svg+xml',
+        'tmp_name' => $tmp,
+        'error'    => 0,
+        'size'     => filesize( $tmp ),
+    );
+
+    // A sideload fires wp_handle_sideload_prefilter, not the upload prefilter Bricks
+    // sanitizes on — run the upload prefilter explicitly so the sanitizer sees the file.
+    $file = apply_filters( 'wp_handle_upload_prefilter', $file );
+    if ( ! empty( $file['error'] ) ) {
+        @unlink( $tmp );
+        wp_send_json_error( array( 'message' => is_string( $file['error'] ) ? $file['error'] : 'SVG rejected by the sanitizer.' ) );
+    }
+
+    // Belt and braces: never store an SVG that still carries script, whatever sanitizer ran.
+    $clean = (string) file_get_contents( $tmp );
+    if ( stripos( $clean, '<svg' ) === false || preg_match( '/<script|\son[a-z]+\s*=|javascript:/i', $clean ) ) {
+        @unlink( $tmp );
+        wp_send_json_error( array( 'message' => 'SVG failed sanitization.' ) );
+    }
+
+    $upload = wp_handle_sideload( $file, array(
+        'test_form' => false,
+        'mimes'     => array( 'svg' => 'image/svg+xml' ),
+    ) );
+    if ( ! is_array( $upload ) || ! empty( $upload['error'] ) ) {
+        @unlink( $tmp );
+        wp_send_json_error( array( 'message' => is_array( $upload ) && ! empty( $upload['error'] ) ? $upload['error'] : 'Upload rejected.' ) );
+    }
+
+    $attachment_id = wp_insert_attachment( array(
+        'post_mime_type' => 'image/svg+xml',
+        'post_title'     => $base,
+        'post_content'   => '',
+        'post_status'    => 'inherit',
+    ), $upload['file'] );
+
+    if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+        @unlink( $upload['file'] );
+        wp_send_json_error( array( 'message' => 'Could not create the attachment.' ) );
+    }
+
+    update_post_meta( $attachment_id, '_snn_design_svg_hash', $hash );
+    wp_send_json_success( snn_design_svg_payload( $attachment_id ) );
 }
 
 /**
