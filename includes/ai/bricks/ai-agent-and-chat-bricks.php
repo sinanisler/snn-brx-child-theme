@@ -356,9 +356,6 @@ Fitness</button>
             const DEBUG_MODE        = snnBricksChatConfig.settings.debugMode   || false;
             const ENABLED_ABILITIES = snnBricksChatConfig.settings.enabledAbilities || [];
             const RECOVERY_CONFIG   = { maxRecoveryAttempts: 3, baseDelay: 2000, maxDelay: 30000, rateLimitDelay: 5000 };
-            // Extra max_tokens granted on top of a call's visible-output budget, to cover
-            // the hidden thinking tokens reasoning models charge against the same cap.
-            const REASONING_HEADROOM = 2000;
             const debugLog = (...a) => { if (DEBUG_MODE) console.log('[Bricks AI]', ...a); };
 
             const ChatState = {
@@ -2078,7 +2075,7 @@ RULES
                     if (!ChatState.isProcessing) { Checklist.finish(); return; }
 
                     setAgentState('thinking', step === 0 ? 'Reading the page...' : 'Working (step ' + (step + 1) + ')...');
-                    const response = await callAI(convo, 0, { maxTokens: 2000 });
+                    const response = await callAI(convo, 0);
                     if (!response || !response.trim()) throw new Error('AI returned an empty response.');
 
                     const call = AgentTools.parseCall(response);
@@ -2141,7 +2138,7 @@ RULES
                         themeNote +
                         '\nKeep the same CSS class names wherever the element still exists, so existing styles stay attached. ' +
                         'Return the complete revised section as one ```html block.\n\n```html\n' + entry.html + '\n```' }
-                ], 0, { maxTokens: snnBricksChatConfig.ai.maxTokens || 4000 });
+                ], 0);
 
                 const newHtml = extractHTMLFromResponse(response);
                 if (!newHtml) return 'Regeneration failed — the model did not return usable HTML.';
@@ -2788,8 +2785,7 @@ Respond with ONLY valid JSON — no markdown, no explanation:
                 const userContent = buildUserContent(userMessage, images);
                 const response = await callAI(
                     [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }],
-                    0,
-                    { maxTokens: 150 }
+                    0
                 );
                 try {
                     const parsed = JSON.parse(response.trim());
@@ -2822,8 +2818,7 @@ Rules:
 
                 const response = await callAI(
                     [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }],
-                    0,
-                    { maxTokens: 400 }
+                    0
                 );
                 return response.trim();
             }
@@ -2895,8 +2890,7 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                         { role: 'system', content: systemPrompt },
                         { role: 'user',   content: userMessage + (plan ? '\n\nLayout plan:\n' + plan : '') }
                     ],
-                    0,
-                    { maxTokens: 350 }
+                    0
                 );
 
                 try {
@@ -2908,7 +2902,7 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                     // invented its own palette.
                     if (ChatState.lastResponseTruncated) {
                         debugLog('generateTheme: response was truncated before the JSON closed.');
-                        addMessage('assistant', 'The theme spec came back truncated, so this design will not have a locked palette. Raise **Max tokens** in AI Settings if it keeps happening.');
+                        addMessage('assistant', 'The theme spec came back truncated, so this design will not have a locked palette. Raise **Max Token Count** in the AI Agent settings if it keeps happening.');
                     } else {
                         debugLog('generateTheme parse error, using defaults:', e);
                     }
@@ -2965,7 +2959,7 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                         { role: 'user', content: userMsgContent }
                     ];
                     if (extraNote) msgs.push({ role: 'user', content: extraNote });
-                    return await callAI(msgs, 0, { maxTokens: 1500 });
+                    return await callAI(msgs, 0);
                 };
 
                 let response = await attempt(null);
@@ -3034,7 +3028,7 @@ Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() referenc
                     { role: 'system', content: buildAnsweringPrompt() },
                     ...context,
                     { role: 'user', content: userMsgContent }
-                ], 0, { maxTokens: 800 });
+                ], 0);
                 hideTyping();
                 if (!response || !response.trim()) throw new Error('AI returned empty response.');
                 addMessage('assistant', response);
@@ -3057,8 +3051,7 @@ Output as a \`\`\`html block.`;
                 const response = await callAI(
                     [{ role: 'system', content: systemPrompt },
                      { role: 'user',   content: '```html\n' + html + '\n```' }],
-                    0,
-                    { maxTokens: snnBricksChatConfig.ai.maxTokens || 4000 }
+                    0
                 );
                 hideTyping();
                 return extractHTMLFromResponse(response) || html; // fallback to original if parse fails
@@ -4267,7 +4260,7 @@ IMPORTANT RULES:
                             { role: 'user', content: userMessage },
                             { role: 'assistant', content: intro || 'Abilities executed.' },
                             { role: 'user', content: `All ${abilityResults.length} WordPress abilities have been executed with the following results:\n\n${resultsSummary}\n\nUsing the ACTUAL DATA above, provide a clear and accurate answer to the user's original question. Be specific with real numbers and names from the data. Do NOT invent or guess any values.` }
-                        ], 0, { maxTokens: 500 });
+                        ], 0);
                         hideTyping();
                         if (interpretation) {
                             const clean = interpretation.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
@@ -4545,18 +4538,13 @@ IMPORTANT RULES:
 
                 // Route through the server-side proxy — keeps API key out of the browser
                 // and supports localhost models (Ollama, LM Studio) regardless of HTTPS context.
-                // Reasoning models (Gemini 3, GPT-5/o-series, DeepSeek R1, Qwen thinking
-                // variants...) bill hidden thinking tokens against max_tokens. A tight
-                // per-call budget therefore gets eaten before any visible text is
-                // produced, and the reply is cut off mid-word — which is exactly how the
-                // 400-token plan came back as "1. Hero — Split-".
                 //
-                // So treat opts.maxTokens as the VISIBLE output budget and add room to
-                // think on top, never exceeding the user's configured global cap.
-                const globalCap = parseInt(cfg.maxTokens, 10) || 4000;
-                const maxTokens = opts.maxTokens
-                    ? Math.min(opts.maxTokens + REASONING_HEADROOM, Math.max(globalCap, opts.maxTokens))
-                    : globalCap;
+                // Every call gets the full configured output cap (AI Agent > Max Token Count).
+                // max_tokens is a ceiling, not a target — a reply only bills what it writes.
+                // Per-call budgets starved reasoning models (Gemini 3, GPT-5, DeepSeek R1 ...),
+                // whose hidden thinking tokens count against the same limit: design
+                // conversions were cut off at ~9.8k while 32k was configured.
+                const maxTokens = parseInt(cfg.maxTokens, 10) || 4000;
 
                 const proxyPayload = new URLSearchParams({
                     action: 'snn_ai_proxy',
@@ -4585,16 +4573,23 @@ IMPORTANT RULES:
                 if (!resp.ok) { const t = await resp.text(); throw new Error(`API error ${resp.status}: ${t.substring(0, 200)}`); }
                 const data = await resp.json();
                 const choice = data?.choices?.[0];
-                if (!choice?.message?.content) throw new Error('Invalid API response');
 
                 // Truncation used to be invisible: the caller just got a short string and
                 // carried on, so a cut-off theme or intent JSON failed to parse and was
                 // swallowed by its try/catch. Record it so callers can react and the
                 // debug log says plainly what happened.
-                ChatState.lastResponseTruncated = (choice.finish_reason === 'length');
+                ChatState.lastResponseTruncated = (choice?.finish_reason === 'length');
                 if (ChatState.lastResponseTruncated) {
                     debugLog('⚠️ Response truncated: hit max_tokens (' + maxTokens + '). ' +
                              'If the model is a reasoning model, thinking tokens consumed the budget.');
+                }
+                if (!choice?.message?.content) {
+                    // A reasoning model can spend the whole cap thinking and return no text:
+                    // that is a truncation, not a malformed response.
+                    if (ChatState.lastResponseTruncated) return '';
+                    const why = data?.error?.message
+                        || (choice ? 'no content, finish_reason: ' + (choice.finish_reason || 'none') : 'no choices returned');
+                    throw new Error('Invalid API response (' + why + ')');
                 }
                 return choice.message.content;
             }
@@ -5600,11 +5595,9 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         'SOURCE STYLESHEET:\n```css\n' + css + '\n```\n\n' +
                         'SOURCE MARKUP' + (isOnlyPass ? '' : ' (section "' + chunk.label + '")') + ':\n```html\n' + markup + '\n```';
 
-                    // Budget the reply from the source size rather than handing over the
-                    // whole global cap: many models refuse a max_tokens above their own
-                    // output ceiling, and an oversized ask is what starves the reply.
-                    const budget = Math.max(3000, Math.min(12000, Math.ceil(source.length / 3) + 1500));
-                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, budget', budget, 'tokens');
+                    // The reply gets the full configured output cap (callAI sends it on every call).
+                    const outputCap = parseInt(snnBricksChatConfig.ai.maxTokens, 10) || 4000;
+                    debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, output cap', outputCap, 'tokens');
 
                     let lastReason = 'unknown';
                     for (let attempt = 0; attempt < 2; attempt++) {
@@ -5612,7 +5605,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                             const response = await callAI([
                                 { role: 'system', content: conversionPrompt(zip.note, prefix) },
                                 { role: 'user',   content: source }
-                            ], 0, { maxTokens: budget, temperature: 0.2 });
+                            ], 0, { temperature: 0.2 });
 
                             const truncated = ChatState.lastResponseTruncated;
                             const html = extractHTMLFromResponse(response);
@@ -5620,7 +5613,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                             if (html && !truncated) return { html };
 
                             if (truncated) {
-                                lastReason = 'the model hit its output limit (' + budget + ' tokens) and the reply was cut off';
+                                lastReason = 'the model hit the output limit (' + outputCap + ' tokens, AI Agent > Max Token Count) and the reply was cut off';
                             } else {
                                 const text = String(response || '').trim();
                                 lastReason = text
@@ -5696,7 +5689,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         addMessage('error',
                             'Nothing could be converted, so there is no preview to build.\n\n' +
                             'Most likely causes, in order:\n' +
-                            '1. The model\'s reply limit is lower than this design needs. Raising Max Tokens will not help if the model itself caps output lower - try a model with a bigger output limit.\n' +
+                            '1. The model\'s reply limit is lower than this design needs. Raising Max Token Count (AI Agent settings) will not help if the model itself caps output lower - try a model with a bigger output limit.\n' +
                             '2. A reasoning model spent its whole budget thinking and emitted nothing.\n' +
                             '3. The API rejected the request (the reason is listed above).\n\n' +
                             'Turn on Debug Mode in the AI settings and retry - the console then logs the source size, the token budget and the raw reply for every pass.'
