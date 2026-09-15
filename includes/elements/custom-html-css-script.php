@@ -4,8 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class Custom_HTML_CSS_Script extends \Bricks\Element {
   public $category     = 'snn';
   public $name         = 'custom-html-css-script';
-  public $icon         = 'fas fa-code'; 
-  public $css_selector = '.snn-brx-html-css-script-wrapper';
+  public $icon         = 'fas fa-code';
 
   public function get_label() {
     return 'Code HTML JS CSS';
@@ -35,9 +34,23 @@ var sebas_sama = 6969;
   }
 
   public function render() {
-    echo "<div class='custom-html-css-script-wrapper' style='width:100%'>";
+    static $default_width_printed = false;
+
+    // Root attributes carry the element ID, brxe classes, global classes and custom
+    // attributes. Without them none of the element's own style settings ever applied.
+    $this->set_attribute( '_root', 'class', 'custom-html-css-script-wrapper' );
+
+    echo "<div {$this->render_attributes( '_root' )}>";
+
+    // The wrapper used to hard-code style="width:100%", which no setting could override.
+    // Keep that default at zero specificity so element settings and classes win.
+    if ( ! $default_width_printed ) {
+      echo '<style>:where(.custom-html-css-script-wrapper){width:100%}</style>';
+      $default_width_printed = true;
+    }
+
     echo $this->settings['content'] ?? '';
-    echo "</div>";
+    echo '</div>';
   }
 }
 
