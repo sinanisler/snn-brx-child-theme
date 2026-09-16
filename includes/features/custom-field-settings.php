@@ -2758,7 +2758,8 @@ function snn_output_dynamic_field_js() {
     <?php
 }
 
-add_action('admin_footer', 'snn_init_tinymce_html_default', 100);
+// After wp_editor()'s own init script (admin_print_footer_scripts, priority 50), so tinymce exists.
+add_action('admin_print_footer_scripts', 'snn_init_tinymce_html_default', 100);
 function snn_init_tinymce_html_default() {
     global $pagenow;
     if (in_array($pagenow, ['post-new.php', 'post.php'])) {
@@ -2766,11 +2767,78 @@ function snn_init_tinymce_html_default() {
         if ( isset($screen->post_type) ) { 
             ?>
             <script type="text/javascript">
-            jQuery(document).ready(function($) {
-                if (typeof switchEditors !== 'undefined' && $('#wp-content-wrap').hasClass('html-active')) {
-                } else if (typeof switchEditors !== 'undefined' && $('#wp-content-wrap').hasClass('tmce-active')) {
+            // Rich text fields live in meta boxes. The block editor moves the meta box container into
+            // its layout after TinyMCE has initialized, and moving an iframe reloads it as a blank
+            // document: TinyMCE keeps editing the detached old body, so the field shows empty and
+            // takes no cursor (issue #236). Detect that and re-initialize the editor in place.
+            (function() {
+                if (typeof tinymce === 'undefined' || typeof tinyMCEPreInit === 'undefined') {
+                    return;
                 }
-            });
+                var repairs = {};
+
+                function isMetaboxEditor(ed) {
+                    var el = ed && ed.getElement ? ed.getElement() : null;
+                    return !!(el && el.closest && el.closest('.postbox') && tinyMCEPreInit.mceInit[ed.id]);
+                }
+
+                function isDetached(ed) {
+                    if (!ed.initialized || ed.removed) {
+                        return false;
+                    }
+                    var iframe = document.getElementById(ed.id + '_ifr');
+                    var doc = iframe && iframe.contentDocument;
+                    return !!(doc && doc.body && ed.getBody() !== doc.body);
+                }
+
+                function repair(ed) {
+                    if (!isMetaboxEditor(ed) || !isDetached(ed)) {
+                        return;
+                    }
+                    var id = ed.id;
+                    repairs[id] = (repairs[id] || 0) + 1;
+                    if (repairs[id] > 5) {
+                        return;
+                    }
+                    ed.save();
+                    tinymce.remove(ed);
+                    tinymce.init(tinyMCEPreInit.mceInit[id]);
+                }
+
+                function attach(ed) {
+                    var iframe = document.getElementById(ed.id + '_ifr');
+                    if (iframe) {
+                        iframe.addEventListener('load', function() {
+                            repair(ed);
+                        });
+                    }
+                    // The move may already have happened before the listener was attached.
+                    repair(ed);
+                }
+
+                function watch(ed) {
+                    if (ed.initialized) {
+                        attach(ed);
+                    } else {
+                        ed.on('init', function() {
+                            attach(ed);
+                        });
+                    }
+                }
+
+                tinymce.editors.forEach(watch);
+                tinymce.on('AddEditor', function(e) {
+                    watch(e.editor);
+                });
+
+                function checkAll() {
+                    tinymce.editors.slice().forEach(repair);
+                }
+                window.addEventListener('load', checkAll);
+                [500, 1500, 3000, 6000].forEach(function(delay) {
+                    setTimeout(checkAll, delay);
+                });
+            })();
             </script>
             <?php
         }
