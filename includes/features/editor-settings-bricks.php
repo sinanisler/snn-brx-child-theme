@@ -310,7 +310,8 @@ function snn_bypass_token( $slug ) {
     return hash_hmac( 'sha256', $slug, wp_salt( 'auth' ) );
 }
 
-add_action( 'template_redirect', 'snn_comingsoon_bypass_handle_url', 1 );
+// Run on 'wp' before Bricks' maintenance check (priority 9), which exits early when no maintenance template is set.
+add_action( 'wp', 'snn_comingsoon_bypass_handle_url', 1 );
 function snn_comingsoon_bypass_handle_url() {
     $options = get_option('snn_editor_settings');
     if ( empty($options['comingsoon_bypass_enabled']) ) {
