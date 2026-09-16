@@ -288,6 +288,8 @@ function snn_comingsoon_bypass_callback() {
         placeholder="comingsoon_false"
     >
     <p class="description">
+        <?php _e('Lets logged-out visitors (e.g. clients) see the real site while Bricks "Coming soon" or "Maintenance" mode is active (Bricks > Settings > Maintenance mode). Opening the link below sets a secure cookie for that browser; changing the key invalidates all existing links.', 'snn'); ?>
+        <br>
         <?php _e('Only letters, numbers, <code>-</code> and <code>_</code> are allowed.', 'snn'); ?>
         <?php if (!empty($slug)): ?>
             <br><strong><?php _e('Preview link:', 'snn'); ?></strong> 
