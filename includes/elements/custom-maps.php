@@ -159,8 +159,10 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'type'    => 'select',
             'options' => [
                 'default' => 'Default (OSM Free Tiles)',
-                'light'   => 'Light (Fastly Free Tiles)',
-                'dark'    => 'Dark (Fastly Free Tiles)',
+                'osm_light' => 'Light (OSM Free Tiles + Color Filter)',
+                'osm_dark'  => 'Dark (OSM Free Tiles + Color Filter)',
+                'light'   => 'DEPRECATED - Light (Fastly Tiles, now paid / API key required)',
+                'dark'    => 'DEPRECATED - Dark (Fastly Tiles, now paid / API key required)',
             ],
             'default' => 'default',
         ];
@@ -369,6 +371,12 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     width: 100%;
                     max-width: 100%;
                 }
+                #{$map_id} .snn-tiles-light img.leaflet-tile {
+                    filter: grayscale(1) brightness(1.05) contrast(0.9);
+                }
+                #{$map_id} .snn-tiles-dark img.leaflet-tile {
+                    filter: invert(1) hue-rotate(180deg) grayscale(0.6) brightness(0.9) contrast(0.9);
+                }
             </style>
         ";
 
@@ -377,6 +385,12 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             $tile_url = 'https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png';
         } elseif ( $map_style === 'dark' ) {
             $tile_url = 'https://cartodb-basemaps-c.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png';
+        }
+        $tile_class = '';
+        if ( $map_style === 'osm_light' ) {
+            $tile_class = 'snn-tiles-light';
+        } elseif ( $map_style === 'osm_dark' ) {
+            $tile_class = 'snn-tiles-dark';
         }
         $tile_attribution = '©OpenStreetMap';
         ?>
@@ -398,7 +412,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
             // Add tile layer
             L.tileLayer('<?php echo esc_js( $tile_url ); ?>', {
-                attribution: '<?php echo esc_js( $tile_attribution ); ?>'
+                attribution: '<?php echo esc_js( $tile_attribution ); ?>',
+                className: '<?php echo esc_js( $tile_class ); ?>'
             }).addTo(map);
 
             // Helper to create a Leaflet DivIcon using the provided icon HTML and color
