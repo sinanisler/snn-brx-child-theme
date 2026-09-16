@@ -5090,6 +5090,10 @@ IMPORTANT RULES:
                     // Assets: upload rasters, inline SVGs, then rewrite every reference.
                     const report = await processAssets(doc, baseDir, lookup);
 
+                    // Canvas exports often list sections bottom-up and place them with
+                    // absolute offsets — convert them in the order they render instead.
+                    await sortSectionsByVisualOrder(doc);
+
                     // Split the finished document into markup + stylesheet text.
                     const previewDoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
                     const css = Array.from(doc.querySelectorAll('style')).map(s => s.textContent || '').join('\n');
@@ -5133,6 +5137,48 @@ IMPORTANT RULES:
                 }
 
                 const sizeOf = en => (en.zipEntry._data && en.zipEntry._data.uncompressedSize) || 0;
+
+                /**
+                 * Reorder the top-level sections by their rendered position. The document
+                 * is laid out in an offscreen, script-less iframe at a desktop width; flow
+                 * layouts keep their order (stable sort), absolutely placed ones get fixed.
+                 */
+                async function sortSectionsByVisualOrder(doc) {
+                    if (!doc.body) return;
+                    const root = chunkRoot(doc.body);
+                    const kids = Array.from(root.children).filter(el => !['style', 'link', 'script'].includes(el.tagName.toLowerCase()));
+                    if (kids.length < 2) return;
+
+                    kids.forEach((el, i) => el.setAttribute('data-snn-order', i));
+                    const iframe = document.createElement('iframe');
+                    // allow-same-origin only: lets us measure, scripts are already stripped and stay blocked.
+                    iframe.setAttribute('sandbox', 'allow-same-origin');
+                    iframe.style.cssText = 'position:fixed;left:-20000px;top:0;width:1440px;height:900px;visibility:hidden;pointer-events:none;';
+                    try {
+                        const loaded = new Promise(res => { iframe.onload = res; setTimeout(res, 4000); });
+                        iframe.srcdoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+                        document.body.appendChild(iframe);
+                        await loaded;
+                        const idoc = iframe.contentDocument;
+                        if (!idoc) return;
+                        const tops = {};
+                        idoc.querySelectorAll('[data-snn-order]').forEach(el => {
+                            tops[el.getAttribute('data-snn-order')] = Math.round(el.getBoundingClientRect().top);
+                        });
+                        if (Object.keys(tops).length !== kids.length) return;
+                        const sorted = kids.slice().sort((a, b) =>
+                            tops[a.getAttribute('data-snn-order')] - tops[b.getAttribute('data-snn-order')]);
+                        if (sorted.some((el, i) => el !== kids[i])) {
+                            debugLog('zip: reordered sections by rendered position');
+                            sorted.forEach(el => root.appendChild(el));
+                        }
+                    } catch(err) {
+                        debugLog('zip visual order check failed:', err);
+                    } finally {
+                        iframe.remove();
+                        kids.forEach(el => el.removeAttribute('data-snn-order'));
+                    }
+                }
 
                 /** Parse the HTML, drop scripts, and inline every local stylesheet. */
                 async function readDocument(entry, baseDir, lookup) {
