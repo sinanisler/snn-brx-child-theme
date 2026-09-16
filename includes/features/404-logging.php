@@ -56,12 +56,7 @@ function snn_handle_404_logs_actions() {
 
     if (isset($_POST['snn_clear_404_logs'])) {
         global $wpdb;
-        $post_ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_404_logs'");
-        if (!empty($post_ids)) {
-            $ids_placeholder = implode(',', array_map('intval', $post_ids));
-            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($ids_placeholder)");
-            $wpdb->query("DELETE FROM {$wpdb->posts} WHERE ID IN ($ids_placeholder)");
-        }
+        snn_delete_404_logs_by_ids($wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_404_logs'"));
     }
 
     // Delete logs based on IP or User Agent match
@@ -85,13 +80,7 @@ function snn_handle_404_logs_actions() {
                 )
             )
         );
-        $post_ids = get_posts($args);
-        if (!empty($post_ids)) {
-            global $wpdb;
-            $ids_placeholder = implode(',', array_map('intval', $post_ids));
-            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($ids_placeholder)");
-            $wpdb->query("DELETE FROM {$wpdb->posts} WHERE ID IN ($ids_placeholder)");
-        }
+        snn_delete_404_logs_by_ids(get_posts($args));
     }
 }
 add_action('admin_init', 'snn_handle_404_logs_actions');
@@ -129,23 +118,65 @@ function snn_has_301_redirect($request_uri) {
 }
 
 function snn_cleanup_old_logs($limit) {
-    $args = array(
-        'post_type'      => 'snn_404_logs',
-        'posts_per_page' => -1,
-        'orderby'        => 'date',
-        'order'          => 'ASC',
-        'post_status'    => 'any'
-    );
+    global $wpdb;
 
-    $logs = get_posts($args);
-    $total_logs = count($logs);
+    $limit = max(1, (int) $limit);
 
-    if ($total_logs >= $limit) {
-        $logs_to_delete = array_slice($logs, 0, $total_logs - $limit + 1);
-        foreach ($logs_to_delete as $log) {
-            wp_delete_post($log->ID, true);
-        }
+    // Query the table directly instead of get_posts(). With a persistent object cache, WP_Query
+    // can serve a cached ID list whose logs a concurrent 404 request already deleted; get_post()
+    // then resolves those IDs to null or to the global $post, and wp_delete_post() permanently
+    // deleted whatever real post was being rendered.
+    $total_logs = (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s",
+        'snn_404_logs'
+    ));
+
+    if ($total_logs < $limit) {
+        return;
     }
+
+    $post_ids = $wpdb->get_col($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s ORDER BY post_date ASC, ID ASC LIMIT %d",
+        'snn_404_logs',
+        $total_logs - $limit + 1
+    ));
+
+    snn_delete_404_logs_by_ids($post_ids);
+}
+
+/**
+ * Delete 404 log rows by ID. Only rows whose post_type is snn_404_logs are touched,
+ * so a wrong or stale ID can never remove any other content.
+ */
+function snn_delete_404_logs_by_ids($post_ids) {
+    global $wpdb;
+
+    $post_ids = array_values(array_filter(array_map('intval', (array) $post_ids)));
+    if (empty($post_ids)) {
+        return;
+    }
+
+    $ids_placeholder = implode(',', $post_ids);
+    $post_ids = array_map('intval', $wpdb->get_col($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE ID IN ($ids_placeholder) AND post_type = %s",
+        'snn_404_logs'
+    )));
+    if (empty($post_ids)) {
+        return;
+    }
+
+    $ids_placeholder = implode(',', $post_ids);
+    $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($ids_placeholder)");
+    $wpdb->query($wpdb->prepare(
+        "DELETE FROM {$wpdb->posts} WHERE ID IN ($ids_placeholder) AND post_type = %s",
+        'snn_404_logs'
+    ));
+
+    foreach ($post_ids as $post_id) {
+        wp_cache_delete($post_id, 'posts');
+        wp_cache_delete($post_id, 'post_meta');
+    }
+    wp_cache_set_posts_last_changed();
 }
 
 function snn_log_404_error() {
