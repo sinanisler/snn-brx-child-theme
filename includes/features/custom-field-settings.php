@@ -996,7 +996,11 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
     global $pagenow; 
     
     if (in_array($pagenow, ['post.php','post-new.php'])) {
-        $current_post_type = get_current_screen()->post_type;
+        $current_screen = get_current_screen();
+        if (!$current_screen) {
+            return;
+        }
+        $current_post_type = $current_screen->post_type;
         $post_type_has_media = false;
         $post_type_has_repeater = false;
         $post_type_has_basic_rich_text = false;
