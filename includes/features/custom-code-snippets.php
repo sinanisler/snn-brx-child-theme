@@ -360,8 +360,8 @@ function snn_snippet_normalize_settings( $settings, &$dropped = 0 ) {
     $settings = is_array( $settings ) ? array_merge( $defaults, $settings ) : $defaults;
     $map      = snn_snippet_location_map();
 
-    $type     = array_key_exists( (string) $settings['type'], array( 'php' => 1, 'html_php' => 1, 'html' => 1, 'css' => 1, 'js' => 1 ) ) ? (string) $settings['type'] : 'php';
-    $location = isset( $map[ (string) $settings['location'] ] ) ? (string) $settings['location'] : 'everywhere';
+    $type     = ( is_string( $settings['type'] ) && isset( array( 'php' => 1, 'html_php' => 1, 'html' => 1, 'css' => 1, 'js' => 1 )[ $settings['type'] ] ) ) ? $settings['type'] : 'php';
+    $location = ( is_string( $settings['location'] ) && isset( $map[ $settings['location'] ] ) ) ? $settings['location'] : 'everywhere';
     if ( ! snn_snippet_location_allows_type( $location, $type ) ) {
         $location = 'site_head';
     }
@@ -1342,13 +1342,19 @@ function snn_snippet_test_targets_for( $slug, $settings = null ) {
  * do not change which page to load.
  */
 function snn_snippet_test_url_for_group( $group ) {
-    $url = '';
+    // Rows in a group all apply at once, so they are read together rather than
+    // letting the last row win: "Post type is Page and Page type is Single"
+    // must load a page, not the newest post.
+    $post_type = '';
+    $page_type = '';
+    $path      = '';
     foreach ( $group as $rule ) {
         if ( 'is_not' === $rule['op'] ) {
             continue;
         }
         switch ( $rule['rule'] ) {
             case 'post_id':
+                // The most specific rule: a page it names wins outright.
                 foreach ( snn_snippet_rule_post_ids( $rule['value'] ) as $post_id ) {
                     $link = get_permalink( $post_id );
                     if ( $link ) {
@@ -1357,31 +1363,36 @@ function snn_snippet_test_url_for_group( $group ) {
                 }
                 break;
             case 'post_type':
-                $newest = get_posts( array( 'post_type' => $rule['value'], 'post_status' => 'publish', 'posts_per_page' => 1, 'fields' => 'ids', 'suppress_filters' => true ) );
-                if ( $newest ) {
-                    $url = get_permalink( $newest[0] );
-                }
+                $post_type = $rule['value'];
                 break;
             case 'page_type':
-                if ( 'blog' === $rule['value'] && get_option( 'page_for_posts' ) ) {
-                    $url = get_permalink( (int) get_option( 'page_for_posts' ) );
-                } elseif ( 'singular' === $rule['value'] ) {
-                    $newest = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 1, 'fields' => 'ids', 'suppress_filters' => true ) );
-                    $url    = $newest ? get_permalink( $newest[0] ) : '';
-                } elseif ( 'archive' === $rule['value'] ) {
-                    $url = get_post_type_archive_link( 'post' );
-                } elseif ( 'search' === $rule['value'] ) {
-                    $url = add_query_arg( 's', 'snn-snippet-test', home_url( '/' ) );
-                } elseif ( '404' === $rule['value'] ) {
-                    $url = home_url( '/snn-snippet-test-page-not-found/' );
-                }
+                $page_type = $rule['value'];
                 break;
             case 'url_path':
                 if ( 'contains' !== $rule['op'] ) {
-                    $url = home_url( '/' . ltrim( $rule['value'], '/' ) );
+                    $path = $rule['value'];
                 }
                 break;
         }
+    }
+
+    if ( '' !== $path ) {
+        return home_url( '/' . ltrim( $path, '/' ) );
+    }
+
+    $url = '';
+    if ( 'blog' === $page_type ) {
+        $url = get_option( 'page_for_posts' ) ? get_permalink( (int) get_option( 'page_for_posts' ) ) : '';
+    } elseif ( 'archive' === $page_type ) {
+        // Pages and other types without an archive fall back to the posts archive.
+        $url = ( '' !== $post_type ? get_post_type_archive_link( $post_type ) : false ) ?: get_post_type_archive_link( 'post' );
+    } elseif ( 'search' === $page_type ) {
+        $url = add_query_arg( 's', 'snn-snippet-test', home_url( '/' ) );
+    } elseif ( '404' === $page_type ) {
+        $url = home_url( '/snn-snippet-test-page-not-found/' );
+    } elseif ( 'singular' === $page_type || ( '' === $page_type && '' !== $post_type ) ) {
+        $newest = get_posts( array( 'post_type' => '' !== $post_type ? $post_type : 'post', 'post_status' => 'publish', 'posts_per_page' => 1, 'fields' => 'ids', 'suppress_filters' => true ) );
+        $url    = $newest ? get_permalink( $newest[0] ) : '';
     }
     return $url ? $url : '';
 }
