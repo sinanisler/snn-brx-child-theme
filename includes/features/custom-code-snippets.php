@@ -1668,8 +1668,8 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
             'addGroup'         => __( '+ Add new group', 'snn' ),
             'remove'           => __( 'Remove rule', 'snn' ),
             'searchPosts'      => __( 'Search pages and posts…', 'snn' ),
-            'pageRuleEarly'    => __( 'This snippet runs before WordPress knows which page is loading, so this rule cannot be checked.', 'snn' ),
-            'pageRuleAdmin'    => __( 'Page rules only work on the front end. Remove this rule or pick a front-end location.', 'snn' ),
+            'pageRuleEarly'    => __( 'The Location above runs before WordPress knows which page is loading, so this rule cannot be checked.', 'snn' ),
+            'pageRuleAdmin'    => __( 'The Location above is in the admin, and page rules only work on the front end. Remove this rule or pick a front-end location.', 'snn' ),
             'runAfterQuery'    => __( 'Run it after the page is known', 'snn' ),
             'runAfterQueryHint' => __( 'PHP that hooks into init or earlier will not fire from there.', 'snn' ),
             'fixRulesFirst'    => __( 'Some conditional logic rules cannot be checked from this location. Fix the highlighted rules before saving, otherwise the snippet would run on every page.', 'snn' ),
@@ -1749,7 +1749,11 @@ jQuery( function ( $ ) {
         }
         function defaultValue( name ) { return rules[ name ].values.length ? rules[ name ].values[0][0] : ''; }
         function newRule() { var name = firstRule(); return { rule: name, op: rules[ name ].ops[0][0], value: defaultValue( name ) }; }
-        function save() { input.value = JSON.stringify( state ); }
+        function save() {
+            input.value = JSON.stringify( state );
+            // Point at the cause of the rule warnings: the Location field.
+            $( '#snn_location' ).toggleClass( 'is-warning', hasUnavailable() );
+        }
         function hasUnavailable() {
             return state.enabled && state.groups.some( function ( group ) {
                 return group.some( function ( rule ) { return rules[ rule.rule ] && ! available( rule.rule ); } );
@@ -2192,6 +2196,7 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-cond-group { background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px; padding: 12px; display: grid; gap: 8px; max-width: 920px; justify-items: start; }
         .snn-cond-rule { display: grid; gap: 6px; }
         .snn-cond-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        #snn_location.is-warning { border-color: #dba617; background-color: #fcf9e8; box-shadow: 0 0 0 1px #dba617; }
         .snn-cond-warning { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #fcf9e8; border-left: 4px solid #dba617; padding: 6px 10px; color: #1d2327; }
         .snn-cond-warning-hint { color: #646970; font-size: 12px; }
         .snn-post-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 320px; max-width: 560px; min-height: 30px; box-sizing: border-box; padding: 2px 6px; background: #fff; border: 1px solid #8c8f94; border-radius: 4px; cursor: text; }
