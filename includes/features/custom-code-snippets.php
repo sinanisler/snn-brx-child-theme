@@ -244,6 +244,20 @@ function snn_snippet_rule_post_ids( $value ) {
     return array_values( array_unique( array_filter( array_map( 'absint', explode( ',', (string) $value ) ) ) ) );
 }
 
+/** A picked post as the "Page or post" rule shows it: "Contact · page · Draft". */
+function snn_snippet_post_label( $post_id ) {
+    $post = get_post( $post_id );
+    if ( ! $post ) {
+        return '#' . absint( $post_id );
+    }
+    $status = get_post_status_object( $post->post_status );
+    return implode( ' · ', array(
+        '' !== $post->post_title ? $post->post_title : '#' . $post->ID,
+        $post->post_type,
+        $status ? $status->label : $post->post_status,
+    ) );
+}
+
 /** Page types the page_type rule understands. */
 function snn_snippet_page_types() {
     return array( 'front_page', 'blog', 'singular', 'archive', 'search', '404' );
@@ -1780,11 +1794,11 @@ jQuery( function ( $ ) {
                 var match = /\(#(\d+)\)$/.exec( text ) || /^#?(\d+)$/.exec( text );
                 if ( match ) { return match[1]; }
                 var lower = text.toLowerCase();
-                var hits  = Object.keys( found ).filter( function ( id ) { return found[ id ].toLowerCase() === lower; } );
+                var hits  = Object.keys( found ).filter( function ( id ) { return found[ id ].title.toLowerCase() === lower; } );
                 return hits.length === 1 ? hits[0] : '';
             }
             function add( id ) {
-                if ( found[ id ] ) { titles[ id ] = found[ id ]; }
+                if ( found[ id ] ) { titles[ id ] = found[ id ].label; }
                 if ( ids().indexOf( id ) === -1 ) { setIds( ids().concat( id ) ); }
                 field.value = '';
                 field.classList.remove( 'is-invalid' );
@@ -1795,9 +1809,9 @@ jQuery( function ( $ ) {
                 request = $.get( cfg.ajaxUrl, { action: 'snn_snippet_search_posts', nonce: cfg.nonces.search, term: term } ).done( function ( response ) {
                     list.innerHTML = '';
                     ( response && response.success ? response.data : [] ).forEach( function ( post ) {
-                        found[ post.id ] = post.title;
+                        found[ post.id ] = post;
                         if ( ids().indexOf( String( post.id ) ) === -1 ) {
-                            list.appendChild( el( 'option', { value: post.title + ' (#' + post.id + ')' }, post.type ) );
+                            list.appendChild( el( 'option', { value: post.title + ' (#' + post.id + ')' }, post.label ) );
                         }
                     } );
                 } );
@@ -4832,7 +4846,7 @@ function snn_ajax_snippet_search_posts() {
     $types = array_values( get_post_types( array( 'public' => true ) ) );
     $args  = array(
         'post_type'        => $types,
-        'post_status'      => 'publish',
+        'post_status'      => array( 'publish', 'draft', 'pending', 'future', 'private' ),
         'posts_per_page'   => 20,
         'no_found_rows'    => true,
         'suppress_filters' => true,
@@ -4849,11 +4863,10 @@ function snn_ajax_snippet_search_posts() {
 
     $found = array();
     foreach ( get_posts( $args ) as $post ) {
-        $type    = get_post_type_object( $post->post_type );
         $found[] = array(
             'id'    => (int) $post->ID,
             'title' => '' !== $post->post_title ? $post->post_title : '#' . $post->ID,
-            'type'  => $type ? $type->labels->singular_name : $post->post_type,
+            'label' => snn_snippet_post_label( $post ),
         );
     }
     wp_send_json_success( $found );
@@ -5115,7 +5128,7 @@ function snn_snippets_render_editor() {
         foreach ( $group as $rule ) {
             if ( 'post_id' === $rule['rule'] ) {
                 foreach ( snn_snippet_rule_post_ids( $rule['value'] ) as $post_id ) {
-                    $post_titles[ $post_id ] = get_the_title( $post_id );
+                    $post_titles[ $post_id ] = snn_snippet_post_label( $post_id );
                 }
             }
         }
