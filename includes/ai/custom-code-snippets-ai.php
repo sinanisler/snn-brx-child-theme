@@ -27,7 +27,8 @@ function snn_snippets_ai_enqueue() {
 
     $config = snn_get_ai_api_config();
     $data   = array(
-        'maxTokens' => max( 2000, (int) $config['maxTokens'] ),
+        'maxTokens'    => (int) $config['maxTokens'], // AI Settings owns the limit.
+        'isOpenRouter' => 'custom' !== get_option( 'snn_ai_provider', 'openrouter' ),
         'i18n'      => array(
             'title'        => __( 'AI Code Assistant', 'snn' ),
             'open'         => __( 'Generate code with AI', 'snn' ),
@@ -44,6 +45,9 @@ function snn_snippets_ai_enqueue() {
             'thinking'     => __( 'Generating…', 'snn' ),
             'empty'        => __( 'Ask for a new snippet, or tick "Include current code" to edit the existing one. Inserted code is not saved until you click Save Snippet, and PHP is still tested before it goes live.', 'snn' ),
             'error'        => __( 'Error', 'snn' ),
+            'noRoom'       => __( 'The model used its whole token budget before writing any code (reasoning models think first). Try a shorter request, a non-reasoning model, or raise Max Tokens in AI Settings.', 'snn' ),
+            'noContent'    => __( 'The model returned an empty reply. Please try again.', 'snn' ),
+            'truncated'    => __( 'The reply hit the token limit and is cut off, so check the end of the code before using it. Ask to "continue", or raise Max Tokens in AI Settings.', 'snn' ),
         ),
     );
 
@@ -328,12 +332,21 @@ jQuery( function ( $ ) {
         window.SNN_AI_Helpers.makeTextCompletion( {
             messages:    [ { role: 'system', content: systemPrompt() } ].concat( history ),
             temperature: 0.3,
-            maxTokens:   cfg.maxTokens || 4000
+            maxTokens:   cfg.maxTokens,
+            // Reasoning models can spend the whole budget thinking and return no
+            // content. OpenRouter understands this; other endpoints may reject it.
+            additionalParams: cfg.isOpenRouter ? { reasoning: { effort: 'low', exclude: true } } : {}
         } ).then( function ( data ) {
-            var raw   = window.SNN_AI_Helpers.extractContent ? window.SNN_AI_Helpers.extractContent( data ) : ( data && data.choices && data.choices[0].message.content ) || '';
-            var reply = stripFences( String( raw || '' ) );
+            var choice = data && data.choices && data.choices[0] ? data.choices[0] : {};
+            var raw    = choice.message && typeof choice.message.content === 'string' ? choice.message.content : '';
+            var cut    = choice.finish_reason === 'length';
+            if ( ! raw.trim() ) {
+                throw new Error( cut ? t.noRoom : t.noContent );
+            }
+            var reply = stripFences( raw );
             history.push( { role: 'assistant', content: reply } );
             addReply( reply, false );
+            if ( cut ) { addReply( t.truncated, true ); }
         } ).catch( function ( err ) {
             history.pop();
             addReply( t.error + ': ' + ( err && err.message ? err.message : String( err ) ), true );
