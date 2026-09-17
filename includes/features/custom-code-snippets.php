@@ -883,7 +883,7 @@ function snn_snippets_in_safe_mode() {
     // Same for the page's own admin-ajax calls: finishing a test run, previewing
     // a revision, switching a snippet and dismissing the notice must work while
     // a snippet is broken.
-    if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && in_array( $_REQUEST['action'], array( 'snn_snippet_test_finish', 'snn_get_revision_content', 'snn_dismiss_fatal_error_notice', 'snn_snippet_toggle', 'snn_snippet_search_posts' ), true ) ) {
+    if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && in_array( $_REQUEST['action'], array( 'snn_snippet_test_finish', 'snn_get_revision_content', 'snn_dismiss_fatal_error_notice', 'snn_snippet_toggle', 'snn_snippet_search_posts', 'snn_ai_proxy' ), true ) ) {
         return true;
     }
 
@@ -1689,6 +1689,8 @@ jQuery( function ( $ ) {
             $( this ).css( { 'font-family': 'monospace', 'font-size': '13px', width: '100%' } );
         }
     } );
+    // The AI assistant (includes/ai/custom-code-snippets-ai.php) inserts into these.
+    window.snnSnippetEditors = editors;
 
     // ----- Conditional logic builder ---------------------------------------
     var condBox = document.getElementById( 'snn-conditions' );
