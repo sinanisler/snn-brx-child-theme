@@ -20,7 +20,7 @@
   box-sizing: border-box;
 }
 .snn-optimize-tab .snn-mo-inner {
-  max-width: 760px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
