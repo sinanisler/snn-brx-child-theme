@@ -4544,7 +4544,7 @@ IMPORTANT RULES:
                 // Per-call budgets starved reasoning models (Gemini 3, GPT-5, DeepSeek R1 ...),
                 // whose hidden thinking tokens count against the same limit: design
                 // conversions were cut off at ~9.8k while 32k was configured.
-                const maxTokens = parseInt(cfg.maxTokens, 10) || 4000;
+                const maxTokens = parseInt(cfg.maxTokens, 10) || 16000;
 
                 const proxyPayload = new URLSearchParams({
                     action: 'snn_ai_proxy',
@@ -5642,7 +5642,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                         'SOURCE MARKUP' + (isOnlyPass ? '' : ' (section "' + chunk.label + '")') + ':\n```html\n' + markup + '\n```';
 
                     // The reply gets the full configured output cap (callAI sends it on every call).
-                    const outputCap = parseInt(snnBricksChatConfig.ai.maxTokens, 10) || 4000;
+                    const outputCap = parseInt(snnBricksChatConfig.ai.maxTokens, 10) || 16000;
                     debugLog('zip chunk "' + chunk.label + '": source', source.length, 'chars, output cap', outputCap, 'tokens');
 
                     let lastReason = 'unknown';

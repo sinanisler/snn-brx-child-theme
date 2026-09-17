@@ -2401,7 +2401,7 @@ VALIDATION REQUIREMENTS:
                         payload: JSON.stringify({
                             messages: messages,
                             temperature: 0.7,
-                            max_tokens: config.maxTokens || 4000
+                            max_tokens: config.maxTokens || 16000
                         })
                     });
 

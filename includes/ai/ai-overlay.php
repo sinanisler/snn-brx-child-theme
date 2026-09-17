@@ -664,7 +664,7 @@ function snn_add_ai_script_to_footer() {
                     messages: messages,
                     provider: config.modelProvider,
                     temperature: parseFloat(config.temperature) || 0.7,
-                    maxTokens: parseInt(config.maxTokens) || 4000,
+                    maxTokens: parseInt(config.maxTokens) || 16000,
                     additionalParams: {
                         top_p: parseFloat(config.topP) ?? 1,
                         frequency_penalty: parseFloat(config.frequencyPenalty) ?? 0,
@@ -1047,7 +1047,7 @@ function snn_add_ai_script_to_footer() {
                     messages: messages,
                     provider: config.modelProvider,
                     temperature: parseFloat(config.temperature) || 0.7,
-                    maxTokens: parseInt(config.maxTokens) || 4000,
+                    maxTokens: parseInt(config.maxTokens) || 16000,
                     additionalParams: {
                         top_p: parseFloat(config.topP) ?? 1,
                         frequency_penalty: parseFloat(config.frequencyPenalty) ?? 0,

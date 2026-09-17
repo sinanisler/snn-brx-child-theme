@@ -800,7 +800,7 @@ function snn_add_block_editor_ai_panel() {
                         messages: messages,
                         provider: config.modelProvider,
                         temperature: parseFloat(config.temperature) || 0.7,
-                        maxTokens: parseInt(config.maxTokens) || 4000,
+                        maxTokens: parseInt(config.maxTokens) || 16000,
                         additionalParams: {
                             top_p: parseFloat(config.topP) ?? 1,
                             frequency_penalty: parseFloat(config.frequencyPenalty) ?? 0,

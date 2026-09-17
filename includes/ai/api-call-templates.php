@@ -26,7 +26,7 @@
  *         messages: messages,
  *         provider: config.modelProvider, // Optional
  *         temperature: 0.7,
- *         maxTokens: 4000
+ *         maxTokens: 16000
  *     });
  *     const content = SNN_AI_Helpers.extractContent(data);
  *
@@ -221,7 +221,7 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
          * @param {Array} options.messages - Messages array
          * @param {string} options.provider - Optional provider name
          * @param {number} options.temperature - Temperature (default: 0.7)
-         * @param {number} options.maxTokens - Max tokens (default: 4000)
+         * @param {number} options.maxTokens - Max tokens (default: 16000)
          * @param {Object} options.additionalParams - Additional request body params
          * @param {AbortSignal} options.signal - Optional abort signal
          * @returns {Promise<Object>} API response data
@@ -235,7 +235,7 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
          * @param {string} options.requestType   - 'text' or 'image'
          * @param {Array}  options.messages      - Messages array
          * @param {number} options.temperature   - Temperature (default 0.7)
-         * @param {number} options.maxTokens     - Max tokens (default 4000)
+         * @param {number} options.maxTokens     - Max tokens (default 16000)
          * @param {Object} options.additionalParams - Extra body params
          * @param {AbortSignal} options.signal   - Optional abort signal
          * @returns {Promise<Object>} Raw AI provider response data
@@ -245,7 +245,7 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
                 requestType = 'text',
                 messages,
                 temperature = 0.7,
-                maxTokens = 4000,
+                maxTokens = 16000,
                 additionalParams = {},
                 signal = null
             } = options;
@@ -297,7 +297,7 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
                 messages,
                 provider = null,
                 temperature = 0.7,
-                maxTokens = 4000,
+                maxTokens = 16000,
                 additionalParams = {},
                 signal = null
             } = options;

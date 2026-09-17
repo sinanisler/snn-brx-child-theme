@@ -60,7 +60,7 @@ function snn_get_ai_api_config() {
 
     // Retrieve generation parameters
     $temperature        = get_option('snn_ai_temperature', '0.7');
-    $max_tokens         = get_option('snn_ai_max_tokens', '4000');
+    $max_tokens         = get_option('snn_ai_max_tokens', '16000');
     $top_p              = get_option('snn_ai_top_p', '1');
     $frequency_penalty  = get_option('snn_ai_frequency_penalty', '0');
     $presence_penalty   = get_option('snn_ai_presence_penalty', '0');
