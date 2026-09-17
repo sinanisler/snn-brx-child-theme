@@ -57,7 +57,6 @@ define('SNN_SNIPPET_META_TYPE', '_snn_code_type');
 define('SNN_SNIPPET_META_LOCATION', '_snn_location');
 define('SNN_SNIPPET_META_PRIORITY', '_snn_priority');
 define('SNN_SNIPPET_META_CONDITIONS', '_snn_conditions');
-define('SNN_SNIPPET_META_TEST_URL', '_snn_test_url');
 // Every switched-on modern snippet, code included, in one autoloaded option.
 // Rebuilt on every save, switch and delete, so running snippets costs no
 // queries - and works at after_setup_theme, before post types exist.
@@ -1321,13 +1320,6 @@ function snn_snippet_test_targets_for( $slug, $settings = null ) {
     }
 }
 
-/** Whether a URL points at this site, so a test may load it. */
-function snn_snippet_is_own_url( $url ) {
-    $scheme = strtolower( (string) wp_parse_url( $url, PHP_URL_SCHEME ) );
-    return in_array( $scheme, array( 'http', 'https' ), true )
-        && strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) === strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
-}
-
 /**
  * A front-end page that satisfies one group of "show" conditions, or ''.
  * Only the rules that point at a page are used; the rest (logged-in, device)
@@ -1380,17 +1372,14 @@ function snn_snippet_test_url_for_group( $group ) {
 
 /**
  * The page each test target loads. Admin targets load the profile screen.
- * Front-end targets load the URL the editor names, else a page picked to
- * match the snippet's conditions (the newest product for "Post type is
+ * Front-end targets load a page picked to match the snippet's conditions (the newest product for "Post type is
  * Product"), else the home page. During the test the draft runs whatever its
  * conditions say, so the page only decides which code paths get exercised.
  */
-function snn_snippet_test_urls( $targets, $settings = null, $test_url = '' ) {
+function snn_snippet_test_urls( $targets, $settings = null ) {
     $defs  = snn_snippet_test_target_defs();
     $front = home_url( '/' );
-    if ( '' !== $test_url && snn_snippet_is_own_url( $test_url ) ) {
-        $front = $test_url;
-    } elseif ( is_array( $settings ) && ! empty( $settings['conditions']['enabled'] ) && 'show' === $settings['conditions']['action'] ) {
+    if ( is_array( $settings ) && ! empty( $settings['conditions']['enabled'] ) && 'show' === $settings['conditions']['action'] ) {
         foreach ( $settings['conditions']['groups'] as $group ) {
             $picked = snn_snippet_test_url_for_group( $group );
             if ( '' !== $picked ) {
@@ -2898,7 +2887,7 @@ function snn_snippet_publish( $def, $post_id, $code, $switch_on, $settings = nul
  * works on servers that handle one request at a time - and asks the server
  * to publish once every page has reported back.
  */
-function snn_snippet_start_test( $slug, $post_id, $code, $switch_on, $settings = null, $test_url = '' ) {
+function snn_snippet_start_test( $slug, $post_id, $code, $switch_on, $settings = null ) {
     snn_snippet_delete_draft( $post_id ); // Voids an earlier run's token.
 
     $targets = snn_snippet_test_targets_for( $slug, $settings );
@@ -2910,7 +2899,7 @@ function snn_snippet_start_test( $slug, $post_id, $code, $switch_on, $settings =
         'hash'     => md5( $code ),
         'user'     => get_current_user_id(),
         'targets'  => $targets,
-        'urls'     => snn_snippet_test_urls( $targets, $settings, $test_url ),
+        'urls'     => snn_snippet_test_urls( $targets, $settings ),
         'results'  => array(),
         'expires'  => time() + SNN_SNIPPET_TEST_TTL,
     ), SNN_SNIPPET_TEST_TTL );
@@ -2978,9 +2967,8 @@ function snn_snippet_fail_draft( $slug, $post_id, $code, $switch_on, $error, $se
  * @param string     $code       Submitted code, unslashed.
  * @param bool|null  $desired_on The "Run this snippet" checkbox, or null if not submitted.
  * @param array|null $settings   Modern snippets: normalized settings. Null for legacy.
- * @param string     $test_url   Modern snippets: the page to test on, or ''.
  */
-function snn_snippet_process_save( $def, $code, $desired_on, $settings = null, $test_url = '' ) {
+function snn_snippet_process_save( $def, $code, $desired_on, $settings = null ) {
     $slug  = $def['slug'];
     $title = $def['title'];
 
@@ -3057,7 +3045,7 @@ function snn_snippet_process_save( $def, $code, $desired_on, $settings = null, $
         return;
     }
 
-    snn_snippet_start_test( $slug, $post_id, $code, $switch_on, $settings, $test_url );
+    snn_snippet_start_test( $slug, $post_id, $code, $switch_on, $settings );
     add_settings_error( 'snn-custom-codes', 'testing_' . $slug, sprintf(
         /* translators: %s: snippet title */
         __( '"%s" was saved as a draft and is being tested on your site. It goes live only if the test passes; until then the current version keeps running.', 'snn' ),
@@ -4480,8 +4468,7 @@ function snn_snippets_switch_on( $key ) {
         return sprintf( __( '"%1$s" was not switched on: %2$s (line %3$d).', 'snn' ), snn_snippet_title( $key ), $check['message'], (int) $check['line'] );
     }
 
-    $test_url = $is_modern ? (string) get_post_meta( $post_id, SNN_SNIPPET_META_TEST_URL, true ) : '';
-    snn_snippet_start_test( $key, $post_id, $code, true, $settings, $test_url );
+    snn_snippet_start_test( $key, $post_id, $code, true, $settings );
     return 'testing';
 }
 
@@ -4746,7 +4733,7 @@ function snn_snippets_handle_editor_post() {
         $revision = ( 3 === count( $parts ) && 'restore' === $parts[0] ) ? wp_get_post_revision( absint( $parts[1] ) ) : null;
         if ( $revision && (int) $revision->post_parent === $id ) {
             // Restoring is saving old code: the same draft -> test -> publish path.
-            snn_snippet_process_save( array( 'slug' => $key, 'title' => snn_snippet_title( $key ) ), $revision->post_content, null, snn_snippet_get_settings( $id ), (string) get_post_meta( $id, SNN_SNIPPET_META_TEST_URL, true ) );
+            snn_snippet_process_save( array( 'slug' => $key, 'title' => snn_snippet_title( $key ) ), $revision->post_content, null, snn_snippet_get_settings( $id ) );
         } else {
             add_settings_error( 'snn-custom-codes', 'restore_failed', esc_html__( 'Failed to restore revision. Invalid ID or permissions.', 'snn' ), 'error' );
         }
@@ -4776,12 +4763,6 @@ function snn_snippets_handle_editor_post() {
         $code = snn_snippet_strip_open_tag( $code );
     }
 
-    $test_url = isset( $_POST['snn_test_url'] ) ? esc_url_raw( trim( (string) wp_unslash( $_POST['snn_test_url'] ) ) ) : '';
-    if ( '' !== $test_url && ! snn_snippet_is_own_url( $test_url ) ) {
-        add_settings_error( 'snn-custom-codes', 'test_url', esc_html__( 'The test URL must be a page of this site, so it was cleared.', 'snn' ), 'warning' );
-        $test_url = '';
-    }
-
     if ( ! $id ) {
         $id = wp_insert_post( array(
             'post_type'    => 'snn_code_snippet',
@@ -4803,8 +4784,8 @@ function snn_snippets_handle_editor_post() {
         snn_snippets_rebuild_cache();
     }
 
-    update_post_meta( $id, SNN_SNIPPET_META_TEST_URL, $test_url );
-    snn_snippet_process_save( array( 'slug' => $key, 'title' => $title ), $code, isset( $_POST['snn_active'] ), $settings, $test_url );
+    delete_post_meta( $id, '_snn_test_url' ); // Leftover from the removed "Test on this URL" field.
+    snn_snippet_process_save( array( 'slug' => $key, 'title' => $title ), $code, isset( $_POST['snn_active'] ), $settings );
 
     if ( ! get_settings_errors( 'snn-custom-codes' ) ) {
         add_settings_error( 'snn-custom-codes', 'saved', esc_html__( 'Snippet saved.', 'snn' ), 'updated' );
@@ -5121,7 +5102,6 @@ function snn_snippets_render_editor() {
     $title      = $id ? (string) get_post_field( 'post_title', $id ) : '';
     $on         = $id && snn_snippet_is_enabled( $key );
     $pending_on = $draft && ! empty( $draft['switch_on'] );
-    $test_url   = $id ? (string) get_post_meta( $id, SNN_SNIPPET_META_TEST_URL, true ) : '';
     $error      = $id ? snn_snippet_get_error( $key ) : false;
     $types      = snn_snippet_code_types();
     $map        = snn_snippet_location_map();
@@ -5286,13 +5266,6 @@ function snn_snippets_render_editor() {
                         <div>
                             <input type="number" id="snn_priority" name="snn_priority" class="small-text" min="0" max="9999" step="1" value="<?php echo (int) $settings['priority']; ?>">
                             <span class="description"><?php esc_html_e( 'Lower runs first. Snippets with the same priority run oldest first.', 'snn' ); ?></span>
-                        </div>
-                    </div>
-                    <div class="snn-field">
-                        <label for="snn_test_url"><strong><?php esc_html_e( 'Test on this URL', 'snn' ); ?></strong></label>
-                        <div>
-                            <input type="url" id="snn_test_url" name="snn_test_url" class="regular-text" value="<?php echo esc_attr( $test_url ); ?>" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>">
-                            <p class="description"><?php esc_html_e( 'Optional. Front-end test pages load this URL. Leave empty to use a page that matches the conditions (for example the newest product for "Post type is Product"), or else the home page.', 'snn' ); ?></p>
                         </div>
                     </div>
                 </div>
