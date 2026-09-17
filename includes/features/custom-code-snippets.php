@@ -245,8 +245,8 @@ function snn_snippet_rule_post_ids( $value ) {
 }
 
 /**
- * A picked post as the "Page or post" rule shows it: its title, post type slug
- * and status, so same-titled posts of different types can be told apart.
+ * A picked post as the "Page, post or template" rule shows it: its title, post
+ * type slug and status, so same-titled posts of different types can be told apart.
  */
 function snn_snippet_post_label( $post_id ) {
     $post = get_post( $post_id );
@@ -254,10 +254,118 @@ function snn_snippet_post_label( $post_id ) {
         return array( 'title' => '#' . absint( $post_id ), 'meta' => '' );
     }
     $status = get_post_status_object( $post->post_status );
+    $kind   = $post->post_type;
+    if ( 'bricks_template' === $kind ) {
+        $template_type = (string) get_post_meta( $post->ID, '_bricks_template_type', true );
+        $kind          = __( 'Bricks template', 'snn' ) . ( '' !== $template_type ? ' (' . $template_type . ')' : '' );
+    }
     return array(
         'title' => '' !== $post->post_title ? $post->post_title : '#' . $post->ID,
-        'meta'  => $post->post_type . ' · ' . ( $status ? $status->label : $post->post_status ),
+        'meta'  => $kind . ' · ' . ( $status ? $status->label : $post->post_status ),
     );
+}
+
+/** Pages that are not a post: the front page, the blog, search results and 404. */
+function snn_snippet_special_targets() {
+    return array(
+        'front_page' => __( 'Front page', 'snn' ),
+        'blog'       => __( 'Blog posts page', 'snn' ),
+        'search'     => __( 'Search results', 'snn' ),
+        '404'        => __( '404 not found page', 'snn' ),
+    );
+}
+
+/**
+ * Everything a "Page, post or template" rule value can hold, cleaned up:
+ * "12" (a post, page or Bricks template), "term:5" (a category, tag or term
+ * archive), "archive:product" (a post type archive), "special:search".
+ */
+function snn_snippet_rule_targets( $value ) {
+    $targets = array();
+    foreach ( explode( ',', strtolower( (string) $value ) ) as $token ) {
+        $token = trim( $token );
+        if ( ctype_digit( $token ) && (int) $token > 0 ) {
+            $targets[] = (string) (int) $token;
+        } elseif ( preg_match( '/^term:[1-9]\d*$/', $token ) || preg_match( '/^archive:[a-z0-9_-]+$/', $token ) ) {
+            $targets[] = $token;
+        } elseif ( 0 === strpos( $token, 'special:' ) && isset( snn_snippet_special_targets()[ substr( $token, 8 ) ] ) ) {
+            $targets[] = $token;
+        }
+    }
+    return array_values( array_unique( $targets ) );
+}
+
+/** A picked target as its chip shows it: array( 'title' => ..., 'meta' => ... ). */
+function snn_snippet_target_label( $target ) {
+    if ( ctype_digit( $target ) ) {
+        return snn_snippet_post_label( (int) $target );
+    }
+    list( $kind, $key ) = explode( ':', $target, 2 );
+    switch ( $kind ) {
+        case 'term':
+            $term = get_term( (int) $key );
+            if ( $term && ! is_wp_error( $term ) ) {
+                $tax = get_taxonomy( $term->taxonomy );
+                return array( 'title' => $term->name, 'meta' => ( $tax ? $tax->labels->singular_name : $term->taxonomy ) . ' ' . __( 'archive', 'snn' ) );
+            }
+            break;
+        case 'archive':
+            $object = get_post_type_object( $key );
+            if ( $object ) {
+                return array( 'title' => $object->labels->name, 'meta' => __( 'Post type archive', 'snn' ) );
+            }
+            break;
+        case 'special':
+            $specials = snn_snippet_special_targets();
+            if ( isset( $specials[ $key ] ) ) {
+                return array( 'title' => $specials[ $key ], 'meta' => __( 'Special page', 'snn' ) );
+            }
+            break;
+    }
+    return array( 'title' => $target, 'meta' => '' );
+}
+
+/** Is this request the page a target names? Bricks templates are checked separately. */
+function snn_snippet_target_matches( $target ) {
+    if ( ctype_digit( $target ) ) {
+        return is_singular() && (int) get_queried_object_id() === (int) $target;
+    }
+    list( $kind, $key ) = explode( ':', $target, 2 );
+    switch ( $kind ) {
+        case 'term':
+            return ( is_category() || is_tag() || is_tax() ) && (int) get_queried_object_id() === (int) $key;
+        case 'archive':
+            return is_post_type_archive( $key );
+        case 'special':
+            $checks = array( 'front_page' => is_front_page(), 'blog' => is_home(), 'search' => is_search(), '404' => is_404() );
+            return ! empty( $checks[ $key ] );
+    }
+    return false;
+}
+
+/** A front-end URL that shows a target, or '' (Bricks templates have none of their own). */
+function snn_snippet_target_url( $target ) {
+    if ( ctype_digit( $target ) ) {
+        // A template's own permalink is its builder preview, not a page it renders.
+        return 'bricks_template' === get_post_type( (int) $target ) ? '' : (string) get_permalink( (int) $target );
+    }
+    list( $kind, $key ) = explode( ':', $target, 2 );
+    switch ( $kind ) {
+        case 'term':
+            $link = get_term_link( (int) $key );
+            return is_wp_error( $link ) ? '' : $link;
+        case 'archive':
+            return (string) get_post_type_archive_link( $key );
+        case 'special':
+            $urls = array(
+                'front_page' => home_url( '/' ),
+                'blog'       => get_option( 'page_for_posts' ) ? get_permalink( (int) get_option( 'page_for_posts' ) ) : home_url( '/' ),
+                'search'     => add_query_arg( 's', 'snn-snippet-test', home_url( '/' ) ),
+                '404'        => home_url( '/snn-snippet-test-page-not-found/' ),
+            );
+            return isset( $urls[ $key ] ) ? (string) $urls[ $key ] : '';
+    }
+    return '';
 }
 
 /** Page types the page_type rule understands. */
@@ -315,7 +423,7 @@ function snn_snippet_normalize_conditions( $raw, $location, &$dropped = 0 ) {
                     $value = sanitize_key( $value );
                     break;
                 case 'post_id':
-                    $value = implode( ',', array_slice( snn_snippet_rule_post_ids( $value ), 0, 200 ) );
+                    $value = implode( ',', array_slice( snn_snippet_rule_targets( $value ), 0, 200 ) );
                     break;
                 case 'url_path':
                     $value = substr( sanitize_text_field( $value ), 0, 500 );
@@ -586,6 +694,31 @@ function snn_snippet_queried_post_types() {
     return array();
 }
 
+/**
+ * IDs of the Bricks templates rendering this request (header, footer, archive,
+ * content and so on), so picking "Archive-Codex" matches /codex/.
+ */
+function snn_snippet_active_bricks_template_ids() {
+    if ( ! class_exists( '\Bricks\Database' ) || ! method_exists( '\Bricks\Database', 'set_active_templates' ) ) {
+        return array();
+    }
+    // Bricks fills these on "wp"; a snippet on the same hook may run first.
+    // The call is guarded inside Bricks, so it only works them out once.
+    \Bricks\Database::set_active_templates();
+    $ids = array();
+    foreach ( (array) \Bricks\Database::$active_templates as $key => $template ) {
+        if ( 'post_id' === $key || 'content_type' === $key ) {
+            continue;
+        }
+        foreach ( (array) $template as $id ) {
+            if ( is_numeric( $id ) && (int) $id > 0 ) {
+                $ids[] = (int) $id;
+            }
+        }
+    }
+    return $ids;
+}
+
 /** Does one condition rule match this request? */
 function snn_snippet_rule_matches( $rule ) {
     $value = (string) $rule['value'];
@@ -640,7 +773,17 @@ function snn_snippet_rule_matches( $rule ) {
             $match = in_array( $value, snn_snippet_queried_post_types(), true );
             break;
         case 'post_id':
-            $match = is_singular() && in_array( (int) get_queried_object_id(), snn_snippet_rule_post_ids( $value ), true );
+            $match = false;
+            foreach ( snn_snippet_rule_targets( $value ) as $target ) {
+                if ( snn_snippet_target_matches( $target ) ) {
+                    $match = true;
+                    break;
+                }
+            }
+            if ( ! $match ) {
+                // A picked Bricks template matches every page it renders.
+                $match = (bool) array_intersect( snn_snippet_rule_post_ids( $value ), snn_snippet_active_bricks_template_ids() );
+            }
             break;
         default:
             return false;
@@ -1355,8 +1498,8 @@ function snn_snippet_test_url_for_group( $group ) {
         switch ( $rule['rule'] ) {
             case 'post_id':
                 // The most specific rule: a page it names wins outright.
-                foreach ( snn_snippet_rule_post_ids( $rule['value'] ) as $post_id ) {
-                    $link = get_permalink( $post_id );
+                foreach ( snn_snippet_rule_targets( $rule['value'] ) as $target ) {
+                    $link = snn_snippet_target_url( $target );
                     if ( $link ) {
                         return $link;
                     }
@@ -1683,7 +1826,7 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
             'and'              => __( 'AND', 'snn' ),
             'addGroup'         => __( '+ Add new group', 'snn' ),
             'remove'           => __( 'Remove rule', 'snn' ),
-            'searchPosts'      => __( 'Search pages and posts…', 'snn' ),
+            'searchPosts'      => __( 'Search pages, archives, templates…', 'snn' ),
             'pageRuleEarly'    => __( 'The Location above runs before WordPress knows which page is loading, so this rule cannot be checked.', 'snn' ),
             'pageRuleAdmin'    => __( 'The Location above is in the admin, and page rules only work on the front end. Remove this rule or pick a front-end location.', 'snn' ),
             'runAfterQuery'    => __( 'Run it after the page is known', 'snn' ),
@@ -1806,7 +1949,7 @@ jQuery( function ( $ ) {
             // A picked suggestion ("Contact (#12)"), a bare ID, or a title matching exactly one result.
             function resolve( text ) {
                 text = text.trim();
-                var match = /\(#(\d+)\)$/.exec( text ) || /^#?(\d+)$/.exec( text );
+                var match = /\(#([a-z0-9_:-]+)\)$/.exec( text ) || /^#?(\d+)$/.exec( text );
                 if ( match ) { return match[1]; }
                 var lower = text.toLowerCase();
                 var hits  = Object.keys( found ).filter( function ( id ) { return found[ id ].title.toLowerCase() === lower; } );
@@ -1837,7 +1980,7 @@ jQuery( function ( $ ) {
                 field.classList.remove( 'is-invalid' );
                 // Choosing a suggestion fills the field without a typed character.
                 if ( ! e.inputType || e.inputType === 'insertReplacementText' ) {
-                    var picked = /\(#(\d+)\)$/.exec( field.value );
+                    var picked = /\(#([a-z0-9_:-]+)\)$/.exec( field.value );
                     if ( picked ) { add( picked[1] ); return; }
                 }
                 clearTimeout( timer );
@@ -3852,7 +3995,7 @@ function snn_snippet_rule_labels() {
             'device'    => __( 'Device', 'snn' ),
             'page_type' => __( 'Page type', 'snn' ),
             'post_type' => __( 'Post type', 'snn' ),
-            'post_id'   => __( 'Page or post', 'snn' ),
+            'post_id'   => __( 'Page, post or template', 'snn' ),
         ),
         'ops'    => array(
             'is'          => __( 'is', 'snn' ),
@@ -3892,9 +4035,9 @@ function snn_snippet_rule_value_label( $rule, $labels ) {
             return $object ? $object->labels->singular_name : $value;
         case 'post_id':
             $titles = array();
-            foreach ( snn_snippet_rule_post_ids( $value ) as $post_id ) {
-                $title    = get_the_title( $post_id );
-                $titles[] = '' !== $title ? $title : '#' . $post_id;
+            foreach ( snn_snippet_rule_targets( $value ) as $target ) {
+                $label    = snn_snippet_target_label( $target );
+                $titles[] = $label['title'];
             }
             return implode( ', ', $titles );
     }
@@ -4850,7 +4993,8 @@ function snn_ajax_snippet_toggle() {
 }
 
 /**
- * AJAX: posts and pages for the "Page or post" condition's search box.
+ * AJAX: pages, posts, Bricks templates, archives and special pages for the
+ * "Page, post or template" condition's search box.
  */
 add_action( 'wp_ajax_snn_snippet_search_posts', 'snn_ajax_snippet_search_posts' );
 function snn_ajax_snippet_search_posts() {
@@ -4877,7 +5021,42 @@ function snn_ajax_snippet_search_posts() {
         $args['s'] = $term;
     }
 
-    $found = array();
+    $found  = array();
+    $needle = strtolower( $term );
+
+    // Pages that are not posts: special pages and post type archives, by name.
+    if ( ! ctype_digit( $term ) ) {
+        $tokens = array();
+        foreach ( array_keys( snn_snippet_special_targets() ) as $key ) {
+            $tokens[] = 'special:' . $key;
+        }
+        foreach ( get_post_types( array( 'public' => true ), 'objects' ) as $object ) {
+            if ( $object->has_archive ) {
+                $tokens[] = 'archive:' . $object->name;
+            }
+        }
+        foreach ( $tokens as $token ) {
+            $label = snn_snippet_target_label( $token );
+            if ( '' === $needle || false !== strpos( strtolower( $label['title'] ), $needle ) ) {
+                $found[] = array( 'id' => $token ) + $label;
+            }
+        }
+    }
+
+    // Category, tag and other term archives, once something is typed.
+    if ( '' !== $term && ! ctype_digit( $term ) ) {
+        $terms = get_terms( array(
+            'taxonomy'   => array_values( get_taxonomies( array( 'public' => true ) ) ),
+            'name__like' => $term,
+            'hide_empty' => false,
+            'number'     => 10,
+        ) );
+        foreach ( is_wp_error( $terms ) ? array() : $terms as $item ) {
+            $token   = 'term:' . $item->term_id;
+            $found[] = array( 'id' => $token ) + snn_snippet_target_label( $token );
+        }
+    }
+
     foreach ( get_posts( $args ) as $post ) {
         $found[] = array( 'id' => (int) $post->ID ) + snn_snippet_post_label( $post );
     }
@@ -5139,8 +5318,8 @@ function snn_snippets_render_editor() {
     foreach ( $settings['conditions']['groups'] as $group ) {
         foreach ( $group as $rule ) {
             if ( 'post_id' === $rule['rule'] ) {
-                foreach ( snn_snippet_rule_post_ids( $rule['value'] ) as $post_id ) {
-                    $post_titles[ $post_id ] = snn_snippet_post_label( $post_id );
+                foreach ( snn_snippet_rule_targets( $rule['value'] ) as $target ) {
+                    $post_titles[ $target ] = snn_snippet_target_label( $target );
                 }
             }
         }
