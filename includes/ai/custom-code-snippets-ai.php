@@ -58,14 +58,20 @@ function snn_snippets_ai_css() {
 .snn-ai-open:hover { border-color: #2271b1; }
 .snn-ai-star { font-size: 22px; line-height: 1.2; background: linear-gradient(45deg, #2271b1, #ffffff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .snn-ai-legacy-bar { display: flex; justify-content: flex-end; margin: 0 0 6px; }
-.snn-ai-panel { position: fixed; top: 32px; right: 0; bottom: 0; width: 420px; max-width: 100vw; background: #fff; border-left: 1px solid #c3c4c7; box-shadow: -4px 0 16px rgba(0,0,0,.08); z-index: 9990; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .2s ease; }
-.snn-ai-panel.is-open { transform: none; }
-@media (max-width: 782px) { .snn-ai-panel { top: 46px; } }
-@media (prefers-reduced-motion: reduce) { .snn-ai-panel { transition: none; } }
+.snn-ai-split { display: flex; align-items: stretch; }
+.snn-ai-code { flex: 1; min-width: 0; }
+.snn-ai-panel { display: none; position: relative; flex: 0 0 360px; border: 1px solid #dcdcde; border-left: 0; background: #fff; }
+.snn-ai-panel.is-open { display: block; }
+.snn-ai-panel-inner { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.snn-ai-open.is-active { border-color: #2271b1; background: #f0f6fc; }
+@media (max-width: 1100px) {
+    .snn-ai-split { flex-direction: column; }
+    .snn-ai-panel { flex-basis: auto; height: 520px; border-left: 1px solid #dcdcde; border-top: 0; }
+}
 .snn-ai-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #dcdcde; }
 .snn-ai-head h2 { margin: 0; font-size: 14px; flex: 1; }
 .snn-ai-close { background: none; border: 0; font-size: 22px; line-height: 1; cursor: pointer; color: #50575e; }
-.snn-ai-messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.snn-ai-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
 .snn-ai-hint { color: #646970; font-size: 12px; margin: 0; }
 .snn-ai-msg-user { align-self: flex-end; max-width: 85%; background: #2271b1; color: #fff; border-radius: 8px 8px 0 8px; padding: 8px 10px; white-space: pre-wrap; word-break: break-word; }
 .snn-ai-msg-ai { background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 6px; }
@@ -131,18 +137,27 @@ jQuery( function ( $ ) {
     }
 
     // ----- Panel -------------------------------------------------------------
+    // Docked to the right of the code editor: [ code | AI ], same height.
+    var split    = el( 'div', 'snn-ai-split' );
+    var codeWrap = el( 'div', 'snn-ai-code' );
+    var cmWrap   = cm() ? cm().getWrapperElement() : null;
+    area.parentNode.insertBefore( split, area );
+    split.appendChild( codeWrap );
+    codeWrap.appendChild( area );
+    if ( cmWrap ) { codeWrap.appendChild( cmWrap ); }
+
     var panel = el( 'aside', 'snn-ai-panel' );
     panel.setAttribute( 'aria-label', t.title );
     panel.innerHTML =
-        '<div class="snn-ai-head"><span class="snn-ai-star">✦</span><h2></h2>' +
+        '<div class="snn-ai-panel-inner"><div class="snn-ai-head"><span class="snn-ai-star">✦</span><h2></h2>' +
         '<button type="button" class="button button-small snn-ai-clear"></button>' +
         '<button type="button" class="snn-ai-close">×</button></div>' +
         '<div class="snn-ai-messages"></div>' +
         '<div class="snn-ai-form"><textarea></textarea>' +
         '<div class="snn-ai-form-row"><label><input type="checkbox" class="snn-ai-include"> <span class="snn-ai-include-label"></span></label>' +
         '<span class="snn-spacer"></span><span class="spinner"></span>' +
-        '<button type="button" class="button button-primary snn-ai-send"></button></div></div>';
-    document.body.appendChild( panel );
+        '<button type="button" class="button button-primary snn-ai-send"></button></div></div></div>';
+    split.appendChild( panel );
 
     var q        = function ( s ) { return panel.querySelector( s ); };
     var list     = q( '.snn-ai-messages' );
@@ -177,9 +192,16 @@ jQuery( function ( $ ) {
         include.checked = currentCode().trim() !== '';
         refreshInclude();
         panel.classList.add( 'is-open' );
+        openBtn.classList.add( 'is-active' );
+        if ( cm() ) { cm().refresh(); }
         prompt.focus();
     }
-    function close() { panel.classList.remove( 'is-open' ); openBtn.focus(); }
+    function close() {
+        panel.classList.remove( 'is-open' );
+        openBtn.classList.remove( 'is-active' );
+        if ( cm() ) { cm().refresh(); }
+        openBtn.focus();
+    }
 
     openBtn.addEventListener( 'click', function () { panel.classList.contains( 'is-open' ) ? close() : open(); } );
     q( '.snn-ai-close' ).addEventListener( 'click', close );
