@@ -224,7 +224,13 @@ jQuery( function ( $ ) {
         var lines = [
             'You are an expert WordPress developer writing code for a code snippets manager inside WordPress admin.',
             'Reply with ONLY the code. No explanations, no markdown, no code fences.',
-            'Code type: ' + type + '. ' + TYPE_RULES[ type ]
+            'Code type: ' + type + '. ' + TYPE_RULES[ type ],
+            'Comments: explain the code inside comments, since the reply is code only. ' +
+                'Start new code with a short header comment: what the snippet does and how to use it (for example the shortcode with every attribute, its default and what it changes). ' +
+                'Above each function, class, hook and non-obvious block, add a short comment (1-3 lines) saying what it does and how it works. ' +
+                'Keep comments short and plain; do not comment trivial lines. ' +
+                'Use the comment syntax of the code type: PHP /** */ and //, CSS /* */, JavaScript //, HTML <!-- -->. ' +
+                'When editing existing code, keep its comments and update them if the code changes.'
         ];
         if ( LEGACY[ area.id ] ) {
             lines.push( 'Location: ' + LEGACY[ area.id ] );
