@@ -244,18 +244,20 @@ function snn_snippet_rule_post_ids( $value ) {
     return array_values( array_unique( array_filter( array_map( 'absint', explode( ',', (string) $value ) ) ) ) );
 }
 
-/** A picked post as the "Page or post" rule shows it: "Contact · page · Draft". */
+/**
+ * A picked post as the "Page or post" rule shows it: its title, post type slug
+ * and status, so same-titled posts of different types can be told apart.
+ */
 function snn_snippet_post_label( $post_id ) {
     $post = get_post( $post_id );
     if ( ! $post ) {
-        return '#' . absint( $post_id );
+        return array( 'title' => '#' . absint( $post_id ), 'meta' => '' );
     }
     $status = get_post_status_object( $post->post_status );
-    return implode( ' · ', array(
-        '' !== $post->post_title ? $post->post_title : '#' . $post->ID,
-        $post->post_type,
-        $status ? $status->label : $post->post_status,
-    ) );
+    return array(
+        'title' => '' !== $post->post_title ? $post->post_title : '#' . $post->ID,
+        'meta'  => $post->post_type . ' · ' . ( $status ? $status->label : $post->post_status ),
+    );
 }
 
 /** Page types the page_type rule understands. */
@@ -1778,7 +1780,9 @@ jQuery( function ( $ ) {
             function drawChips() {
                 chips.innerHTML = '';
                 ids().forEach( function ( id ) {
-                    var chip = el( 'span', { className: 'snn-post-chip', title: '#' + id }, titles[ id ] || '#' + id );
+                    var info = titles[ id ] || { title: '#' + id, meta: '' };
+                    var chip = el( 'span', { className: 'snn-post-chip', title: '#' + id }, info.title );
+                    if ( info.meta ) { chip.appendChild( el( 'span', { className: 'snn-post-chip-meta' }, info.meta ) ); }
                     var x    = el( 'button', { type: 'button', 'aria-label': i18n.remove }, '×' );
                     x.addEventListener( 'click', function () {
                         setIds( ids().filter( function ( other ) { return other !== id; } ) );
@@ -1798,7 +1802,7 @@ jQuery( function ( $ ) {
                 return hits.length === 1 ? hits[0] : '';
             }
             function add( id ) {
-                if ( found[ id ] ) { titles[ id ] = found[ id ].label; }
+                if ( found[ id ] ) { titles[ id ] = found[ id ]; }
                 if ( ids().indexOf( id ) === -1 ) { setIds( ids().concat( id ) ); }
                 field.value = '';
                 field.classList.remove( 'is-invalid' );
@@ -1811,7 +1815,7 @@ jQuery( function ( $ ) {
                     ( response && response.success ? response.data : [] ).forEach( function ( post ) {
                         found[ post.id ] = post;
                         if ( ids().indexOf( String( post.id ) ) === -1 ) {
-                            list.appendChild( el( 'option', { value: post.title + ' (#' + post.id + ')' }, post.label ) );
+                            list.appendChild( el( 'option', { value: post.title + ' (#' + post.id + ')' }, post.meta ) );
                         }
                     } );
                 } );
@@ -2206,6 +2210,7 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-post-picker:focus-within { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
         .snn-post-chips { display: contents; }
         .snn-post-chip { display: inline-flex; align-items: center; gap: 2px; background: #f0f6fc; border: 1px solid #c5d9ed; border-radius: 3px; padding: 0 2px 0 8px; font-size: 13px; line-height: 22px; }
+        .snn-post-chip-meta { margin-left: 6px; padding: 0 5px; border-radius: 3px; background: #dcdcde; color: #50575e; font-size: 11px; line-height: 16px; }
         .snn-post-chip button { border: 0; background: none; cursor: pointer; color: #646970; font-size: 16px; line-height: 1; padding: 0 4px; }
         .snn-post-chip button:hover { color: #b32d2e; }
         .snn-post-picker input[type=text] { flex: 1; min-width: 160px; border: 0; box-shadow: none; outline: 0; padding: 0 2px; min-height: 26px; background: transparent; }
@@ -4863,11 +4868,7 @@ function snn_ajax_snippet_search_posts() {
 
     $found = array();
     foreach ( get_posts( $args ) as $post ) {
-        $found[] = array(
-            'id'    => (int) $post->ID,
-            'title' => '' !== $post->post_title ? $post->post_title : '#' . $post->ID,
-            'label' => snn_snippet_post_label( $post ),
-        );
+        $found[] = array( 'id' => (int) $post->ID ) + snn_snippet_post_label( $post );
     }
     wp_send_json_success( $found );
 }
