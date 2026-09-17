@@ -228,15 +228,21 @@ function snn_snippet_location_knows_page( $location ) {
  */
 function snn_snippet_rule_defs() {
     return array(
+        // Page rules first: limiting a snippet to some pages is the common case.
+        'post_id'   => array( 'ops' => array( 'is', 'is_not' ), 'page' => true ),
+        'post_type' => array( 'ops' => array( 'is', 'is_not' ), 'page' => true ),
+        'page_type' => array( 'ops' => array( 'is', 'is_not' ), 'page' => true ),
+        'url_path'  => array( 'ops' => array( 'equals', 'contains', 'starts_with' ), 'page' => false ),
         'logged_in' => array( 'ops' => array( 'is' ), 'page' => false ),
         'user_role' => array( 'ops' => array( 'is', 'is_not' ), 'page' => false ),
-        'area'      => array( 'ops' => array( 'is' ), 'page' => false ),
-        'url_path'  => array( 'ops' => array( 'equals', 'contains', 'starts_with' ), 'page' => false ),
         'device'    => array( 'ops' => array( 'is' ), 'page' => false ),
-        'page_type' => array( 'ops' => array( 'is', 'is_not' ), 'page' => true ),
-        'post_type' => array( 'ops' => array( 'is', 'is_not' ), 'page' => true ),
-        'post_id'   => array( 'ops' => array( 'is', 'is_not' ), 'page' => true ),
+        'area'      => array( 'ops' => array( 'is' ), 'page' => false ),
     );
+}
+
+/** The post IDs of a post_id rule value: "12,34" -> array( 12, 34 ). */
+function snn_snippet_rule_post_ids( $value ) {
+    return array_values( array_unique( array_filter( array_map( 'absint', explode( ',', (string) $value ) ) ) ) );
 }
 
 /** Page types the page_type rule understands. */
@@ -294,13 +300,13 @@ function snn_snippet_normalize_conditions( $raw, $location, &$dropped = 0 ) {
                     $value = sanitize_key( $value );
                     break;
                 case 'post_id':
-                    $value = (string) absint( $value );
+                    $value = implode( ',', array_slice( snn_snippet_rule_post_ids( $value ), 0, 200 ) );
                     break;
                 case 'url_path':
                     $value = substr( sanitize_text_field( $value ), 0, 500 );
                     break;
             }
-            if ( '' === $value || '0' === $value && 'post_id' === $name ) {
+            if ( '' === $value ) {
                 continue;
             }
             $rules[] = array( 'rule' => $name, 'op' => $op, 'value' => $value );
@@ -619,7 +625,7 @@ function snn_snippet_rule_matches( $rule ) {
             $match = in_array( $value, snn_snippet_queried_post_types(), true );
             break;
         case 'post_id':
-            $match = is_singular() && (int) get_queried_object_id() === (int) $value;
+            $match = is_singular() && in_array( (int) get_queried_object_id(), snn_snippet_rule_post_ids( $value ), true );
             break;
         default:
             return false;
@@ -1335,9 +1341,11 @@ function snn_snippet_test_url_for_group( $group ) {
         }
         switch ( $rule['rule'] ) {
             case 'post_id':
-                $link = get_permalink( (int) $rule['value'] );
-                if ( $link ) {
-                    return $link;
+                foreach ( snn_snippet_rule_post_ids( $rule['value'] ) as $post_id ) {
+                    $link = get_permalink( $post_id );
+                    if ( $link ) {
+                        return $link;
+                    }
                 }
                 break;
             case 'post_type':
@@ -1659,10 +1667,13 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
             'and'              => __( 'AND', 'snn' ),
             'addGroup'         => __( '+ Add new group', 'snn' ),
             'remove'           => __( 'Remove rule', 'snn' ),
-            'needsPage'        => __( '(needs a location after the page query)', 'snn' ),
-            'searchPosts'      => __( 'Type to search, or enter an ID', 'snn' ),
+            'searchPosts'      => __( 'Search pages and posts…', 'snn' ),
+            'pageRuleEarly'    => __( 'This snippet runs before WordPress knows which page is loading, so this rule cannot be checked.', 'snn' ),
+            'pageRuleAdmin'    => __( 'Page rules only work on the front end. Remove this rule or pick a front-end location.', 'snn' ),
+            'runAfterQuery'    => __( 'Run it after the page is known', 'snn' ),
+            'runAfterQueryHint' => __( 'PHP that hooks into init or earlier will not fire from there.', 'snn' ),
+            'fixRulesFirst'    => __( 'Some conditional logic rules cannot be checked from this location. Fix the highlighted rules before saving, otherwise the snippet would run on every page.', 'snn' ),
             'cacheWarning'     => __( 'Logged-in, user role and device rules are decided on the server. A page cache serves the same copy to everyone, so on cached pages these rules may not apply as expected.', 'snn' ),
-            'unavailable'      => __( 'Greyed-out rules need to know which page is showing; this location runs before that. They are removed when you save.', 'snn' ),
         ),
     );
     wp_add_inline_script( 'snn-code-snippets', 'window.snnSnippets = ' . wp_json_encode( $config ) . ";\n" . snn_snippets_admin_js() );
@@ -1708,7 +1719,7 @@ jQuery( function ( $ ) {
         state.enabled = !! state.enabled;
         state.action  = state.action === 'hide' ? 'hide' : 'show';
         state.groups  = Array.isArray( state.groups ) ? state.groups : [];
-        var knowsPage = true;
+        var knowsPage = true, adminArea = false;
 
         function el( tag, attrs, text ) {
             var node = document.createElement( tag );
@@ -1728,40 +1739,108 @@ jQuery( function ( $ ) {
             node.addEventListener( 'change', function () { onChange( node.value ); } );
             return node;
         }
+        // Page rules mean nothing in the admin, and need a location that runs once the page is known.
+        function hidden( name ) { return rules[ name ].page && adminArea; }
         function available( name ) { return ! rules[ name ].page || knowsPage; }
         function firstRule() {
             var names = Object.keys( rules );
-            for ( var i = 0; i < names.length; i++ ) { if ( available( names[ i ] ) ) { return names[ i ]; } }
+            for ( var i = 0; i < names.length; i++ ) { if ( ! hidden( names[ i ] ) ) { return names[ i ]; } }
             return names[0];
         }
         function defaultValue( name ) { return rules[ name ].values.length ? rules[ name ].values[0][0] : ''; }
         function newRule() { var name = firstRule(); return { rule: name, op: rules[ name ].ops[0][0], value: defaultValue( name ) }; }
         function save() { input.value = JSON.stringify( state ); }
+        function hasUnavailable() {
+            return state.enabled && state.groups.some( function ( group ) {
+                return group.some( function ( rule ) { return rules[ rule.rule ] && ! available( rule.rule ); } );
+            } );
+        }
 
+        // Several pages in one rule: chips plus a search box fed by a datalist.
         function postPicker( rule ) {
             var wrap   = el( 'span', { className: 'snn-post-picker' } );
+            var chips  = el( 'span', { className: 'snn-post-chips' } );
             var listId = 'snn-post-list-' + Math.random().toString( 36 ).slice( 2 );
-            var field  = el( 'input', { type: 'text', className: 'regular-text', list: listId, placeholder: i18n.searchPosts } );
+            var field  = el( 'input', { type: 'text', list: listId, placeholder: i18n.searchPosts, autocomplete: 'off' } );
             var list   = el( 'datalist', { id: listId } );
-            var timer  = null;
-            field.value = rule.value ? rule.value + ( titles[ rule.value ] ? ' — ' + titles[ rule.value ] : '' ) : '';
-            field.addEventListener( 'input', function () {
-                var match = /^\s*(\d+)/.exec( field.value );
-                rule.value = match ? match[1] : '';
-                save();
+            var found  = {};
+            var timer  = null, request = null;
+
+            function ids() { return String( rule.value || '' ).split( ',' ).filter( Boolean ); }
+            function setIds( next ) { rule.value = next.join( ',' ); save(); drawChips(); }
+            function drawChips() {
+                chips.innerHTML = '';
+                ids().forEach( function ( id ) {
+                    var chip = el( 'span', { className: 'snn-post-chip', title: '#' + id }, titles[ id ] || '#' + id );
+                    var x    = el( 'button', { type: 'button', 'aria-label': i18n.remove }, '×' );
+                    x.addEventListener( 'click', function () {
+                        setIds( ids().filter( function ( other ) { return other !== id; } ) );
+                        field.focus();
+                    } );
+                    chip.appendChild( x );
+                    chips.appendChild( chip );
+                } );
+            }
+            // A picked suggestion ("Contact (#12)"), a bare ID, or a title matching exactly one result.
+            function resolve( text ) {
+                text = text.trim();
+                var match = /\(#(\d+)\)$/.exec( text ) || /^#?(\d+)$/.exec( text );
+                if ( match ) { return match[1]; }
+                var lower = text.toLowerCase();
+                var hits  = Object.keys( found ).filter( function ( id ) { return found[ id ].toLowerCase() === lower; } );
+                return hits.length === 1 ? hits[0] : '';
+            }
+            function add( id ) {
+                if ( found[ id ] ) { titles[ id ] = found[ id ]; }
+                if ( ids().indexOf( id ) === -1 ) { setIds( ids().concat( id ) ); }
+                field.value = '';
+                field.classList.remove( 'is-invalid' );
+            }
+            function search( term ) {
+                // One worker on small hosts: never let stale searches queue up.
+                if ( request ) { request.abort(); }
+                request = $.get( cfg.ajaxUrl, { action: 'snn_snippet_search_posts', nonce: cfg.nonces.search, term: term } ).done( function ( response ) {
+                    list.innerHTML = '';
+                    ( response && response.success ? response.data : [] ).forEach( function ( post ) {
+                        found[ post.id ] = post.title;
+                        if ( ids().indexOf( String( post.id ) ) === -1 ) {
+                            list.appendChild( el( 'option', { value: post.title + ' (#' + post.id + ')' }, post.type ) );
+                        }
+                    } );
+                } );
+            }
+
+            field.addEventListener( 'focus', function () { if ( ! field.value ) { search( '' ); } } );
+            field.addEventListener( 'input', function ( e ) {
+                field.classList.remove( 'is-invalid' );
+                // Choosing a suggestion fills the field without a typed character.
+                if ( ! e.inputType || e.inputType === 'insertReplacementText' ) {
+                    var picked = /\(#(\d+)\)$/.exec( field.value );
+                    if ( picked ) { add( picked[1] ); return; }
+                }
                 clearTimeout( timer );
                 var term = field.value.trim();
-                if ( term.length < 2 || /^\d+ — /.test( term ) ) { return; }
-                timer = setTimeout( function () {
-                    $.get( cfg.ajaxUrl, { action: 'snn_snippet_search_posts', nonce: cfg.nonces.search, term: term } ).done( function ( response ) {
-                        list.innerHTML = '';
-                        ( response && response.success ? response.data : [] ).forEach( function ( post ) {
-                            titles[ post.id ] = post.title;
-                            list.appendChild( el( 'option', { value: post.id + ' — ' + post.title }, post.type ) );
-                        } );
-                    } );
-                }, 250 );
+                timer = setTimeout( function () { search( term ); }, 250 );
             } );
+            field.addEventListener( 'keydown', function ( e ) {
+                if ( e.key === 'Enter' ) {
+                    e.preventDefault();
+                    if ( ! field.value.trim() ) { return; }
+                    var id = resolve( field.value );
+                    if ( id ) { add( id ); } else { field.classList.add( 'is-invalid' ); }
+                } else if ( e.key === 'Backspace' && ! field.value && ids().length ) {
+                    setIds( ids().slice( 0, -1 ) );
+                }
+            } );
+            field.addEventListener( 'blur', function () {
+                if ( ! field.value.trim() ) { return; }
+                var id = resolve( field.value );
+                if ( id ) { add( id ); } else { field.classList.add( 'is-invalid' ); }
+            } );
+            wrap.addEventListener( 'click', function ( e ) { if ( e.target === wrap ) { field.focus(); } } );
+
+            drawChips();
+            wrap.appendChild( chips );
             wrap.appendChild( field );
             wrap.appendChild( list );
             return wrap;
@@ -1770,30 +1849,29 @@ jQuery( function ( $ ) {
         function ruleRow( group, rule, gi, ri ) {
             if ( ! rules[ rule.rule ] ) { rule.rule = firstRule(); rule.op = rules[ rule.rule ].ops[0][0]; rule.value = defaultValue( rule.rule ); }
             var def = rules[ rule.rule ];
-            var row = el( 'div', { className: 'snn-cond-rule' + ( available( rule.rule ) ? '' : ' is-unavailable' ) } );
+            var ok   = available( rule.rule );
+            var row  = el( 'div', { className: 'snn-cond-rule' + ( ok ? '' : ' is-unavailable' ) } );
+            var line = el( 'div', { className: 'snn-cond-line' } );
+            row.appendChild( line );
 
-            var names = Object.keys( rules ).map( function ( name ) {
-                return [ name, rules[ name ].label + ( available( name ) ? '' : ' ' + i18n.needsPage ) ];
+            var names = Object.keys( rules ).filter( function ( name ) { return ! hidden( name ) || name === rule.rule; } ).map( function ( name ) {
+                return [ name, rules[ name ].label ];
             } );
-            var ruleSelect = select( names, rule.rule, function ( name ) {
+            line.appendChild( select( names, rule.rule, function ( name ) {
                 rule.rule = name; rule.op = rules[ name ].ops[0][0]; rule.value = defaultValue( name );
                 save(); render();
-            } );
-            Array.prototype.forEach.call( ruleSelect.options, function ( option ) {
-                if ( ! available( option.value ) && option.value !== rule.rule ) { option.disabled = true; }
-            } );
-            row.appendChild( ruleSelect );
-            row.appendChild( select( def.ops, rule.op, function ( op ) { rule.op = op; save(); } ) );
+            } ) );
+            line.appendChild( select( def.ops, rule.op, function ( op ) { rule.op = op; save(); } ) );
 
             if ( def.input === 'text' ) {
                 var text = el( 'input', { type: 'text', className: 'regular-text', placeholder: '/shop/' } );
                 text.value = rule.value;
                 text.addEventListener( 'input', function () { rule.value = text.value; save(); } );
-                row.appendChild( text );
+                line.appendChild( text );
             } else if ( def.input === 'post' ) {
-                row.appendChild( postPicker( rule ) );
+                line.appendChild( postPicker( rule ) );
             } else {
-                row.appendChild( select( def.values, rule.value, function ( value ) { rule.value = value; save(); } ) );
+                line.appendChild( select( def.values, rule.value, function ( value ) { rule.value = value; save(); } ) );
             }
 
             var remove = el( 'button', { type: 'button', className: 'button-link snn-cond-remove', 'aria-label': i18n.remove }, '×' );
@@ -1803,7 +1881,19 @@ jQuery( function ( $ ) {
                 if ( ! state.groups.length ) { state.enabled = false; }
                 save(); render();
             } );
-            row.appendChild( remove );
+            line.appendChild( remove );
+
+            if ( ! ok ) {
+                var warn = el( 'div', { className: 'snn-cond-warning' } );
+                warn.appendChild( el( 'span', {}, adminArea ? i18n.pageRuleAdmin : i18n.pageRuleEarly ) );
+                if ( ! adminArea ) {
+                    var fix = el( 'button', { type: 'button', className: 'button button-small' }, i18n.runAfterQuery );
+                    fix.addEventListener( 'click', function () { $( '#snn_location' ).val( 'frontend_wp' ).trigger( 'change' ); } );
+                    warn.appendChild( fix );
+                    warn.appendChild( el( 'span', { className: 'snn-cond-warning-hint' }, i18n.runAfterQueryHint ) );
+                }
+                row.appendChild( warn );
+            }
             return row;
         }
 
@@ -1828,14 +1918,13 @@ jQuery( function ( $ ) {
             head.appendChild( el( 'span', {}, ' ' + i18n.snippetIf ) );
             box.appendChild( head );
 
-            var usesCache = false, usesUnavailable = false;
+            var usesCache = false;
             state.groups.forEach( function ( group, gi ) {
                 if ( gi > 0 ) { box.appendChild( el( 'div', { className: 'snn-cond-or' }, i18n.or ) ); }
                 var node = el( 'div', { className: 'snn-cond-group' } );
                 group.forEach( function ( rule, ri ) {
                     node.appendChild( ruleRow( group, rule, gi, ri ) );
                     if ( rules[ rule.rule ] && rules[ rule.rule ].cache ) { usesCache = true; }
-                    if ( rules[ rule.rule ] && ! available( rule.rule ) ) { usesUnavailable = true; }
                 } );
                 var and = el( 'button', { type: 'button', className: 'button button-primary snn-cond-and' }, i18n.and );
                 and.addEventListener( 'click', function () { group.push( newRule() ); save(); render(); } );
@@ -1847,12 +1936,22 @@ jQuery( function ( $ ) {
             add.addEventListener( 'click', function () { state.groups.push( [ newRule() ] ); save(); render(); } );
             box.appendChild( add );
 
-            if ( usesUnavailable ) { box.appendChild( el( 'p', { className: 'snn-cond-note is-warning' }, i18n.unavailable ) ); }
             if ( usesCache ) { box.appendChild( el( 'p', { className: 'snn-cond-note' }, i18n.cacheWarning ) ); }
             save();
         }
 
-        window.snnConditionsKnowsPage = function ( value ) { knowsPage = value; render(); };
+        window.snnConditionsKnowsPage = function ( value, admin ) { knowsPage = value; adminArea = !! admin; render(); };
+
+        // Rules the location cannot check are dropped on save and the snippet
+        // would then run on every page, so saving waits until they are fixed.
+        $( '#snn-snippet-editor-form' ).on( 'submit', function ( e ) {
+            var submitter = e.originalEvent && e.originalEvent.submitter;
+            if ( submitter && submitter.name === 'snn_modern_save' && hasUnavailable() ) {
+                e.preventDefault();
+                box.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+                window.alert( i18n.fixRulesFirst );
+            }
+        } );
         render();
     }
 
@@ -1864,7 +1963,7 @@ jQuery( function ( $ ) {
     function applyLocation() {
         var option = placeSelect.find( 'option:selected' );
         $( '.snn-location-help' ).text( option.data( 'help' ) || '' );
-        if ( window.snnConditionsKnowsPage ) { window.snnConditionsKnowsPage( String( option.data( 'knows-page' ) ) === '1' ); }
+        if ( window.snnConditionsKnowsPage ) { window.snnConditionsKnowsPage( String( option.data( 'knows-page' ) ) === '1', option.data( 'area' ) === 'admin' ); }
     }
     function applyType() {
         var type = typeSelect.val();
@@ -2091,14 +2190,24 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-cond-enable { display: inline-block; margin: 6px 0; font-weight: 600; }
         .snn-cond-head { margin: 10px 0; }
         .snn-cond-group { background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px; padding: 12px; display: grid; gap: 8px; max-width: 920px; justify-items: start; }
-        .snn-cond-rule { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .snn-cond-rule.is-unavailable select, .snn-cond-rule.is-unavailable input { opacity: .55; }
+        .snn-cond-rule { display: grid; gap: 6px; }
+        .snn-cond-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .snn-cond-warning { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #fcf9e8; border-left: 4px solid #dba617; padding: 6px 10px; color: #1d2327; }
+        .snn-cond-warning-hint { color: #646970; font-size: 12px; }
+        .snn-post-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 320px; max-width: 560px; min-height: 30px; box-sizing: border-box; padding: 2px 6px; background: #fff; border: 1px solid #8c8f94; border-radius: 4px; cursor: text; }
+        .snn-post-picker:focus-within { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+        .snn-post-chips { display: contents; }
+        .snn-post-chip { display: inline-flex; align-items: center; gap: 2px; background: #f0f6fc; border: 1px solid #c5d9ed; border-radius: 3px; padding: 0 2px 0 8px; font-size: 13px; line-height: 22px; }
+        .snn-post-chip button { border: 0; background: none; cursor: pointer; color: #646970; font-size: 16px; line-height: 1; padding: 0 4px; }
+        .snn-post-chip button:hover { color: #b32d2e; }
+        .snn-post-picker input[type=text] { flex: 1; min-width: 160px; border: 0; box-shadow: none; outline: 0; padding: 0 2px; min-height: 26px; background: transparent; }
+        .snn-post-picker input.is-invalid { color: #b32d2e; text-decoration: wavy underline #b32d2e; }
+        @media (max-width: 600px) { .snn-post-picker { min-width: 0; width: 100%; } }
         .snn-cond-remove { font-size: 20px; line-height: 1; text-decoration: none; color: #787c82; padding: 0 4px; }
         .snn-cond-remove:hover { color: #b32d2e; }
         .snn-cond-or { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #787c82; margin: 8px 0; }
         .snn-cond-add-group { margin-top: 12px !important; }
         .snn-cond-note { color: #50575e; max-width: 920px; }
-        .snn-cond-note.is-warning { color: #8a5a00; }
 
         /* Error Logs Table Styling */
         .snn-error-logs-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
@@ -3759,8 +3868,12 @@ function snn_snippet_rule_value_label( $rule, $labels ) {
             $object = get_post_type_object( $value );
             return $object ? $object->labels->singular_name : $value;
         case 'post_id':
-            $title = get_the_title( (int) $value );
-            return '' !== $title ? $title : '#' . $value;
+            $titles = array();
+            foreach ( snn_snippet_rule_post_ids( $value ) as $post_id ) {
+                $title    = get_the_title( $post_id );
+                $titles[] = '' !== $title ? $title : '#' . $post_id;
+            }
+            return implode( ', ', $titles );
     }
     return $value;
 }
@@ -4738,7 +4851,11 @@ function snn_ajax_snippet_search_posts() {
         'no_found_rows'    => true,
         'suppress_filters' => true,
     );
-    if ( ctype_digit( $term ) ) {
+    if ( '' === $term ) {
+        // Nothing typed yet: suggest recently edited pages first.
+        $args['orderby']   = 'modified';
+        $args['post_type'] = in_array( 'page', $types, true ) ? array( 'page' ) : $types;
+    } elseif ( ctype_digit( $term ) ) {
         $args['post__in'] = array( (int) $term );
     } else {
         $args['s'] = $term;
@@ -5012,7 +5129,9 @@ function snn_snippets_render_editor() {
     foreach ( $settings['conditions']['groups'] as $group ) {
         foreach ( $group as $rule ) {
             if ( 'post_id' === $rule['rule'] ) {
-                $post_titles[ $rule['value'] ] = get_the_title( (int) $rule['value'] );
+                foreach ( snn_snippet_rule_post_ids( $rule['value'] ) as $post_id ) {
+                    $post_titles[ $post_id ] = get_the_title( $post_id );
+                }
             }
         }
     }
@@ -5147,6 +5266,7 @@ function snn_snippets_render_editor() {
                                 <?php foreach ( $map as $value => $location ) : ?>
                                     <option value="<?php echo esc_attr( $value ); ?>"
                                             data-stage="<?php echo esc_attr( $location['stage'] ); ?>"
+                                            data-area="<?php echo esc_attr( $location['area'] ); ?>"
                                             data-knows-page="<?php echo snn_snippet_location_knows_page( $value ) ? '1' : '0'; ?>"
                                             data-help="<?php echo esc_attr( $stage_help[ $location['stage'] ] ); ?>"
                                             <?php selected( $settings['location'], $value ); ?>
