@@ -1,0 +1,229 @@
+/* "Optimize & Upload" tab inside the wp.media modal. Everything is scoped to
+   .snn-optimize-tab so builder styles (Bricks etc.) cannot leak in or out. */
+
+.media-frame-content .snn-optimize-tab {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 24px 16px;
+  background: #fff;
+  color: #1d2327;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+}
+.snn-optimize-tab *,
+.snn-optimize-tab *::before,
+.snn-optimize-tab *::after {
+  box-sizing: border-box;
+}
+.snn-optimize-tab .snn-mo-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* Settings */
+.snn-optimize-tab .snn-mo-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+  align-items: flex-start;
+  border: 1px solid #e2e4e7;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.snn-optimize-tab .snn-mo-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1d2327;
+}
+.snn-optimize-tab .snn-mo-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.snn-optimize-tab .snn-mo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.snn-optimize-tab .snn-mo-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #f0f0f1;
+}
+.snn-optimize-tab button {
+  font: inherit;
+  margin: 0;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  min-height: 0;
+  height: auto;
+  width: auto;
+}
+.snn-optimize-tab .snn-mo-segmented button {
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: #50575e;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+.snn-optimize-tab .snn-mo-segmented button:hover {
+  color: #1d2327;
+}
+.snn-optimize-tab .snn-mo-segmented button[aria-checked="true"] {
+  background: #fff;
+  color: #2271b1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.snn-optimize-tab input[type="range"] {
+  width: 160px;
+  margin: 0;
+  padding: 0;
+  accent-color: #2271b1;
+}
+.snn-optimize-tab .snn-mo-chip {
+  min-width: 44px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f0f6fc;
+  color: #2271b1;
+  font-weight: 600;
+  text-align: center;
+}
+.snn-optimize-tab .snn-mo-width-wrap {
+  position: relative;
+  display: inline-block;
+}
+.snn-optimize-tab .snn-mo-width-wrap input[type="number"] {
+  width: 104px;
+  height: 32px;
+  margin: 0;
+  padding: 0 28px 0 10px;
+  border: 1px solid #c3c4c7;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d2327;
+  font-size: 13px;
+  -moz-appearance: textfield;
+}
+.snn-optimize-tab .snn-mo-width-wrap input::-webkit-outer-spin-button,
+.snn-optimize-tab .snn-mo-width-wrap input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.snn-optimize-tab .snn-mo-width-wrap input:focus {
+  border-color: #2271b1;
+  outline: 0;
+  box-shadow: 0 0 0 1px #2271b1;
+}
+.snn-optimize-tab .snn-mo-suffix {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  transform: translateY(-50%);
+  color: #8c8f94;
+  font-size: 12px;
+  pointer-events: none;
+}
+.snn-optimize-tab .snn-mo-preset {
+  appearance: none;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: #fff;
+  color: #50575e;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+.snn-optimize-tab .snn-mo-preset:hover {
+  border-color: #2271b1;
+  color: #2271b1;
+}
+.snn-optimize-tab .snn-mo-preset.snn-mo-active {
+  border-color: #2271b1;
+  background: #f0f6fc;
+  color: #2271b1;
+}
+
+/* Drop zone */
+.snn-optimize-tab .snn-mo-drop {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 200px;
+  padding: 24px;
+  border: 2px dashed #c3c4c7;
+  border-radius: 10px;
+  background: #fbfbfc;
+  color: #50575e;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 150ms, background-color 150ms;
+}
+.snn-optimize-tab .snn-mo-drop:hover,
+.snn-optimize-tab .snn-mo-drop.snn-mo-drag-over {
+  border-color: #2271b1;
+  background: #f0f6fc;
+}
+.snn-optimize-tab .snn-mo-drop:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+.snn-optimize-tab .snn-mo-drop-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f0f6fc;
+  color: #2271b1;
+}
+.snn-optimize-tab .snn-mo-drop-icon svg {
+  width: 26px;
+  height: 26px;
+}
+.snn-optimize-tab .snn-mo-drop-text strong {
+  color: #2271b1;
+}
+.snn-optimize-tab .snn-mo-hint {
+  margin: 10px 0 0;
+  color: #646970;
+  font-size: 12px;
+  text-align: center;
+}
+.snn-optimize-tab .snn-mo-status {
+  margin-top: 12px;
+  text-align: center;
+  color: #2271b1;
+}
+.snn-optimize-tab .snn-mo-status:empty {
+  display: none;
+}
+.snn-optimize-tab .snn-mo-status.snn-mo-success {
+  color: #00a32a;
+}
+.snn-optimize-tab .snn-mo-status.snn-mo-error {
+  color: #d63638;
+}

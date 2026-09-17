@@ -69,6 +69,7 @@ function snn_render_wp_admin_image_optimization_section() {
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/FileSaver.min.js"></script>
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/canvas-to-blob.min.js"></script>
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/jszip.min.js"></script>
+<script src="<?php echo esc_url( SNN_URL_ASSETS . 'js/snn-image-optimizer-core.js' ); ?>"></script>
 
 <style>
   /* General & App Layout */
@@ -747,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const downloadAllButton = document.getElementById('downloadAllButton');
     const clearListButton   = document.getElementById('clearListButton');
 
-    const STORAGE_KEY = 'snnOptimizeMediaSettings';
+    const Optimizer   = window.SnnImageOptimizer;
     const AJAX_URL    = '<?php echo esc_js( admin_url('admin-ajax.php') ); ?>';
     const EDIT_URL    = '<?php echo esc_js( admin_url('post.php') ); ?>';
     const NONCE       = '<?php echo esc_js( wp_create_nonce('snn_save_image_nonce') ); ?>';
@@ -785,38 +786,21 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ---------- Settings (remembered in localStorage) ---------- */
 
     function loadSettings() {
-      let saved = null;
-      try {
-        saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      } catch (err) {
-        saved = null;
+      const saved = Optimizer.loadSettings();
+      if (formatControl.querySelector('[data-format="' + saved.format + '"]')) {
+        currentFormat = saved.format;
       }
-      if (saved) {
-        if (saved.format && formatControl.querySelector('[data-format="' + saved.format + '"]')) {
-          currentFormat = saved.format;
-        }
-        const q = parseInt(saved.quality, 10);
-        if (!isNaN(q) && q >= 10 && q <= 100) {
-          qualityInput.value = q;
-        }
-        const w = parseInt(saved.width, 10);
-        if (!isNaN(w) && w > 0) {
-          resizeWidthInput.value = w;
-        }
-      }
+      qualityInput.value     = saved.quality;
+      resizeWidthInput.value = saved.width;
       syncSettingsUI();
     }
 
     function saveSettings() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          format:  currentFormat,
-          quality: qualityInput.value,
-          width:   resizeWidthInput.value
-        }));
-      } catch (err) {
-        /* storage unavailable: settings simply are not remembered */
-      }
+      Optimizer.saveSettings({
+        format:  currentFormat,
+        quality: qualityInput.value,
+        width:   resizeWidthInput.value
+      });
     }
 
     function syncSettingsUI() {
@@ -859,11 +843,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
 
-    function formatBytes(bytes) {
-      if (bytes < 1024) { return bytes + ' B'; }
-      if (bytes < 1048576) { return Math.round(bytes / 1024) + ' KB'; }
-      return (bytes / 1048576).toFixed(1) + ' MB';
-    }
+    const formatBytes = Optimizer.formatBytes;
 
     function showMessage(message, type) {
       messageArea.innerHTML = '';
@@ -1123,19 +1103,11 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ---------- Processing ---------- */
 
     function currentSettings() {
-      const width = parseInt(resizeWidthInput.value, 10);
-      let quality;
-      if (currentFormat === 'image/png') {
-        quality = undefined;
-      } else {
-        const q = parseInt(qualityInput.value, 10);
-        quality = (isNaN(q) ? 85 : q) / 100;
-      }
-      return {
-        width: (!isNaN(width) && width > 0) ? width : null,
-        format: currentFormat,
-        quality: quality
-      };
+      return Optimizer.toConvertOptions({
+        format:  currentFormat,
+        quality: qualityInput.value,
+        width:   resizeWidthInput.value
+      });
     }
 
     async function runQueue() {
@@ -1152,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let converted = null;
         try {
-          converted = await convertFile(item.file, settings);
+          converted = await Optimizer.convertFile(item.file, settings);
         } catch (err) {
           converted = null;
         }
@@ -1228,56 +1200,6 @@ document.addEventListener('DOMContentLoaded', function () {
       batchOk    = 0;
       batchFail  = 0;
       refreshLayout();
-    }
-
-    /* ---------- Conversion ---------- */
-
-    function convertFile(file, settings) {
-      return new Promise(function (resolve) {
-        const reader = new FileReader();
-        reader.onload  = function (event) { convertImage(event.target.result, file.name, settings, resolve); };
-        reader.onerror = function () { resolve(null); };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function convertImage(imageUrl, originalFileName, settings, resolve) {
-      const img = new Image();
-      img.onload = function () {
-        const canvas = document.createElement('canvas');
-        let scale = 1;
-        if (settings.width && img.width > settings.width) {
-          scale = settings.width / img.width;
-        }
-        canvas.width  = Math.max(1, Math.round(img.width * scale));
-        canvas.height = Math.max(1, Math.round(img.height * scale));
-
-        const ctx = canvas.getContext('2d');
-        if (settings.format === 'image/jpeg') {
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const done = function (blob) {
-          if (!blob) { resolve(null); return; }
-          const base = originalFileName.substring(0, originalFileName.lastIndexOf('.')) || originalFileName;
-          const ext  = (settings.format === 'image/jpeg') ? 'jpg' : settings.format.split('/')[1];
-          resolve({ blob: blob, name: base + '.' + ext, width: canvas.width, height: canvas.height });
-        };
-
-        const args = [done, settings.format];
-        if (settings.quality !== undefined && settings.format !== 'image/png') {
-          args.push(settings.quality);
-        }
-        try {
-          canvas.toBlob.apply(canvas, args);
-        } catch (error) {
-          resolve(null);
-        }
-      };
-      img.onerror = function () { resolve(null); };
-      img.src = imageUrl;
     }
 
     /* ---------- Upload ---------- */
@@ -1388,6 +1310,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
     </div>
     <?php
+}
+
+// "Optimize & Upload" tab inside the wp.media modal.
+// wp_enqueue_media fires wherever the modal can open: wp-admin, the block editor, the Bricks builder...
+add_action('wp_enqueue_media', 'snn_enqueue_media_modal_optimize');
+
+function snn_enqueue_media_modal_optimize() {
+    if (!current_user_can('upload_files')) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'snn-image-optimizer-core',
+        SNN_URL_ASSETS . 'js/snn-image-optimizer-core.js',
+        array(),
+        filemtime(SNN_PATH_ASSETS . 'js/snn-image-optimizer-core.js'),
+        true
+    );
+    wp_enqueue_script(
+        'snn-media-modal-optimize',
+        SNN_URL_ASSETS . 'js/snn-media-modal-optimize.js',
+        array('jquery', 'media-views', 'snn-image-optimizer-core'),
+        filemtime(SNN_PATH_ASSETS . 'js/snn-media-modal-optimize.js'),
+        true
+    );
+    wp_enqueue_style(
+        'snn-media-modal-optimize',
+        SNN_URL_ASSETS . 'css/snn-media-modal-optimize.css',
+        array('media-views'),
+        filemtime(SNN_PATH_ASSETS . 'css/snn-media-modal-optimize.css')
+    );
+    wp_localize_script('snn-media-modal-optimize', 'snnMediaModalOptimize', array(
+        'tab'        => __('Optimize & Upload', 'snn'),
+        'format'     => __('Format', 'snn'),
+        'quality'    => __('Quality', 'snn'),
+        'maxWidth'   => __('Max width', 'snn'),
+        'original'   => __('Original', 'snn'),
+        'full'       => __('Full', 'snn'),
+        'dropHere'   => __('Drop images here', 'snn'),
+        'orBrowse'   => __('or click to browse', 'snn'),
+        'hint'       => __('Images are optimized in your browser, then uploaded and selected. SVG and GIF files are uploaded as they are.', 'snn'),
+        'optimizing' => __('Optimizing', 'snn'),
+        'uploading'  => __('file(s) uploading', 'snn'),
+        'failed'     => __('could not be optimized', 'snn'),
+        'noneDone'   => __('No images could be processed. Please try again.', 'snn'),
+        'noUploader' => __('Uploading is not available in this media window.', 'snn'),
+    ));
 }
 
 // Add admin styles for better integration
