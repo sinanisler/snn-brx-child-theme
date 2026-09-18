@@ -327,19 +327,34 @@ function snn_log_user_activity( $action, $object = '', $object_id = 0, $log_type
         $log_content .= "\nUser Agent: " . ( $_SERVER['HTTP_USER_AGENT'] ?? 'N/A' );
     }
 
-    $post_id = wp_insert_post( array(
-        'post_type'    => 'snn_activity_log',
-        'post_title'   => wp_strip_all_tags( $log_title ),
-        'post_content' => $log_content,
-        'post_status'  => 'publish',
-        'meta_input'   => array(
-            'log_type' => $log_type,
-        ),
-    ) );
+    // Re-entrancy guard: wp_insert_post() / wp_delete_post() fire save_post, meta and
+    // term hooks, and other plugins often update options inside them. That fires
+    // updated_option -> snn_log_user_activity() -> wp_insert_post() again, looping until
+    // PHP is killed (wp-admin hanging for 120s+). Anything logged while we are already
+    // writing a log entry is a side effect of our own write, so it is dropped.
+    static $is_logging = false;
+    if ( $is_logging ) {
+        return;
+    }
+    $is_logging = true;
 
-    // If the post was successfully inserted, trim the log to maintain the limit.
-    if ( $post_id ) {
-        snn_trim_activity_log();
+    try {
+        $post_id = wp_insert_post( array(
+            'post_type'    => 'snn_activity_log',
+            'post_title'   => wp_strip_all_tags( $log_title ),
+            'post_content' => $log_content,
+            'post_status'  => 'publish',
+            'meta_input'   => array(
+                'log_type' => $log_type,
+            ),
+        ) );
+
+        // If the post was successfully inserted, trim the log to maintain the limit.
+        if ( $post_id && ! is_wp_error( $post_id ) ) {
+            snn_trim_activity_log();
+        }
+    } finally {
+        $is_logging = false;
     }
 }
 
