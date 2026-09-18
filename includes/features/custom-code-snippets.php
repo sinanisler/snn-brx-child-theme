@@ -2127,7 +2127,9 @@ jQuery( function ( $ ) {
 
     function applyLocation() {
         var option = placeSelect.find( 'option:selected' );
-        $( '.snn-location-help' ).text( option.data( 'help' ) || '' );
+        $( '.snn-location-help-where' ).text( option.data( 'help-where' ) || '' );
+        $( '.snn-location-help-good' ).text( option.data( 'help-good' ) || '' );
+        $( '.snn-location-help-note' ).text( option.data( 'help-note' ) || '' );
         if ( window.snnConditionsKnowsPage ) { window.snnConditionsKnowsPage( String( option.data( 'knows-page' ) ) === '1', option.data( 'area' ) === 'admin' ); }
     }
     function applyType() {
@@ -2357,6 +2359,8 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-cond-group { background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px; padding: 12px; display: grid; gap: 8px; max-width: 920px; justify-items: start; }
         .snn-cond-rule { display: grid; gap: 6px; }
         .snn-cond-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .snn-location-help { max-width: 640px; margin-top: 8px; padding: 8px 12px; background: #f6f7f7; border-left: 3px solid #2271b1; color: #50575e; }
+        .snn-location-help p { margin: 4px 0; }
         #snn_location.is-warning { border-color: #dba617; background-color: #fcf9e8; box-shadow: 0 0 0 1px #dba617; }
         .snn-cond-warning { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #fcf9e8; border-left: 4px solid #dba617; padding: 6px 10px; color: #1d2327; }
         .snn-cond-warning-hint { color: #646970; font-size: 12px; }
@@ -5332,10 +5336,54 @@ function snn_snippets_render_editor() {
         'css'      => __( 'Printed inside a <style> tag - do not add the tag yourself. Goes live without a test.', 'snn' ),
         'js'       => __( 'Printed inside a <script> tag - do not add the tag yourself. Goes live without a test.', 'snn' ),
     );
-    $stage_help = array(
-        'early'  => __( 'Runs as WordPress starts, before it knows which page is showing. PHP only; anything printed is discarded.', 'snn' ),
-        'query'  => __( 'Runs on the front end once WordPress knows which page is showing, before the page is printed. PHP only; anything printed is discarded.', 'snn' ),
-        'output' => __( 'Prints into the page at this spot. Any code type.', 'snn' ),
+    // Per location, in plain words: where it runs, what it is good for, and
+    // what will not work there. Shown under the Location field as it changes.
+    $location_help = array(
+        'everywhere'    => array(
+            'where' => __( 'Runs on every request - site pages, the admin, AJAX and REST - as WordPress starts. Like adding code to functions.php.', 'snn' ),
+            'good'  => __( 'add_action / add_filter hooks, registering post types or shortcodes, site-wide PHP functions.', 'snn' ),
+            'note'  => __( 'Nothing it prints is shown. Page rules (page, post type) are not available because the page is not known yet.', 'snn' ),
+        ),
+        'admin_only'    => array(
+            'where' => __( 'Runs only inside the WordPress admin (wp-admin), as it starts.', 'snn' ),
+            'good'  => __( 'Admin tweaks: dashboard widgets, admin menu changes, hooks for editors.', 'snn' ),
+            'note'  => __( 'Never runs for visitors. Nothing it prints is shown; to add CSS or JS to the admin use Admin head or Admin footer.', 'snn' ),
+        ),
+        'frontend_only' => array(
+            'where' => __( 'Runs only on the public site, as WordPress starts, before it knows which page is showing.', 'snn' ),
+            'good'  => __( 'Front-end hooks and filters, redirects based on the URL, shortcodes.', 'snn' ),
+            'note'  => __( 'Nothing it prints is shown. To limit it to certain pages use URL path rules, or pick "Front end, after page query".', 'snn' ),
+        ),
+        'frontend_wp'   => array(
+            'where' => __( 'Runs on the public site once WordPress knows which page is showing, but before anything is printed.', 'snn' ),
+            'good'  => __( 'PHP logic for specific pages: redirects, setting cookies or headers, adding hooks only on some pages.', 'snn' ),
+            'note'  => __( 'Nothing it prints is shown - echo here is thrown away. To show something on the page, pick Site head, After opening <body> or Site footer.', 'snn' ),
+        ),
+        'site_head'     => array(
+            'where' => __( 'Prints inside <head> on every site page. Visitors do not see it directly.', 'snn' ),
+            'good'  => __( 'CSS, meta tags, fonts, analytics and tracking codes (Google Analytics, Meta Pixel), verification tags.', 'snn' ),
+            'note'  => __( 'Visible text or HTML placed here does not appear on the page. Use After opening <body> or Site footer for that.', 'snn' ),
+        ),
+        'body_open'     => array(
+            'where' => __( 'Prints right after the <body> tag - the very top of the visible page, before the header.', 'snn' ),
+            'good'  => __( 'Visible content at the top: announcement bars, banners, text; also noscript tracking tags (Google Tag Manager).', 'snn' ),
+            'note'  => __( 'Shows above everything else, so style it with CSS if it should look like part of your design.', 'snn' ),
+        ),
+        'site_footer'   => array(
+            'where' => __( 'Prints at the very end of the page, just before </body>.', 'snn' ),
+            'good'  => __( 'JavaScript, chat widgets, cookie banners, popups and most tracking scripts. Visible HTML shows at the bottom of the page.', 'snn' ),
+            'note'  => __( 'Runs after the page content has loaded, so it is the safest spot for scripts.', 'snn' ),
+        ),
+        'admin_head'    => array(
+            'where' => __( 'Prints inside <head> on every admin (wp-admin) screen.', 'snn' ),
+            'good'  => __( 'CSS that restyles or hides parts of the admin.', 'snn' ),
+            'note'  => __( 'Never shows on the public site.', 'snn' ),
+        ),
+        'admin_footer'  => array(
+            'where' => __( 'Prints at the bottom of every admin (wp-admin) screen.', 'snn' ),
+            'good'  => __( 'JavaScript for the admin, small helper notes.', 'snn' ),
+            'note'  => __( 'Never shows on the public site.', 'snn' ),
+        ),
     );
 
     snn_snippet_consume_flash();
@@ -5457,12 +5505,19 @@ function snn_snippets_render_editor() {
                                             data-stage="<?php echo esc_attr( $location['stage'] ); ?>"
                                             data-area="<?php echo esc_attr( $location['area'] ); ?>"
                                             data-knows-page="<?php echo snn_snippet_location_knows_page( $value ) ? '1' : '0'; ?>"
-                                            data-help="<?php echo esc_attr( $stage_help[ $location['stage'] ] ); ?>"
+                                            data-help-where="<?php echo esc_attr( $location_help[ $value ]['where'] ); ?>"
+                                            data-help-good="<?php echo esc_attr( $location_help[ $value ]['good'] ); ?>"
+                                            data-help-note="<?php echo esc_attr( $location_help[ $value ]['note'] ); ?>"
                                             <?php selected( $settings['location'], $value ); ?>
                                             <?php disabled( ! snn_snippet_location_allows_type( $value, $settings['type'] ) ); ?>><?php echo esc_html( $places[ $value ] ); ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="description snn-location-help"><?php echo esc_html( $stage_help[ $map[ $settings['location'] ]['stage'] ] ); ?></p>
+                            <?php $current_help = $location_help[ $settings['location'] ]; ?>
+                            <div class="snn-location-help">
+                                <p class="snn-location-help-where"><?php echo esc_html( $current_help['where'] ); ?></p>
+                                <p><strong><?php esc_html_e( 'Good for:', 'snn' ); ?></strong> <span class="snn-location-help-good"><?php echo esc_html( $current_help['good'] ); ?></span></p>
+                                <p><strong><?php esc_html_e( 'Keep in mind:', 'snn' ); ?></strong> <span class="snn-location-help-note"><?php echo esc_html( $current_help['note'] ); ?></span></p>
+                            </div>
                         </div>
                     </div>
                     <div class="snn-field">
