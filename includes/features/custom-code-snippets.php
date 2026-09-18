@@ -5709,6 +5709,16 @@ function snn_fatal_error_shutdown_handler() {
         && ( false !== strpos( $error_file, "eval()'d code" ) );
 
     if ( ! $from_snippet ) {
+        // An uncaught exception or Error carries its full stack trace. Any call
+        // made from snippet code - directly or through a hook callback it
+        // registered - leaves an "eval()'d code" frame in it. No such frame means
+        // no snippet was on the stack: e.g. WordPress core's own batch REST
+        // endpoint crashing on a malformed bot request. Not ours, not counted.
+        $message = isset( $error['message'] ) ? (string) $error['message'] : '';
+        if ( false !== strpos( $message, 'Stack trace:' ) && false === strpos( $message, "eval()'d code" ) ) {
+            return;
+        }
+
         /*
          * Not provably ours - but very possibly still our fault. A fatal inside a
          * hook the snippet registered, inside a file it included, memory
