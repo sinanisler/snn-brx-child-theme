@@ -1,7 +1,7 @@
 /**
  * SNN Image Optimizer core.
  *
- * Canvas based resize + re-encode shared by the "Optimize Media" admin page
+ * Canvas based resize + re-encode shared by the "Optimize & Upload" admin page
  * and the "Optimize & Upload" tab inside the wp.media modal.
  */
 (function (window) {

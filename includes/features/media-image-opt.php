@@ -14,8 +14,8 @@ add_action('admin_menu', 'snn_add_image_optimization_menu');
 function snn_add_image_optimization_menu() {
   add_submenu_page(
     'upload.php',                           // Parent slug (Media menu)
-    __( 'Optimize Media', 'snn' ),        // Page title
-    __( 'Optimize Media', 'snn' ),        // Menu title
+    __( 'Optimize & Upload', 'snn' ),        // Page title
+    __( 'Optimize & Upload', 'snn' ),        // Menu title
     'upload_files',                         // Capability
     'snn-image-optimization',               // Menu slug
     'snn_image_optimization_page'           // Callback function
