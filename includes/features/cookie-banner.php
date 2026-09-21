@@ -1319,13 +1319,14 @@ function snn_output_cookie_banner() {
     <?php endif; ?>
     
     <style id="snn-dynamic-styles">
-        .snn-cookie-banner {position:fixed;box-sizing:border-box;width:<?php echo esc_attr($banner_width); ?>px;max-width:calc(100% - 20px);z-index:9999;padding:20px;background:<?php echo esc_attr($banner_bg); ?>;<?php if ($banner_blur > 0) : ?>-webkit-backdrop-filter:blur(<?php echo $banner_blur; ?>px);backdrop-filter:blur(<?php echo $banner_blur; ?>px);<?php endif; ?>color:<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;border-radius:<?php echo esc_attr($banner_border_radius); ?>px;margin:10px;}
+        .snn-cookie-banner {position:fixed;width:<?php echo esc_attr($banner_width); ?>px;z-index:9999;padding:20px;background:<?php echo esc_attr($banner_bg); ?>;<?php if ($banner_blur > 0) : ?>-webkit-backdrop-filter:blur(<?php echo $banner_blur; ?>px);backdrop-filter:blur(<?php echo $banner_blur; ?>px);<?php endif; ?>color:<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;border-radius:<?php echo esc_attr($banner_border_radius); ?>px;margin:10px;}
         <?php if ($layout === 'box') : ?>
         .snn-cookie-banner{<?php if ($vertical_position === 'top') : ?>top:10px;<?php elseif ($vertical_position === 'middle') : ?>top:50%;transform:translateY(-50%);<?php else : ?>bottom:10px;<?php endif; ?>}
         .snn-cookie-banner.left{left:0;}
         .snn-cookie-banner.middle{left:50%;<?php if ($vertical_position === 'middle') : ?>transform:translate(-50%,-50%);<?php else : ?>transform:translateX(-50%);<?php endif; ?>}
         .snn-cookie-banner.right{right:0;}
         <?php elseif ($layout === 'bar' || $layout === 'floating_bar') : ?>
+        .snn-cookie-banner{box-sizing:border-box;}
         .snn-cookie-banner{display:grid;grid-template-columns:1fr auto;column-gap:24px;align-items:center;<?php echo $vertical_position === 'top' ? 'top' : 'bottom'; ?>:<?php echo $layout === 'bar' ? '0' : '16px'; ?>;}
         .snn-cookie-banner>.snn-preferences-title,.snn-cookie-banner>.snn-preferences-content,.snn-cookie-banner>.snn-legal-text{grid-column:1/-1;}
         .snn-cookie-banner .snn-preferences-title{text-align:left;}
@@ -1338,11 +1339,11 @@ function snn_output_cookie_banner() {
         .snn-cookie-banner{left:50%;transform:translateX(-50%);margin:0;width:calc(100% - 32px);max-width:<?php echo esc_attr($banner_width); ?>px;padding:14px 20px;}
         <?php endif; ?>
         <?php elseif ($layout === 'modal') : ?>
-        .snn-cookie-banner{top:50%;left:50%;transform:translate(-50%,-50%);margin:0;max-height:calc(100vh - 40px);overflow:auto;padding:28px;}
+        .snn-cookie-banner{top:50%;left:50%;transform:translate(-50%,-50%);margin:0;box-sizing:border-box;max-width:calc(100% - 20px);max-height:calc(100vh - 40px);overflow:auto;padding:28px;}
         .snn-cookie-banner .snn-preferences-title{font-size:1.25em;}
         .snn-cookie-banner .snn-banner-text{text-align:center;margin-bottom:18px;}
         <?php elseif ($layout === 'panel') : ?>
-        .snn-cookie-banner{top:0;bottom:0;<?php echo $position === 'left' ? 'left' : 'right'; ?>:0;margin:0;max-width:100%;overflow:auto;display:flex;flex-direction:column;border-radius:0;padding:28px 24px;}
+        .snn-cookie-banner{top:0;bottom:0;box-sizing:border-box;<?php echo $position === 'left' ? 'left' : 'right'; ?>:0;margin:0;max-width:100%;overflow:auto;display:flex;flex-direction:column;border-radius:0;padding:28px 24px;}
         .snn-cookie-banner .snn-preferences-title{text-align:left;font-size:1.25em;margin-bottom:12px;}
         .snn-cookie-banner .snn-preferences-content{display:block;order:2;margin:12px 0;}
         .snn-cookie-banner .snn-banner-text{order:1;}
