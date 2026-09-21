@@ -137,7 +137,7 @@
       var input = el('input');
       input.type = 'file';
       input.multiple = true;
-      input.accept = 'image/*';
+      input.accept = i18n.accept || 'image/*';
       input.hidden = true;
       input.onchange = function () {
         self.handleFiles(input.files);
@@ -299,5 +299,12 @@
     this.on('content:render:' + TAB, function () {
       this.content.set(new OptimizeView({ controller: this }));
     }, this);
+    // Force Optimized Uploads: the native "Upload files" tab is hidden with CSS,
+    // so whenever the frame opens on it (empty library, Add Media...) jump to ours.
+    if (i18n.hideNative) {
+      this.on('content:render:upload', function () {
+        this.content.mode(TAB);
+      }, this);
+    }
   };
 })(jQuery, window.wp, window.SnnImageOptimizer, window.snnMediaModalOptimize || {});

@@ -61,6 +61,30 @@ function snn_register_media_settings() {
         'snn-media-settings',
         'snn_media_settings_section'
     );
+
+    add_settings_field(
+        'force_optimized_uploads',
+        __('Force Optimized Uploads', 'snn'),
+        'snn_force_optimized_uploads_callback',
+        'snn-media-settings',
+        'snn_media_settings_section'
+    );
+
+    add_settings_field(
+        'extra_formats',
+        __('Extra Upload Formats', 'snn'),
+        'snn_extra_formats_callback',
+        'snn-media-settings',
+        'snn_media_settings_section'
+    );
+
+    add_settings_field(
+        'custom_formats',
+        __('Custom Upload Formats', 'snn'),
+        'snn_custom_formats_callback',
+        'snn-media-settings',
+        'snn_media_settings_section'
+    );
 }
 add_action('admin_init', 'snn_register_media_settings');
 
@@ -68,6 +92,26 @@ function snn_sanitize_media_settings($input) {
     $sanitized = array();
     $sanitized['redirect_media_library'] = isset($input['redirect_media_library']) && $input['redirect_media_library'] ? 1 : 0;
     $sanitized['media_categories'] = isset($input['media_categories']) && $input['media_categories'] ? 1 : 0;
+    $sanitized['force_optimized_uploads'] = isset($input['force_optimized_uploads']) && $input['force_optimized_uploads'] ? 1 : 0;
+
+    $known = snn_media_extra_format_choices();
+    $sanitized['extra_formats'] = array();
+    if (isset($input['extra_formats']) && is_array($input['extra_formats'])) {
+        foreach ($input['extra_formats'] as $key) {
+            if (isset($known[$key])) {
+                $sanitized['extra_formats'][] = $key;
+            }
+        }
+    }
+
+    // Keep only well-formed "ext|mime" lines; blocked server-executable extensions are dropped.
+    $lines = array();
+    $raw   = isset($input['custom_formats']) ? (string) $input['custom_formats'] : '';
+    foreach (snn_media_parse_custom_formats($raw) as $ext => $mime) {
+        $lines[] = $ext . '|' . $mime;
+    }
+    $sanitized['custom_formats'] = implode("\n", $lines);
+
     return $sanitized;
 }
 
@@ -90,6 +134,272 @@ function snn_media_categories_callback() {
     <p><?php _e('Enable Media Categories with drag-and-drop functionality. (right click on grid view)', 'snn'); ?></p>
     <?php
 }
+
+function snn_force_optimized_uploads_callback() {
+    $options = get_option('snn_media_settings');
+    ?>
+    <input type="checkbox" name="snn_media_settings[force_optimized_uploads]" value="1" <?php checked(1, isset($options['force_optimized_uploads']) ? $options['force_optimized_uploads'] : 0); ?>>
+    <p><?php _e('Hide the native WordPress upload screens (Media > Add Media File, the "Upload files" tab in media modals, the "Add Media File" buttons) so every upload goes through "Optimize & Upload" and images always get optimized.', 'snn'); ?></p>
+    <?php
+}
+
+function snn_extra_formats_callback() {
+    $options  = get_option('snn_media_settings');
+    $selected = isset($options['extra_formats']) && is_array($options['extra_formats']) ? $options['extra_formats'] : array();
+    foreach (snn_media_extra_format_choices() as $key => $choice) {
+        ?>
+        <label style="display:block;margin-bottom:6px;">
+            <input type="checkbox" name="snn_media_settings[extra_formats][]" value="<?php echo esc_attr($key); ?>" <?php checked(in_array($key, $selected, true)); ?>>
+            <strong><?php echo esc_html($choice['label']); ?></strong>
+            <?php if (!empty($choice['warning'])) : ?>
+                <span style="color:#b32d2e;"> — <?php echo esc_html($choice['warning']); ?></span>
+            <?php endif; ?>
+        </label>
+        <?php
+    }
+    ?>
+    <p><?php _e('Formats WordPress blocks by default. Only administrators can upload them. Everything WordPress already allows (images, PDF, MP4, MP3, Office files, ZIP...) works without any setting.', 'snn'); ?></p>
+    <?php
+}
+
+function snn_custom_formats_callback() {
+    $options = get_option('snn_media_settings');
+    $value   = isset($options['custom_formats']) ? $options['custom_formats'] : '';
+    ?>
+    <textarea name="snn_media_settings[custom_formats]" rows="4" cols="50" class="code" placeholder="stl|model/stl&#10;dwg|image/vnd.dwg"><?php echo esc_textarea($value); ?></textarea>
+    <p><?php _e('One format per line as extension|mime-type. Only administrators can upload them. A file type allowed here can be abused if the file is harmful, so add only what you need. Server-executable types (php, phtml, phar, cgi, asp, jsp, sh...) are always blocked.', 'snn'); ?></p>
+    <?php
+}
+
+/**
+ * Upload formats WordPress blocks by default that can be switched on in Media Settings.
+ */
+function snn_media_extra_format_choices() {
+    return array(
+        'svg'    => array(
+            'label'   => 'SVG (.svg)',
+            'mimes'   => array('svg' => 'image/svg+xml'),
+            'warning' => __('can carry scripts, uploads are sanitized', 'snn'),
+        ),
+        'json'   => array(
+            'label' => 'JSON (.json)',
+            'mimes' => array('json' => 'application/json'),
+        ),
+        'fonts'  => array(
+            'label' => 'Fonts (.woff, .woff2, .ttf, .otf)',
+            'mimes' => array(
+                'woff'  => 'font/woff',
+                'woff2' => 'font/woff2',
+                'ttf'   => 'font/ttf',
+                'otf'   => 'font/otf',
+            ),
+        ),
+        'lottie' => array(
+            'label' => 'Lottie (.lottie)',
+            'mimes' => array('lottie' => 'application/zip'),
+        ),
+        '3d'     => array(
+            'label' => '3D models (.glb, .gltf)',
+            'mimes' => array(
+                'glb'  => 'model/gltf-binary',
+                'gltf' => 'model/gltf+json',
+            ),
+        ),
+        'xml'    => array(
+            'label' => 'XML (.xml)',
+            'mimes' => array('xml' => 'application/xml'),
+        ),
+        'eps'    => array(
+            'label' => 'EPS / AI (.eps, .ai)',
+            'mimes' => array(
+                'eps' => 'application/postscript',
+                'ai'  => 'application/postscript',
+            ),
+        ),
+        'html'   => array(
+            'label'   => 'HTML (.html, .htm)',
+            'mimes'   => array(
+                'html' => 'text/html',
+                'htm'  => 'text/html',
+            ),
+            'warning' => __('dangerous, an uploaded page can run scripts on your domain', 'snn'),
+        ),
+        'js'     => array(
+            'label'   => 'JavaScript (.js)',
+            'mimes'   => array('js' => 'application/javascript'),
+            'warning' => __('dangerous, scripts can be served from your domain', 'snn'),
+        ),
+    );
+}
+
+/**
+ * Extensions that could run code on the server; never allowed, not even as custom formats.
+ */
+function snn_media_blocked_extensions() {
+    return array(
+        'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'pht', 'phps', 'phar',
+        'cgi', 'pl', 'py', 'asp', 'aspx', 'jsp', 'sh', 'shtml', 'htaccess', 'htpasswd', 'ini',
+    );
+}
+
+/**
+ * Parse "ext|mime" lines into array( ext => mime ).
+ */
+function snn_media_parse_custom_formats($raw) {
+    $mimes = array();
+    foreach (preg_split('/\r\n|\r|\n/', (string) $raw) as $line) {
+        $parts = array_map('trim', explode('|', $line));
+        if (count($parts) !== 2) {
+            continue;
+        }
+        $ext  = strtolower(ltrim($parts[0], '.'));
+        $mime = strtolower($parts[1]);
+        if (!preg_match('/^[a-z0-9]{1,10}$/', $ext) || !preg_match('#^[a-z0-9.+-]+/[a-z0-9.+-]+$#', $mime)) {
+            continue;
+        }
+        if (in_array($ext, snn_media_blocked_extensions(), true)) {
+            continue;
+        }
+        $mimes[$ext] = $mime;
+    }
+    return $mimes;
+}
+
+/**
+ * All extra ext => mime pairs switched on in Media Settings.
+ */
+function snn_media_extra_mimes() {
+    $options = get_option('snn_media_settings');
+    $mimes   = array();
+    if (!empty($options['extra_formats']) && is_array($options['extra_formats'])) {
+        $choices = snn_media_extra_format_choices();
+        foreach ($options['extra_formats'] as $key) {
+            if (isset($choices[$key])) {
+                $mimes = array_merge($mimes, $choices[$key]['mimes']);
+            }
+        }
+    }
+    if (!empty($options['custom_formats'])) {
+        $mimes = array_merge($mimes, snn_media_parse_custom_formats($options['custom_formats']));
+    }
+    return $mimes;
+}
+
+function snn_media_allow_extra_mimes($mimes) {
+    if (!current_user_can('manage_options')) {
+        return $mimes;
+    }
+    foreach (snn_media_extra_mimes() as $ext => $mime) {
+        $mimes[$ext] = $mime;
+    }
+    return $mimes;
+}
+add_filter('upload_mimes', 'snn_media_allow_extra_mimes', 20);
+
+/**
+ * WordPress sniffs the real file type and rejects many text, font and model files
+ * (finfo reports text/plain, application/octet-stream...). Trust the extension
+ * for the formats switched on here.
+ */
+function snn_media_fix_extra_filetype($data, $file, $filename, $mimes) {
+    if (!empty($data['ext']) && !empty($data['type'])) {
+        return $data;
+    }
+    if (!current_user_can('manage_options')) {
+        return $data;
+    }
+    $ext   = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $extra = snn_media_extra_mimes();
+    if ($ext !== '' && isset($extra[$ext])) {
+        $data['ext']  = $ext;
+        $data['type'] = $extra[$ext];
+    }
+    return $data;
+}
+add_filter('wp_check_filetype_and_ext', 'snn_media_fix_extra_filetype', 20, 4);
+
+/**
+ * Sanitize SVG uploads with the svg-sanitizer library that ships with Bricks.
+ * If the library is missing, the SVG is rejected instead of stored unsanitized.
+ */
+function snn_media_sanitize_svg_upload($file) {
+    $ext = strtolower(pathinfo(isset($file['name']) ? $file['name'] : '', PATHINFO_EXTENSION));
+    if ($ext !== 'svg' || empty($file['tmp_name'])) {
+        return $file;
+    }
+    $extra = snn_media_extra_mimes();
+    if (!isset($extra['svg'])) {
+        return $file;
+    }
+
+    if (!class_exists('\enshrined\svgSanitize\Sanitizer') && defined('BRICKS_PATH')) {
+        $autoload = BRICKS_PATH . 'includes/integrations/svg-sanitizer/library/vendor/autoload.php';
+        if (file_exists($autoload)) {
+            require_once $autoload;
+        }
+    }
+    if (!class_exists('\enshrined\svgSanitize\Sanitizer')) {
+        $file['error'] = __('SVG sanitizer is not available, so the SVG was not uploaded.', 'snn');
+        return $file;
+    }
+
+    $content = file_get_contents($file['tmp_name']);
+    $gzipped = is_string($content) && strpos($content, "\x1f\x8b\x08") === 0;
+    if ($gzipped) {
+        $content = gzdecode($content);
+    }
+    $clean = false;
+    if (is_string($content)) {
+        $sanitizer = new \enshrined\svgSanitize\Sanitizer();
+        $clean     = $sanitizer->sanitize($content);
+    }
+    if (!is_string($clean) || $clean === '') {
+        $file['error'] = __('This SVG could not be sanitized and was not uploaded.', 'snn');
+        return $file;
+    }
+    file_put_contents($file['tmp_name'], $gzipped ? gzencode($clean) : $clean);
+    return $file;
+}
+add_filter('wp_handle_upload_prefilter', 'snn_media_sanitize_svg_upload');
+
+/**
+ * Accept attribute for the "Optimize & Upload" pickers: every extension this user may upload.
+ */
+function snn_media_upload_accept() {
+    $exts = array();
+    foreach (array_keys(get_allowed_mime_types()) as $group) {
+        foreach (explode('|', $group) as $ext) {
+            $exts[] = '.' . $ext;
+        }
+    }
+    return implode(',', array_unique($exts));
+}
+
+function snn_media_force_optimized_uploads_enabled() {
+    $options = get_option('snn_media_settings');
+    return !empty($options['force_optimized_uploads']);
+}
+
+/**
+ * Force Optimized Uploads: hide the native upload entry points (Media > Add Media File,
+ * "Add Media File" buttons, admin bar New > Media, the modal "Upload files" tab).
+ * The modal also switches away from that tab in snn-media-modal-optimize.js.
+ */
+function snn_media_hide_native_upload_ui() {
+    if (!snn_media_force_optimized_uploads_enabled() || !is_user_logged_in()) {
+        return;
+    }
+    ?>
+    <style id="snn-force-optimized-uploads">
+        #menu-media li:has(> a[href="media-new.php"]),
+        .wrap .page-title-action[href*="media-new.php"],
+        #wp-admin-bar-new-media,
+        .media-frame-router #menu-item-upload { display: none !important; }
+    </style>
+    <?php
+}
+add_action('admin_head', 'snn_media_hide_native_upload_ui');
+add_action('wp_head', 'snn_media_hide_native_upload_ui');
 
 function snn_redirect_media_library_grid_to_list() {
     // Only run on GET requests and skip AJAX calls

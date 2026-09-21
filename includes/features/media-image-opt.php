@@ -360,6 +360,15 @@ function snn_render_wp_admin_image_optimization_section() {
     background-color: #f6f7f7;
     display: block;
   }
+  .snn-wp-admin-image-optimize-container .snn-row-ext {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #50575e;
+    background-color: #f0f0f1;
+  }
   .snn-wp-admin-image-optimize-container .snn-thumb-badge {
     position: absolute;
     inset: 0;
@@ -687,7 +696,7 @@ function snn_render_wp_admin_image_optimization_section() {
   </div>
 
   <div id="uploadArea">
-    <input type="file" id="imageInput" accept=".png, .jpg, .jpeg, .webp, .jfif" multiple class="snn-hidden" />
+    <input type="file" id="imageInput" accept="<?php echo esc_attr( function_exists('snn_media_upload_accept') ? snn_media_upload_accept() : 'image/*' ); ?>" multiple class="snn-hidden" />
     <div id="uploadAreaInitialContent">
       <div class="snn-upload-icon-circle">
         <svg xmlns="http://www.w3.org/2000/svg" class="snn-upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
@@ -695,13 +704,13 @@ function snn_render_wp_admin_image_optimization_section() {
         </svg>
       </div>
       <p class="snn-upload-text">
-        <span class="snn-upload-text-highlight"><?php esc_html_e('Drop images here', 'snn'); ?></span> <?php esc_html_e('or click to browse', 'snn'); ?>
+        <span class="snn-upload-text-highlight"><?php esc_html_e('Drop files here', 'snn'); ?></span> <?php esc_html_e('or click to browse', 'snn'); ?>
       </p>
     </div>
     <div id="selectedFilesPreview" class="snn-hidden"></div>
   </div>
 
-  <p class="snn-upload-hint"><?php esc_html_e('Images are optimized and added to the Media Library right away. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></p>
+  <p class="snn-upload-hint"><?php esc_html_e('Images are optimized and added to the Media Library right away. Other files (PDF, video, audio, documents...) are uploaded as they are. Pasting (Ctrl/Cmd+V) works too.', 'snn'); ?></p>
 
   <div class="snn-progress-container" id="progressContainer">
     <div class="snn-progress-bar" id="progressBar"></div>
@@ -759,11 +768,11 @@ document.addEventListener('DOMContentLoaded', function () {
         uploading:  '<?php echo esc_js( __('Uploading...', 'snn') ); ?>',
         convertFail:'<?php echo esc_js( __('Could not optimize', 'snn') ); ?>',
         uploadFail: '<?php echo esc_js( __('Upload failed', 'snn') ); ?>',
-        notImage:   '<?php echo esc_js( __('is not an image and was skipped.', 'snn') ); ?>',
+        asIs:       '<?php echo esc_js( __('Uploaded as is', 'snn') ); ?>',
         processing: '<?php echo esc_js( __('Processing', 'snn') ); ?>',
-        allDone:    '<?php echo esc_js( __('image(s) optimized and added to the Media Library.', 'snn') ); ?>',
-        partial:    '<?php echo esc_js( __('image(s) added to the Media Library, failed:', 'snn') ); ?>',
-        noneDone:   '<?php echo esc_js( __('No images could be processed. Please try again.', 'snn') ); ?>',
+        allDone:    '<?php echo esc_js( __('file(s) added to the Media Library.', 'snn') ); ?>',
+        partial:    '<?php echo esc_js( __('file(s) added to the Media Library, failed:', 'snn') ); ?>',
+        noneDone:   '<?php echo esc_js( __('No files could be processed. Please try again.', 'snn') ); ?>',
         edit:       '<?php echo esc_js( __('Edit', 'snn') ); ?>',
         copyUrl:    '<?php echo esc_js( __('Copy URL', 'snn') ); ?>',
         copied:     '<?php echo esc_js( __('Copied!', 'snn') ); ?>',
@@ -874,10 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const thumb = document.createElement('div');
       thumb.className = 'snn-row-thumb';
 
-      const img = document.createElement('img');
-      img.src = item.thumbnailUrl;
-      img.alt = '';
-      img.className = 'snn-row-img';
+      const img = fileThumb(item.thumbnailUrl, item.file.name);
 
       const badge = document.createElement('div');
       badge.className = 'snn-thumb-badge';
@@ -942,11 +948,7 @@ document.addEventListener('DOMContentLoaded', function () {
         thumbLink.rel = 'noopener';
       }
 
-      const img = document.createElement('img');
-      img.src = entry.thumbnailUrl;
-      img.alt = '';
-      img.className = 'snn-row-img';
-      thumbLink.appendChild(img);
+      thumbLink.appendChild(fileThumb(entry.thumbnailUrl, entry.name));
 
       const name = document.createElement('span');
       name.className = 'snn-row-name';
@@ -1006,8 +1008,36 @@ document.addEventListener('DOMContentLoaded', function () {
       refreshLayout();
     }
 
+    // Image preview, or an extension label for files the browser cannot show.
+    function fileThumb(url, name) {
+      if (url) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.className = 'snn-row-img';
+        // TIFF, HEIC... are images the browser cannot preview: fall back to the label.
+        img.onerror = function () {
+          if (img.parentNode) { img.parentNode.replaceChild(fileThumb('', name), img); }
+        };
+        img.src = url;
+        return img;
+      }
+      const label = document.createElement('span');
+      label.className = 'snn-row-img snn-row-ext';
+      const dot = name.lastIndexOf('.');
+      label.textContent = dot > -1 ? name.slice(dot + 1).slice(0, 5).toUpperCase() : 'FILE';
+      return label;
+    }
+
     function sizeFragment(entry) {
       const frag = document.createDocumentFragment();
+
+      if (entry.asIs) {
+        const size = document.createElement('span');
+        size.className = 'snn-size-after';
+        size.textContent = formatBytes(entry.newSize) + ' · ' + TXT.asIs;
+        frag.appendChild(size);
+        return frag;
+      }
 
       const before = document.createElement('span');
       before.className = 'snn-size-before';
@@ -1069,10 +1099,6 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ---------- File intake ---------- */
 
     function addFile(file) {
-      if (!file.type || file.type.indexOf('image/') !== 0) {
-        showMessage(file.name + ' ' + TXT.notImage, 'snn-error');
-        return false;
-      }
       const duplicate = queueItems.some(function (it) {
         return it.file.name === file.name && it.file.size === file.size && it.status !== 'error';
       });
@@ -1081,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const item = {
         id: generateId(),
         file: file,
-        thumbnailUrl: URL.createObjectURL(file),
+        thumbnailUrl: (file.type || '').indexOf('image/') === 0 ? URL.createObjectURL(file) : '',
         status: 'pending'
       };
       buildQueueRow(item);
@@ -1118,15 +1144,21 @@ document.addEventListener('DOMContentLoaded', function () {
       while (queue.length > 0) {
         const item = queue.shift();
         const settings = currentSettings();
+        // Only JPEG/PNG/WebP are optimized; every other file is uploaded untouched.
+        const asIs = !Optimizer.canConvert(item.file);
 
-        setQueueState(item, 'working', TXT.optimizing);
+        setQueueState(item, 'working', asIs ? TXT.uploading : TXT.optimizing);
         updateProgress();
 
         let converted = null;
-        try {
-          converted = await Optimizer.convertFile(item.file, settings);
-        } catch (err) {
-          converted = null;
+        if (asIs) {
+          converted = { blob: item.file, name: item.file.name };
+        } else {
+          try {
+            converted = await Optimizer.convertFile(item.file, settings);
+          } catch (err) {
+            converted = null;
+          }
         }
 
         if (!converted) {
@@ -1156,6 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
             newSize:      converted.blob.size,
             width:        converted.width,
             height:       converted.height,
+            asIs:         asIs,
             id:           payload.attachment_id || payload.id || null,
             url:          payload.url || ''
           });
@@ -1207,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function saveImageToMediaLibrary(blob, filename) {
       return new Promise(function (resolve) {
         const formData = new FormData();
-        formData.append('action', 'snn_save_optimized_image');
+        formData.append('action', 'snn_upload_media_file');
         formData.append('image', blob, filename);
         formData.append('filename', filename);
         formData.append('skip_metadata', 'true');
@@ -1341,6 +1374,11 @@ function snn_enqueue_media_modal_optimize() {
         array('media-views'),
         filemtime(SNN_PATH_ASSETS . 'css/snn-media-modal-optimize.css')
     );
+    // Force Optimized Uploads: hide the native tab wherever a media modal loads
+    // (Bricks builder, Customizer, front-end editors), not only where admin_head runs.
+    if (function_exists('snn_media_force_optimized_uploads_enabled') && snn_media_force_optimized_uploads_enabled()) {
+        wp_add_inline_style('snn-media-modal-optimize', '.media-frame-router #menu-item-upload{display:none!important}');
+    }
     wp_localize_script('snn-media-modal-optimize', 'snnMediaModalOptimize', array(
         'tab'        => __('Optimize & Upload', 'snn'),
         'format'     => __('Format', 'snn'),
@@ -1348,13 +1386,15 @@ function snn_enqueue_media_modal_optimize() {
         'maxWidth'   => __('Max width', 'snn'),
         'original'   => __('Original', 'snn'),
         'full'       => __('Full', 'snn'),
-        'dropHere'   => __('Drop images here', 'snn'),
+        'dropHere'   => __('Drop files here', 'snn'),
         'orBrowse'   => __('or click to browse', 'snn'),
-        'hint'       => __('Images are optimized in your browser, then uploaded and selected. SVG and GIF files are uploaded as they are.', 'snn'),
+        'hint'       => __('Images are optimized in your browser, then uploaded and selected. Other files (SVG, GIF, PDF, video, audio, documents...) are uploaded as they are.', 'snn'),
+        'accept'     => function_exists('snn_media_upload_accept') ? snn_media_upload_accept() : 'image/*',
+        'hideNative' => function_exists('snn_media_force_optimized_uploads_enabled') && snn_media_force_optimized_uploads_enabled(),
         'optimizing' => __('Optimizing', 'snn'),
         'uploading'  => __('file(s) uploading', 'snn'),
         'failed'     => __('could not be optimized', 'snn'),
-        'noneDone'   => __('No images could be processed. Please try again.', 'snn'),
+        'noneDone'   => __('No files could be processed. Please try again.', 'snn'),
         'noUploader' => __('Uploading is not available in this media window.', 'snn'),
     ));
 }
@@ -3076,6 +3116,9 @@ function snn_image_optimization_metabox_callback($post) {
 
 // AJAX handler for saving images from Upload tab
 add_action('wp_ajax_snn_save_optimized_image', 'snn_save_optimized_image');
+// Own action for the Optimize & Upload page: the Bricks panel handler shares the one
+// above and only takes JPG/PNG/WebP, while this page also uploads PDF, video, audio...
+add_action('wp_ajax_snn_upload_media_file', 'snn_save_optimized_image');
 
 function snn_save_optimized_image() {
     check_ajax_referer('snn_save_image_nonce', 'nonce');
