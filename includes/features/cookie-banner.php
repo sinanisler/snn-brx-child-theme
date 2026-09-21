@@ -11,6 +11,39 @@ function snn_is_cookie_banner_enabled() {
     return ( !empty($options['snn_cookie_settings_enable_cookie_banner']) && $options['snn_cookie_settings_enable_cookie_banner'] === 'yes' );
 }
 
+// Banner layout templates. "sync" holds the settings applied in the admin when a layout is picked.
+function snn_cookie_banner_layouts() {
+    return array(
+        'box'          => array( 'label' => __('Floating Box', 'snn'),     'sync' => array( 'banner_width' => '420',  'banner_position' => 'left',  'banner_vertical_position' => 'bottom', 'enable_overlay' => 'no' ) ),
+        'bar'          => array( 'label' => __('Full Width Bar', 'snn'),   'sync' => array( 'banner_vertical_position' => 'bottom', 'enable_overlay' => 'no' ) ),
+        'floating_bar' => array( 'label' => __('Floating Bar', 'snn'),     'sync' => array( 'banner_width' => '1000', 'banner_vertical_position' => 'bottom', 'enable_overlay' => 'no' ) ),
+        'modal'        => array( 'label' => __('Centered Modal', 'snn'),   'sync' => array( 'banner_width' => '520',  'enable_overlay' => 'yes', 'overlay_color' => '#000000', 'overlay_opacity' => '0.5' ) ),
+        'panel'        => array( 'label' => __('Side Panel', 'snn'),       'sync' => array( 'banner_width' => '400',  'banner_position' => 'right', 'enable_overlay' => 'no' ) ),
+    );
+}
+
+// Visual style presets. Picking one fills the existing style fields, which stay editable.
+function snn_cookie_banner_presets() {
+    return array(
+        'light' => array( 'label' => __('Light', 'snn'), 'values' => array( 'banner_bg_color' => '#ffffff', 'banner_text_color' => '#1f2937', 'button_bg_color' => '#111827', 'button_text_color' => '#ffffff', 'banner_border_radius' => '12', 'button_border_radius' => '8',   'banner_shadow_color' => '#000000', 'banner_shadow_spread' => '30', 'banner_bg_opacity' => '1',    'banner_blur' => '0' ) ),
+        'dark'  => array( 'label' => __('Dark', 'snn'),  'values' => array( 'banner_bg_color' => '#111827', 'banner_text_color' => '#f3f4f6', 'button_bg_color' => '#ffffff', 'button_text_color' => '#111827', 'banner_border_radius' => '12', 'button_border_radius' => '8',   'banner_shadow_color' => '#000000', 'banner_shadow_spread' => '30', 'banner_bg_opacity' => '1',    'banner_blur' => '0' ) ),
+        'glass' => array( 'label' => __('Glass', 'snn'), 'values' => array( 'banner_bg_color' => '#ffffff', 'banner_text_color' => '#111827', 'button_bg_color' => '#111827', 'button_text_color' => '#ffffff', 'banner_border_radius' => '16', 'button_border_radius' => '10',  'banner_shadow_color' => '#000000', 'banner_shadow_spread' => '40', 'banner_bg_opacity' => '0.65', 'banner_blur' => '16' ) ),
+        'brand' => array( 'label' => __('Brand', 'snn'), 'values' => array( 'banner_bg_color' => '#2563eb', 'banner_text_color' => '#ffffff', 'button_bg_color' => '#ffffff', 'button_text_color' => '#1d4ed8', 'banner_border_radius' => '12', 'button_border_radius' => '8',   'banner_shadow_color' => '#1e3a8a', 'banner_shadow_spread' => '30', 'banner_bg_opacity' => '1',    'banner_blur' => '0' ) ),
+        'soft'  => array( 'label' => __('Soft', 'snn'),  'values' => array( 'banner_bg_color' => '#fff7ed', 'banner_text_color' => '#431407', 'button_bg_color' => '#ea580c', 'button_text_color' => '#ffffff', 'banner_border_radius' => '24', 'button_border_radius' => '999', 'banner_shadow_color' => '#7c2d12', 'banner_shadow_spread' => '30', 'banner_bg_opacity' => '1',    'banner_blur' => '0' ) ),
+    );
+}
+
+function snn_cookie_hex_to_rgba( $hex, $alpha ) {
+    $hex = ltrim( (string) $hex, '#' );
+    if ( strlen($hex) === 3 ) {
+        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+    }
+    if ( ! preg_match('/^[0-9a-fA-F]{6}$/', $hex) ) {
+        return '#' . $hex;
+    }
+    return sprintf( 'rgba(%d,%d,%d,%s)', hexdec(substr($hex,0,2)), hexdec(substr($hex,2,2)), hexdec(substr($hex,4,2)), (float) $alpha );
+}
+
 function snn_add_cookie_settings_submenu() {
     add_submenu_page(
         'snn-settings',               
@@ -174,6 +207,12 @@ function snn_options_page() {
         $options['snn_cookie_settings_banner_width']         = isset($_POST['snn_cookie_settings_banner_width']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_width']) ) : '';
         $options['snn_cookie_settings_banner_border_radius'] = isset($_POST['snn_cookie_settings_banner_border_radius']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_border_radius']) ) : '';
         $options['snn_cookie_settings_button_border_radius'] = isset($_POST['snn_cookie_settings_button_border_radius']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_border_radius']) ) : '';
+        $layout = isset($_POST['snn_cookie_settings_layout']) ? sanitize_key( wp_unslash($_POST['snn_cookie_settings_layout']) ) : 'box';
+        $options['snn_cookie_settings_layout'] = array_key_exists($layout, snn_cookie_banner_layouts()) ? $layout : 'box';
+        $preset = isset($_POST['snn_cookie_settings_preset']) ? sanitize_key( wp_unslash($_POST['snn_cookie_settings_preset']) ) : 'custom';
+        $options['snn_cookie_settings_preset'] = ( $preset === 'custom' || array_key_exists($preset, snn_cookie_banner_presets()) ) ? $preset : 'custom';
+        $options['snn_cookie_settings_banner_bg_opacity'] = isset($_POST['snn_cookie_settings_banner_bg_opacity']) ? (string) min(1, max(0, (float) $_POST['snn_cookie_settings_banner_bg_opacity'])) : '1';
+        $options['snn_cookie_settings_banner_blur'] = isset($_POST['snn_cookie_settings_banner_blur']) ? (string) absint($_POST['snn_cookie_settings_banner_blur']) : '0';
         
         // NEW: Blocked Scripts (Page Scanner Feature)
         $blocked_scripts = array();
@@ -268,6 +307,10 @@ function snn_options_page() {
             'snn_cookie_settings_banner_width'         => '500',
             'snn_cookie_settings_banner_border_radius' => '0',
             'snn_cookie_settings_button_border_radius' => '0',
+            'snn_cookie_settings_layout'               => 'box',
+            'snn_cookie_settings_preset'               => 'custom',
+            'snn_cookie_settings_banner_bg_opacity'    => '1',
+            'snn_cookie_settings_banner_blur'          => '0',
             'snn_cookie_settings_blocked_scripts'      => array(),
             'snn_cookie_settings_iframe_block_text'    => __('Please accept cookies to see the contents of this iframe.', 'snn')
         );
@@ -292,6 +335,37 @@ function snn_options_page() {
             .snn-service-item input[type="text"],
             .snn-service-item textarea { width: 100%; }
             .snn-service-item .snn-radio-group label { margin-right: 10px; }
+            .snn-picker-heading { margin: 10px 0 4px; font-size: 15px; }
+            .snn-picker { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 24px; }
+            .snn-picker-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px; border: 2px solid #dcdcde; border-radius: 8px; background: #fff; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+            .snn-picker-card:hover { border-color: #8c8f94; }
+            .snn-picker-card.is-selected { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+            .snn-picker-card input { position: absolute; opacity: 0; pointer-events: none; }
+            .snn-picker-card input:focus-visible + .snn-thumb { outline: 2px solid #2271b1; outline-offset: 2px; }
+            .snn-picker-label { font-size: 12px; font-weight: 600; color: #1d2327; }
+            .snn-thumb { position: relative; display: block; width: 132px; height: 84px; border-radius: 4px; overflow: hidden; background: linear-gradient(#e2e4e7 0 10px, #f6f7f7 10px); }
+            .snn-thumb::before { content: ""; position: absolute; left: 10px; right: 30px; top: 20px; height: 6px; border-radius: 3px; background: #dcdcde; box-shadow: 0 12px 0 #e6e7e8, 0 24px 0 #e6e7e8; }
+            .snn-thumb-banner { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 5px; box-sizing: border-box; background: var(--snn-t-bg, #fff); color: var(--snn-t-text, #1f2937); border-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.18); z-index: 1; }
+            .snn-thumb-banner i { display: block; height: 3px; width: 100%; border-radius: 2px; background: currentColor; opacity: .55; }
+            .snn-thumb-banner i + i { width: 70%; }
+            .snn-thumb-banner b { display: block; height: 7px; width: 45%; margin-top: 2px; border-radius: 2px; background: var(--snn-t-btn, #111827); }
+            .snn-thumb-box .snn-thumb-banner { left: 6px; bottom: 6px; width: 54px; height: 34px; }
+            .snn-thumb-bar .snn-thumb-banner { left: 0; right: 0; bottom: 0; height: 18px; border-radius: 0; flex-direction: row; align-items: center; }
+            .snn-thumb-bar .snn-thumb-banner i, .snn-thumb-floating_bar .snn-thumb-banner i { width: 40%; }
+            .snn-thumb-bar .snn-thumb-banner i + i, .snn-thumb-floating_bar .snn-thumb-banner i + i { display: none; }
+            .snn-thumb-bar .snn-thumb-banner b, .snn-thumb-floating_bar .snn-thumb-banner b { width: 22%; margin: 0 0 0 auto; }
+            .snn-thumb-floating_bar .snn-thumb-banner { left: 10px; right: 10px; bottom: 6px; height: 16px; border-radius: 8px; flex-direction: row; align-items: center; }
+            .snn-thumb-modal { background: linear-gradient(#9a9ca0 0 10px, #b4b6b9 10px); }
+            .snn-thumb-modal::before { opacity: .35; }
+            .snn-thumb-modal .snn-thumb-banner { left: 50%; top: 50%; transform: translate(-50%,-40%); width: 64px; height: 40px; align-items: center; }
+            .snn-thumb-modal .snn-thumb-banner b { width: 60%; }
+            .snn-thumb-panel .snn-thumb-banner { top: 10px; right: 0; bottom: 0; width: 44px; border-radius: 0; justify-content: flex-start; padding-top: 8px; }
+            .snn-thumb-panel .snn-thumb-banner b { width: 80%; margin-top: auto; }
+            .snn-thumb-preset .snn-thumb-banner { left: 50%; top: 50%; transform: translate(-50%,-40%); width: 88px; height: 44px; }
+            .snn-thumb-preset-glass { background: linear-gradient(135deg, #a5b4fc, #f0abfc 60%, #fde68a); }
+            .snn-thumb-preset-glass .snn-thumb-banner { backdrop-filter: blur(4px); }
+            .snn-thumb-custom .snn-thumb-banner { border-radius: var(--snn-t-radius, 3px); }
+            .snn-thumb-custom .snn-thumb-banner b { border-radius: var(--snn-t-btn-radius, 2px); }
         </style>
         <div class="snn-tabs">
             <span class="snn-tab active" data-tab="general"><?php _e('General Settings', 'snn'); ?></span>
@@ -951,6 +1025,49 @@ function snn_options_page() {
                 </script>
             </div>
             <div id="styles" class="snn-tab-content">
+                <?php
+                $current_layout = isset($options['snn_cookie_settings_layout']) ? $options['snn_cookie_settings_layout'] : 'box';
+                $current_preset = isset($options['snn_cookie_settings_preset']) ? $options['snn_cookie_settings_preset'] : 'custom';
+                ?>
+                <h2 class="snn-picker-heading"><?php _e('Layout', 'snn'); ?></h2>
+                <p class="description"><?php _e('Where and how the banner appears. Picking a layout also sets matching position, width and overlay settings below.', 'snn'); ?></p>
+                <div class="snn-picker snn-layout-picker">
+                    <?php foreach ( snn_cookie_banner_layouts() as $key => $layout ) : ?>
+                        <label class="snn-picker-card<?php echo $current_layout === $key ? ' is-selected' : ''; ?>">
+                            <input type="radio" name="snn_cookie_settings_layout" value="<?php echo esc_attr($key); ?>" data-sync="<?php echo esc_attr( wp_json_encode($layout['sync']) ); ?>" <?php checked($current_layout, $key); ?>>
+                            <span class="snn-thumb snn-thumb-layout snn-thumb-<?php echo esc_attr($key); ?>">
+                                <span class="snn-thumb-banner"><i></i><i></i><b></b></span>
+                            </span>
+                            <span class="snn-picker-label"><?php echo esc_html($layout['label']); ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+
+                <h2 class="snn-picker-heading"><?php _e('Style Preset', 'snn'); ?></h2>
+                <p class="description"><?php _e('Fills the colors, corners and shadow below. You can still fine-tune every value; editing one switches the preset to Custom.', 'snn'); ?></p>
+                <div class="snn-picker snn-preset-picker">
+                    <?php foreach ( snn_cookie_banner_presets() as $key => $preset ) : $v = $preset['values']; ?>
+                        <label class="snn-picker-card<?php echo $current_preset === $key ? ' is-selected' : ''; ?>">
+                            <input type="radio" name="snn_cookie_settings_preset" value="<?php echo esc_attr($key); ?>" data-values="<?php echo esc_attr( wp_json_encode($v) ); ?>" <?php checked($current_preset, $key); ?>>
+                            <span class="snn-thumb snn-thumb-preset snn-thumb-preset-<?php echo esc_attr($key); ?>">
+                                <span class="snn-thumb-banner" style="background:<?php echo esc_attr( snn_cookie_hex_to_rgba($v['banner_bg_color'], $v['banner_bg_opacity']) ); ?>;color:<?php echo esc_attr($v['banner_text_color']); ?>;border-radius:<?php echo esc_attr( min(10, (int) $v['banner_border_radius'] / 2) ); ?>px;">
+                                    <i></i><i></i>
+                                    <b style="background:<?php echo esc_attr($v['button_bg_color']); ?>;border-radius:<?php echo esc_attr( min(6, (int) $v['button_border_radius'] / 2) ); ?>px;"></b>
+                                </span>
+                            </span>
+                            <span class="snn-picker-label"><?php echo esc_html($preset['label']); ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                    <label class="snn-picker-card<?php echo $current_preset === 'custom' ? ' is-selected' : ''; ?>">
+                        <input type="radio" name="snn_cookie_settings_preset" value="custom" <?php checked($current_preset, 'custom'); ?>>
+                        <span class="snn-thumb snn-thumb-preset snn-thumb-custom">
+                            <span class="snn-thumb-banner"><i></i><i></i><b></b></span>
+                        </span>
+                        <span class="snn-picker-label"><?php _e('Custom', 'snn'); ?></span>
+                    </label>
+                </div>
+
+                <h2 class="snn-picker-heading"><?php _e('Fine-tune', 'snn'); ?></h2>
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row"><?php _e('Cookie Banner Background Color', 'snn'); ?></th>
@@ -976,7 +1093,7 @@ function snn_options_page() {
                             <input type="color" name="snn_cookie_settings_button_text_color" value="<?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>" class="snn-color-picker">
                         </td>
                     </tr>
-                    <tr valign="top">
+                    <tr valign="top" class="snn-row-width">
                         <th scope="row"><?php _e('Banner Width', 'snn'); ?></th>
                         <td>
                             <input type="number" name="snn_cookie_settings_banner_width" value="<?php echo isset($options['snn_cookie_settings_banner_width']) ? esc_attr($options['snn_cookie_settings_banner_width']) : '400'; ?>" class="snn-input">
@@ -998,6 +1115,20 @@ function snn_options_page() {
                         </td>
                     </tr>
                     <tr valign="top">
+                        <th scope="row"><?php _e('Banner Background Opacity', 'snn'); ?></th>
+                        <td>
+                            <input type="number" step="0.05" min="0" max="1" name="snn_cookie_settings_banner_bg_opacity" value="<?php echo esc_attr( isset($options['snn_cookie_settings_banner_bg_opacity']) ? $options['snn_cookie_settings_banner_bg_opacity'] : '1' ); ?>" class="snn-input">
+                            <p class="description"><?php _e('1 = solid. Lower values make the banner see-through (combine with blur for a glass look).', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Banner Background Blur', 'snn'); ?></th>
+                        <td>
+                            <input type="number" min="0" max="60" name="snn_cookie_settings_banner_blur" value="<?php echo esc_attr( isset($options['snn_cookie_settings_banner_blur']) ? $options['snn_cookie_settings_banner_blur'] : '0' ); ?>" class="snn-input">
+                            <p class="description"><?php _e('Blurs the page behind the banner, in pixels. 0 = off.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top" class="snn-row-hpos">
                         <th scope="row"><?php _e('Cookie Banner Position', 'snn'); ?></th>
                         <td>
                             <select name="snn_cookie_settings_banner_position" class="snn-select snn-banner-position">
@@ -1008,7 +1139,7 @@ function snn_options_page() {
                             <p class="description"><?php _e('Select the horizontal position of the cookie banner on your website.', 'snn'); ?></p>
                         </td>
                     </tr>
-                    <tr valign="top">
+                    <tr valign="top" class="snn-row-vpos">
                         <th scope="row"><?php _e('Cookie Banner Vertical Position', 'snn'); ?></th>
                         <td>
                             <select name="snn_cookie_settings_banner_vertical_position" class="snn-select snn-banner-vertical-position">
@@ -1086,6 +1217,65 @@ function snn_options_page() {
                     $('.snn-tab-content').removeClass('active');
                     $('#' + tab).addClass('active');
                 });
+
+                // Visual layout / preset pickers
+                var $styles = $('#styles');
+                var syncing = false;
+                function field(key) { return $styles.find('[name="snn_cookie_settings_' + key + '"]'); }
+                function setField(key, value) {
+                    var $f = field(key);
+                    if ($f.is(':checkbox')) { $f.prop('checked', value === 'yes'); } else { $f.val(value); }
+                }
+                function markSelected($input) {
+                    $input.closest('.snn-picker').find('.snn-picker-card').removeClass('is-selected');
+                    $input.closest('.snn-picker-card').addClass('is-selected');
+                }
+                function refreshThumbs() {
+                    var vars = {
+                        '--snn-t-bg': field('banner_bg_color').val(),
+                        '--snn-t-text': field('banner_text_color').val(),
+                        '--snn-t-btn': field('button_bg_color').val(),
+                        '--snn-t-radius': Math.min(10, (parseInt(field('banner_border_radius').val(), 10) || 0) / 2) + 'px',
+                        '--snn-t-btn-radius': Math.min(6, (parseInt(field('button_border_radius').val(), 10) || 0) / 2) + 'px'
+                    };
+                    $styles.find('.snn-thumb-layout, .snn-thumb-custom').each(function(){
+                        for (var k in vars) { this.style.setProperty(k, vars[k]); }
+                    });
+                }
+                function refreshRows() {
+                    var layout = $styles.find('[name="snn_cookie_settings_layout"]:checked').val() || 'box';
+                    $styles.find('.snn-row-hpos').toggle(layout === 'box' || layout === 'panel');
+                    $styles.find('.snn-row-vpos').toggle(layout === 'box' || layout === 'bar' || layout === 'floating_bar');
+                    $styles.find('.snn-row-width').toggle(layout !== 'bar');
+                }
+                $styles.on('change', '[name="snn_cookie_settings_layout"]', function(){
+                    var sync = $(this).data('sync') || {};
+                    syncing = true;
+                    for (var k in sync) { setField(k, sync[k]); }
+                    syncing = false;
+                    markSelected($(this));
+                    refreshRows();
+                });
+                $styles.on('change', '[name="snn_cookie_settings_preset"]', function(){
+                    var values = $(this).data('values');
+                    if (values) {
+                        syncing = true;
+                        for (var k in values) { setField(k, values[k]); }
+                        syncing = false;
+                    }
+                    markSelected($(this));
+                    refreshThumbs();
+                });
+                // Manually editing a preset-controlled field switches the preset to Custom.
+                var presetKeys = ['banner_bg_color','banner_text_color','button_bg_color','button_text_color','banner_border_radius','button_border_radius','banner_shadow_color','banner_shadow_spread','banner_bg_opacity','banner_blur'];
+                $styles.on('input change', presetKeys.map(function(k){ return '[name="snn_cookie_settings_' + k + '"]'; }).join(','), function(){
+                    if (syncing) { return; }
+                    var $custom = $styles.find('[name="snn_cookie_settings_preset"][value="custom"]');
+                    if (!$custom.prop('checked')) { $custom.prop('checked', true); markSelected($custom); }
+                    refreshThumbs();
+                });
+                refreshThumbs();
+                refreshRows();
             });
         })(jQuery);
         </script>
@@ -1114,7 +1304,12 @@ function snn_output_cookie_banner() {
     $banner_width = isset($options['snn_cookie_settings_banner_width']) ? $options['snn_cookie_settings_banner_width'] : '400';
     $banner_border_radius = isset($options['snn_cookie_settings_banner_border_radius']) ? $options['snn_cookie_settings_banner_border_radius'] : '10';
     $button_border_radius = isset($options['snn_cookie_settings_button_border_radius']) ? $options['snn_cookie_settings_button_border_radius'] : '5';
-    
+    $layout = isset($options['snn_cookie_settings_layout']) && array_key_exists($options['snn_cookie_settings_layout'], snn_cookie_banner_layouts()) ? $options['snn_cookie_settings_layout'] : 'box';
+    $banner_bg_color = isset($options['snn_cookie_settings_banner_bg_color']) ? $options['snn_cookie_settings_banner_bg_color'] : '#333333';
+    $banner_bg_opacity = isset($options['snn_cookie_settings_banner_bg_opacity']) ? (float) $options['snn_cookie_settings_banner_bg_opacity'] : 1;
+    $banner_bg = $banner_bg_opacity < 1 ? snn_cookie_hex_to_rgba($banner_bg_color, $banner_bg_opacity) : $banner_bg_color;
+    $banner_blur = isset($options['snn_cookie_settings_banner_blur']) ? absint($options['snn_cookie_settings_banner_blur']) : 0;
+
     $accepted = isset($_COOKIE['snn_cookie_accepted']) ? $_COOKIE['snn_cookie_accepted'] : '';
     $banner_style = ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' style="display: none;"' : '';
     $overlay_style = ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' style="display: none;"' : '';
@@ -1124,10 +1319,37 @@ function snn_output_cookie_banner() {
     <?php endif; ?>
     
     <style id="snn-dynamic-styles">
-        .snn-cookie-banner {position:fixed;<?php if ($vertical_position === 'top') : ?>top:10px;<?php elseif ($vertical_position === 'middle') : ?>top:50%;transform:translateY(-50%);<?php else : ?>bottom:10px;<?php endif; ?>width:<?php echo esc_attr($banner_width); ?>px;z-index:9999;padding:20px;background:<?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;color:<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;border-radius:<?php echo esc_attr($banner_border_radius); ?>px;margin:10px;}
+        .snn-cookie-banner {position:fixed;box-sizing:border-box;width:<?php echo esc_attr($banner_width); ?>px;max-width:calc(100% - 20px);z-index:9999;padding:20px;background:<?php echo esc_attr($banner_bg); ?>;<?php if ($banner_blur > 0) : ?>-webkit-backdrop-filter:blur(<?php echo $banner_blur; ?>px);backdrop-filter:blur(<?php echo $banner_blur; ?>px);<?php endif; ?>color:<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;border-radius:<?php echo esc_attr($banner_border_radius); ?>px;margin:10px;}
+        <?php if ($layout === 'box') : ?>
+        .snn-cookie-banner{<?php if ($vertical_position === 'top') : ?>top:10px;<?php elseif ($vertical_position === 'middle') : ?>top:50%;transform:translateY(-50%);<?php else : ?>bottom:10px;<?php endif; ?>}
         .snn-cookie-banner.left{left:0;}
         .snn-cookie-banner.middle{left:50%;<?php if ($vertical_position === 'middle') : ?>transform:translate(-50%,-50%);<?php else : ?>transform:translateX(-50%);<?php endif; ?>}
         .snn-cookie-banner.right{right:0;}
+        <?php elseif ($layout === 'bar' || $layout === 'floating_bar') : ?>
+        .snn-cookie-banner{display:grid;grid-template-columns:1fr auto;column-gap:24px;align-items:center;<?php echo $vertical_position === 'top' ? 'top' : 'bottom'; ?>:<?php echo $layout === 'bar' ? '0' : '16px'; ?>;}
+        .snn-cookie-banner>.snn-preferences-title,.snn-cookie-banner>.snn-preferences-content,.snn-cookie-banner>.snn-legal-text{grid-column:1/-1;}
+        .snn-cookie-banner .snn-preferences-title{text-align:left;}
+        .snn-cookie-banner .snn-banner-text{margin-bottom:0;}
+        .snn-cookie-banner .snn-banner-text p{margin:0;}
+        .snn-cookie-banner .snn-banner-buttons .snn-button{width:auto;white-space:nowrap;padding:10px 18px;}
+        <?php if ($layout === 'bar') : ?>
+        .snn-cookie-banner{left:0;right:0;width:100%;max-width:none;margin:0;border-radius:0;padding:16px max(20px,calc((100% - 1200px)/2));}
+        <?php else : ?>
+        .snn-cookie-banner{left:50%;transform:translateX(-50%);margin:0;width:calc(100% - 32px);max-width:<?php echo esc_attr($banner_width); ?>px;padding:14px 20px;}
+        <?php endif; ?>
+        <?php elseif ($layout === 'modal') : ?>
+        .snn-cookie-banner{top:50%;left:50%;transform:translate(-50%,-50%);margin:0;max-height:calc(100vh - 40px);overflow:auto;padding:28px;}
+        .snn-cookie-banner .snn-preferences-title{font-size:1.25em;}
+        .snn-cookie-banner .snn-banner-text{text-align:center;margin-bottom:18px;}
+        <?php elseif ($layout === 'panel') : ?>
+        .snn-cookie-banner{top:0;bottom:0;<?php echo $position === 'left' ? 'left' : 'right'; ?>:0;margin:0;max-width:100%;overflow:auto;display:flex;flex-direction:column;border-radius:0;padding:28px 24px;}
+        .snn-cookie-banner .snn-preferences-title{text-align:left;font-size:1.25em;margin-bottom:12px;}
+        .snn-cookie-banner .snn-preferences-content{display:block;order:2;margin:12px 0;}
+        .snn-cookie-banner .snn-banner-text{order:1;}
+        .snn-cookie-banner .snn-banner-buttons{order:3;margin-top:auto;flex-direction:column;}
+        .snn-cookie-banner .snn-legal-text{order:4;}
+        .snn-cookie-banner .snn-preferences{display:none;}
+        <?php endif; ?>
         .snn-preferences-content{display:none;}
         .snn-banner-buttons{display:flex;flex-direction:row;gap:10px}
         .snn-banner-text{margin-bottom:10px;}
@@ -1144,13 +1366,22 @@ function snn_output_cookie_banner() {
         .snn-switch input:checked+.snn-slider:before{transform:translateX(20px);}
         .snn-switch input:disabled+.snn-slider{background-color:#ccc;cursor:not-allowed;}
         @media (max-width:768px){
+            <?php if ($layout === 'modal') : ?>
+            .snn-cookie-banner{width:calc(100% - 20px);padding:20px;}
+            <?php elseif ($layout === 'panel') : ?>
+            .snn-cookie-banner{width:100%;}
+            <?php elseif ($layout === 'bar' || $layout === 'floating_bar') : ?>
+            .snn-cookie-banner{grid-template-columns:1fr;row-gap:12px;}
+            .snn-cookie-banner .snn-banner-buttons .snn-button{white-space:normal;width:100%;}
+            <?php else : ?>
             .snn-cookie-banner{width:calc(100% - 20px);left:0!important;right:0!important;transform:none!important;padding:10px;}
+            <?php endif; ?>
             .snn-banner-buttons{display:flex;flex-direction:column;}
             .snn-banner-buttons .snn-button{width:100%;text-align:center;}
             .snn-banner-buttons .snn-button:last-child{margin-bottom:0;}
         }
     </style>
-    <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
+    <div id="snn-cookie-banner" class="snn-cookie-banner snn-layout-<?php echo esc_attr($layout); ?> <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
     <div class="snn-preferences-title"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_title']) ? $options['snn_cookie_settings_preferences_title'] : __('Cookie Preferences', 'snn') ); ?></div>
     <div class="snn-preferences-content">
             <?php 
@@ -1993,7 +2224,7 @@ function snn_output_banner_js() {
                     
                     // Show the cookie banner again (do NOT clear cookies here)
                     if (b) {
-                        b.style.display = 'block';
+                        b.style.display = '';
                         // Open preferences panel and load current states
                         var prefsContent = document.querySelector('.snn-preferences-content');
                         if (prefsContent) {
