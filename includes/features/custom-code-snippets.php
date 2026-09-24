@@ -2290,7 +2290,10 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-snippets-wrap .CodeMirror { min-height: 600px !important; border: 1px solid #dcdcde; }
         .snn-snippet-nav-tab-wrapper { margin-bottom: 15px; }
         .snn-snippet-description { margin-bottom: 10px; font-style: italic; color: #555; }
-        .snn-breadcrumb { margin: 4px 0 8px; }
+        .snn-breadcrumb { margin: 4px 0 12px; }
+        .snn-breadcrumb .snn-back-button { font-size: 14px; padding: 2px 14px; }
+        .snn-general-warning { margin-top: 0 !important; }
+        .snn-general-warning p { font-size: 12px; }
         .snn-legacy-copy { margin: 4px 0 14px; }
         .snn-spacer { flex: 1; }
         .snn-dim { color: #8c8f94; }
@@ -3740,10 +3743,13 @@ function snn_snippets_legacy_page() {
             </div>
         <?php endif; ?>
 
-        <div class="notice notice-warning inline snn-php-execution-warning">
+        <?php $snn_general_warning = function () { ?>
+        <div class="notice notice-warning inline snn-php-execution-warning snn-general-warning">
             <p><strong>Warning:</strong> <?php esc_html_e( 'ATTENTION PLEASE! These settings are not for normal users! If you don’t have at least some basic knowledge of HTML, CSS, and FTP login, DO NOT USE IT!', 'snn' ); ?></p>
             <p><strong>INFO:</strong> <?php esc_html_e( 'If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php file to disable the code snippets feature temporarly. ', 'snn' ); ?></p>
         </div>
+        <?php }; ?>
+        <?php if ( ! isset( $snippet_defs[ $current_tab_key ] ) ) $snn_general_warning(); ?>
 
         <form method="post" action="admin.php?page=snn-custom-codes-snippets&tab=<?php echo esc_attr($current_tab_key); ?>">
             <?php wp_nonce_field( 'snn_save_codes_snippets', 'snn_codes_snippets_nonce' ); ?>
@@ -3834,7 +3840,7 @@ function snn_snippets_legacy_page() {
                 <div class="snn-editor-revision-wrapper">
                     <div class="snn-editor-area">
                         <div id="snn-tab-content-<?php echo esc_attr( $current_tab_key ); ?>" class="snn-tab-content">
-                            <p class="snn-breadcrumb"><a href="<?php echo esc_url( admin_url( 'admin.php?page=snn-custom-codes-snippets' ) ); ?>">&larr; <?php esc_html_e( 'All snippets', 'snn' ); ?></a></p>
+                            <p class="snn-breadcrumb"><a href="<?php echo esc_url( admin_url( 'admin.php?page=snn-custom-codes-snippets' ) ); ?>" class="button button-secondary snn-back-button">&larr; <?php esc_html_e( 'All snippets', 'snn' ); ?></a></p>
                             <h3><?php echo esc_html( $active_snippet_def['title'] ); ?> <span class="snn-tag snn-tag-legacy"><?php esc_html_e( 'Legacy', 'snn' ); ?></span></h3>
                             <p class="snn-snippet-description"><?php echo wp_kses_post( $active_snippet_def['description'] ); ?></p>
                              <?php if ( $active_snippet_def['slug'] === 'snn-snippet-functions-php' ): ?>
@@ -3899,6 +3905,7 @@ function snn_snippets_legacy_page() {
                     </div>
 
                     <div class="snn-revisions-panel" data-active-editor-id="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>">
+                        <?php $snn_general_warning(); ?>
                         <h4><?php printf( esc_html__( 'Revisions for %s', 'snn' ), esc_html( $active_snippet_def['title'] ) ); ?></h4>
                         <div class="snn-revisions-panel-inner">
                             <?php if ( ! empty( $revisions ) ) : ?>
@@ -5398,7 +5405,7 @@ function snn_snippets_render_editor() {
             <input type="hidden" name="snn_modern_action" value="save">
             <input type="hidden" name="snn_snippet_id" value="<?php echo (int) $id; ?>">
 
-            <p class="snn-breadcrumb"><a href="<?php echo esc_url( $list_url ); ?>">&larr; <?php esc_html_e( 'All snippets', 'snn' ); ?></a></p>
+            <p class="snn-breadcrumb"><a href="<?php echo esc_url( $list_url ); ?>" class="button button-secondary snn-back-button">&larr; <?php esc_html_e( 'All snippets', 'snn' ); ?></a></p>
 
             <div class="snn-editor-top">
                 <h2><?php echo $id ? esc_html__( 'Edit Snippet', 'snn' ) : esc_html__( 'Add New Snippet', 'snn' ); ?></h2>
