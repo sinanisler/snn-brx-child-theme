@@ -1051,6 +1051,14 @@ function snn_snippets_in_safe_mode() {
         return true;
     }
 
+    // A test page load must run exactly what visitors would get. The browser
+    // sends the admin's safe-mode cookie with the logged-in test pages, and
+    // honouring it there skipped the draft, so a snippet could pass having
+    // only been tested logged out.
+    if ( snn_snippet_test_context() ) {
+        return false;
+    }
+
     return snn_snippets_sticky_safe_mode();
 }
 
@@ -5812,7 +5820,6 @@ function snn_get_php_error_type_string($type) {
         case E_USER_ERROR: return 'E_USER_ERROR (User-generated error message)';
         case E_USER_WARNING: return 'E_USER_WARNING (User-generated warning message)';
         case E_USER_NOTICE: return 'E_USER_NOTICE (User-generated notice message)';
-        case E_STRICT: return 'E_STRICT (Run-time notice for deprecated code or bad practices)';
         case E_RECOVERABLE_ERROR: return 'E_RECOVERABLE_ERROR (Catchable fatal error)';
         case E_DEPRECATED: return 'E_DEPRECATED (Run-time notice for code that will not work in future PHP versions)';
         case E_USER_DEPRECATED: return 'E_USER_DEPRECATED (User-generated warning for deprecated code)';
