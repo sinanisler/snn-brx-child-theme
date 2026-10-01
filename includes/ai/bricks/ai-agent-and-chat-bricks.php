@@ -4532,7 +4532,10 @@ IMPORTANT RULES:
             async function callAI(messages, retryCount = 0, opts = {}) {
                 const cfg = snnBricksChatConfig.ai;
                 if (!window.snnAiProxy || !window.snnAiProxy.url) throw new Error('AI API not configured');
-                ChatState.abortController = new AbortController();
+                // Parallel callers (zip conversion) share one controller and pass its
+                // signal, so Stop cancels every in-flight request rather than the last.
+                if (!opts.signal) ChatState.abortController = new AbortController();
+                const signal = opts.signal || ChatState.abortController.signal;
 
                 debugLog('AI call:', cfg.model, messages.length, 'messages');
 
@@ -4562,10 +4565,11 @@ IMPORTANT RULES:
                 const resp = await fetch(window.snnAiProxy.url, {
                     method: 'POST',
                     body: proxyPayload,
-                    signal: ChatState.abortController.signal
+                    signal: signal
                 });
                 if (resp.status === 429 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
                     const delay = Math.min(RECOVERY_CONFIG.rateLimitDelay * Math.pow(2, retryCount), RECOVERY_CONFIG.maxDelay);
+                    if (opts.onRateLimit) opts.onRateLimit(delay);
                     setAgentState('recovering', `Rate limited — waiting ${Math.ceil(delay/1000)}s...`);
                     await sleep(delay);
                     return callAI(messages, retryCount + 1, opts);
@@ -4579,6 +4583,9 @@ IMPORTANT RULES:
                 // swallowed by its try/catch. Record it so callers can react and the
                 // debug log says plainly what happened.
                 ChatState.lastResponseTruncated = (choice?.finish_reason === 'length');
+                // The shared flag is overwritten by whichever call lands last, so
+                // parallel callers read their own result from opts.out instead.
+                if (opts.out) opts.out.truncated = ChatState.lastResponseTruncated;
                 if (ChatState.lastResponseTruncated) {
                     debugLog('⚠️ Response truncated: hit max_tokens (' + maxTokens + '). ' +
                              'If the model is a reasoning model, thinking tokens consumed the budget.');
@@ -4586,7 +4593,7 @@ IMPORTANT RULES:
                 if (!choice?.message?.content) {
                     // A reasoning model can spend the whole cap thinking and return no text:
                     // that is a truncation, not a malformed response.
-                    if (ChatState.lastResponseTruncated) return '';
+                    if (choice?.finish_reason === 'length') return '';
                     const why = data?.error?.message
                         || (choice ? 'no content, finish_reason: ' + (choice.finish_reason || 'none') : 'no choices returned');
                     throw new Error('Invalid API response (' + why + ')');
@@ -5634,7 +5641,7 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                  * except on abort, and never hides why it failed: a silent null here is
                  * what turned a truncated reply into "produced no usable HTML".
                  */
-                async function convertChunk(chunk, zip, prefix, isOnlyPass) {
+                async function convertChunk(chunk, zip, prefix, isOnlyPass, callOpts = {}) {
                     const markup = chunkHtml(chunk);
                     const css    = isOnlyPass ? zip.css : pruneCss(zip.css, markup);
                     const source =
@@ -5648,12 +5655,13 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
                     let lastReason = 'unknown';
                     for (let attempt = 0; attempt < 2; attempt++) {
                         try {
+                            const out = {};
                             const response = await callAI([
                                 { role: 'system', content: conversionPrompt(zip.note, prefix) },
                                 { role: 'user',   content: source }
-                            ], 0, { temperature: 0.2 });
+                            ], 0, Object.assign({ temperature: 0.2, out }, callOpts));
 
-                            const truncated = ChatState.lastResponseTruncated;
+                            const truncated = !!out.truncated;
                             const html = extractHTMLFromResponse(response);
 
                             if (html && !truncated) return { html };
@@ -5679,50 +5687,96 @@ Output the HTML only — no explanation after the code block, no patch blocks, n
 
                 async function convert(userMessage, zip) {
                     zip.note = userMessage || '';
-                    const queue   = splitChunks(zip.bodyHtml);
+                    // Passes run a few at a time. `order` is the pass's position in the
+                    // page (halves of a split pass extend their parent's), so the result
+                    // is reassembled in design order no matter which reply lands first.
+                    const CONCURRENCY = 3;
+                    const queue   = splitChunks(zip.bodyHtml).map((chunk, i) => ({ chunk, order: [i] }));
                     const initial = queue.length;
-                    const built   = [];
+                    const done    = [];
                     const failed  = [];
-                    let pass = 0, total = initial, usedPrefixes = {};
+                    let pass = 0, total = initial, usedPrefixes = {}, inFlight = 0, pausedUntil = 0;
+
+                    // One controller for the whole conversion, so Stop cancels every pass.
+                    const controller = new AbortController();
+                    ChatState.abortController = controller;
+                    const callOpts = {
+                        signal: controller.signal,
+                        // A 429 on one pass holds the whole pool back, not just that pass.
+                        onRateLimit: delay => { pausedUntil = Math.max(pausedUntil, Date.now() + delay); }
+                    };
 
                     setAgentState('converting',
                         'Converting ' + zip.htmlPath + ' in ' +
-                        (initial === 1 ? 'a single pass' : initial + ' passes, one per section group') + '.'
+                        (initial === 1 ? 'a single pass' : initial + ' passes, one per section group, up to ' + CONCURRENCY + ' at a time') + '.'
                     );
 
-                    while (queue.length) {
-                        const chunk = queue.shift();
-                        pass++;
-                        const label = chunk.label || ('Part ' + pass);
-                        let prefix  = slug(label) || ('sec' + pass);
-                        // Prefixes namespace the generated CSS, so they must stay unique.
-                        if (usedPrefixes[prefix]) prefix += '-' + (++usedPrefixes[prefix]);
-                        else usedPrefixes[prefix] = 1;
+                    const worker = async () => {
+                        while (true) {
+                            if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+                            if (!queue.length) {
+                                // A pass still in flight may fail and re-queue its halves.
+                                if (!inFlight) return;
+                                await sleep(150);
+                                continue;
+                            }
+                            const wait = pausedUntil - Date.now();
+                            if (wait > 0) { await sleep(wait); continue; }
 
-                        showTyping();
-                        setAgentState('converting', 'Converting "' + label + '" (' + pass + '/' + total + ')...');
+                            const job   = queue.shift();
+                            const chunk = job.chunk;
+                            pass++;
+                            const label = chunk.label || ('Part ' + pass);
+                            let prefix  = slug(label) || ('sec' + pass);
+                            // Prefixes namespace the generated CSS, so they must stay unique.
+                            if (usedPrefixes[prefix]) prefix += '-' + (++usedPrefixes[prefix]);
+                            else usedPrefixes[prefix] = 1;
 
-                        const res = await convertChunk(chunk, zip, prefix, total === 1);
+                            showTyping();
+                            setAgentState('converting', 'Converting "' + label + '" (' + pass + '/' + total + ')...');
 
-                        if (res.html) {
-                            built.push(res.html);
-                            setAgentState('converting', 'Converted "' + label + '" (' + built.length + ' of ' + total + ' done)');
-                            continue;
+                            inFlight++;
+                            let res;
+                            try {
+                                res = await convertChunk(chunk, zip, prefix, total === 1, callOpts);
+                            } finally {
+                                inFlight--;
+                            }
+
+                            if (res.html) {
+                                done.push({ order: job.order, html: res.html });
+                                setAgentState('converting', 'Converted "' + label + '" (' + done.length + ' of ' + total + ' done)');
+                                continue;
+                            }
+
+                            // A failing pass is usually just too big — halve it and retry the
+                            // halves before giving up on this part of the design.
+                            const halves = bisect(chunk);
+                            if (halves) {
+                                setAgentState('converting', 'Pass "' + label + '" failed (' + res.reason + ') - splitting it in two and retrying.');
+                                queue.unshift(
+                                    { chunk: halves[0], order: job.order.concat(0) },
+                                    { chunk: halves[1], order: job.order.concat(1) }
+                                );
+                                total += 1;
+                                continue;
+                            }
+                            failed.push(label + ' - ' + res.reason);
                         }
+                    };
 
-                        // A failing pass is usually just too big — halve it and retry the
-                        // halves before giving up on this part of the design.
-                        const halves = bisect(chunk);
-                        if (halves) {
-                            setAgentState('converting', 'Pass "' + label + '" failed (' + res.reason + ') - splitting it in two and retrying.');
-                            queue.unshift(halves[0], halves[1]);
-                            total += 1;
-                            continue;
-                        }
-                        failed.push(label + ' - ' + res.reason);
-                    }
+                    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, initial) }, worker));
 
                     hideTyping();
+
+                    const cmpOrder = (a, b) => {
+                        for (let i = 0; i < Math.max(a.length, b.length); i++) {
+                            const d = (a[i] ?? -1) - (b[i] ?? -1);
+                            if (d) return d;
+                        }
+                        return 0;
+                    };
+                    const built = done.sort((x, y) => cmpOrder(x.order, y.order)).map(d => d.html);
 
                     if (failed.length) {
                         addMessage('error',
