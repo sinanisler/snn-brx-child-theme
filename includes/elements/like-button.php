@@ -5,6 +5,83 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Bricks\Element;
 
+/**
+ * LIKE BUTTON ELEMENT - USAGE NOTES
+ *
+ * HOW IT WORKS
+ * - Rendered for logged-in users only (nothing is output for visitors).
+ * - Target post = "Custom Identifier" control, or the current loop/page post ID when blank.
+ *   The identifier is cast with absint(), so it must be a numeric post ID.
+ * - Click toggles the like via REST: POST /wp-json/snn/v1/{token}/like -> { count, liked }.
+ * - Storage:
+ *     post meta  _snn_liked_by     = array of user IDs   (used for the like count)
+ *     user meta  _snn_liked_posts  = array of post IDs   (the user's favorites list)
+ * - Helper: snn_get_user_likes_user_based( $user_id ) returns the user's liked post IDs (int[]).
+ *
+ * USE AS A FAVORITE BUTTON
+ * - Place the element inside a Bricks query loop (posts, products, any post type).
+ *   It reads the loop item ID automatically. Disable "Show Like Count" for a plain toggle.
+ *
+ * LIST A USER'S FAVORITES (Bricks query loop > enable "Use query editor (PHP)")
+ * - post__in is an intersection filter: results must be in the liked list AND match every other arg.
+ * - Keep `?: [ 0 ]`. An empty post__in is ignored by WP_Query and would return ALL posts.
+ *
+ * 1) All favorites, any post type:
+ *    return [
+ *        'post_type'      => 'any',
+ *        'post__in'       => snn_get_user_likes_user_based( get_current_user_id() ) ?: [ 0 ],
+ *        'orderby'        => 'post__in',
+ *        'posts_per_page' => -1,
+ *    ];
+ *
+ * 2) Favorites inside one taxonomy term (e.g. WooCommerce product category):
+ *    return [
+ *        'post_type' => 'product',
+ *        'post__in'  => snn_get_user_likes_user_based( get_current_user_id() ) ?: [ 0 ],
+ *        'tax_query' => [
+ *            [ 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => 'shoes' ],
+ *        ],
+ *    ];
+ *
+ * 3) Favorites that belong to the term of the archive being viewed:
+ *    return [
+ *        'post_type' => 'post',
+ *        'post__in'  => snn_get_user_likes_user_based( get_current_user_id() ) ?: [ 0 ],
+ *        'tax_query' => [
+ *            [ 'taxonomy' => 'category', 'field' => 'term_id', 'terms' => get_queried_object_id() ],
+ *        ],
+ *    ];
+ *
+ * 4) Favorites filtered by a custom field and sorted by date:
+ *    return [
+ *        'post_type'      => 'any',
+ *        'post__in'       => snn_get_user_likes_user_based( get_current_user_id() ) ?: [ 0 ],
+ *        'meta_query'     => [ [ 'key' => 'in_stock', 'value' => '1' ] ],
+ *        'orderby'        => 'date',
+ *        'order'          => 'DESC',
+ *        'posts_per_page' => 12,
+ *    ];
+ *
+ * 5) Favorites of another user (e.g. on an author archive / public profile):
+ *    return [
+ *        'post_type' => 'any',
+ *        'post__in'  => snn_get_user_likes_user_based( get_queried_object_id() ) ?: [ 0 ],
+ *    ];
+ *
+ * 6) Newest-liked first (likes are appended, so reverse the array and keep its order):
+ *    $ids = array_reverse( snn_get_user_likes_user_based( get_current_user_id() ) );
+ *    return [
+ *        'post_type' => 'any',
+ *        'post__in'  => $ids ?: [ 0 ],
+ *        'orderby'   => 'post__in',
+ *    ];
+ *
+ * NOTES
+ * - Pagination works normally with posts_per_page and the Bricks pagination element.
+ * - Bricks Filter elements can narrow a favorites loop at runtime on top of the post__in base query.
+ * - Place the Like button inside the favorites loop too, so users can un-favorite from the list.
+ */
+
 if ( ! function_exists( 'bricks_render_icon' ) ) {
     function bricks_render_icon( $icon_settings, $classes = [] ) {
         if ( empty( $icon_settings ) || ! is_array( $icon_settings ) || empty( $icon_settings['icon'] ) ) {
@@ -76,6 +153,16 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'default'     => esc_html__( 'Unlike', 'snn' ),
                 'placeholder' => esc_html__( 'Unlike', 'snn' ),
                 'description' => '',
+            ];
+
+            $this->controls['usage_info'] = [
+                'tab'     => 'content',
+                'type'    => 'info',
+                'content' => wp_kses_post(
+                    'Logged-in users only. Each click saves the post to the user\'s likes, so it works as a favorite button inside any query loop (posts, products).<br><br>'
+                    . 'To list a user\'s favorites, enable "Use query editor (PHP)" on a query loop and return:<br>'
+                    . '<code>return [ \'post_type\' =&gt; \'any\', \'post__in\' =&gt; snn_get_user_likes_user_based( get_current_user_id() ) ?: [ 0 ] ];</code>'
+                ),
             ];
         }
 
