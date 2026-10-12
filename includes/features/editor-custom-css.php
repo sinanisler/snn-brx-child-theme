@@ -1500,6 +1500,8 @@ function snn_custom_css_overlay_output() {
             'apiEndpoint' => $snn_css_ai_config['apiEndpoint'],
             'model'       => $snn_css_ai_config['model'],
             'provider'    => $snn_css_ai_config['modelProvider'] ?? '',
+            'maxTokens'   => (int) $snn_css_ai_config['maxTokens'], // AI Settings owns the limit.
+            'isOpenRouter' => 'custom' !== get_option( 'snn_ai_provider', 'openrouter' ),
         ] ); ?>;
 
         /* ── Read Bricks global color palette + size variables from Vue reactive state ── */
@@ -1615,11 +1617,20 @@ function snn_custom_css_overlay_output() {
                     messages    : messages,
                     provider    : snnCssAiConfig.provider || null,
                     temperature : 0.4,
-                    maxTokens   : 2000
+                    maxTokens   : parseInt(snnCssAiConfig.maxTokens, 10) || 16000,
+                    // Reasoning models can spend the whole budget thinking and return no content.
+                    // OpenRouter understands this flag; other endpoints may reject it.
+                    additionalParams: snnCssAiConfig.isOpenRouter ? { reasoning: { effort: 'low', exclude: true } } : {}
                 }).then(function(data) {
-                    var text = helpers.extractContent ? helpers.extractContent(data) : (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+                    var choice = data && data.choices && data.choices[0] ? data.choices[0] : {};
+                    var raw    = choice.message && typeof choice.message.content === 'string' ? choice.message.content : '';
+                    if (!raw.trim()) {
+                        throw new Error(choice.finish_reason === 'length'
+                            ? 'The model used its whole token budget before writing any CSS (reasoning models think first). Try a shorter request, a non-reasoning model, or raise Max Tokens in AI Settings.'
+                            : 'The model returned an empty reply. Please try again.');
+                    }
                     // Strip markdown code fences if AI included them anyway
-                    text = text.replace(/^```(?:css)?\s*/i, '').replace(/```\s*$/i, '').trim();
+                    var text = raw.replace(/^```(?:css)?\s*/i, '').replace(/```\s*$/i, '').trim();
                     lastAiCode = text;
                     aiResponse.textContent = text;
                     aiResponse.style.display = 'block';
