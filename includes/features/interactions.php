@@ -75,6 +75,38 @@ function snn_register_interactions_settings() {
 }
 add_action('admin_init', 'snn_register_interactions_settings');
 
+/**
+ * Clean the Lenis ignore list. Keeps only class (.name) and ID (#name) selectors.
+ * Names typed without . or # are treated as classes.
+ *
+ * @param mixed $raw Raw list from the settings form
+ * @return array Valid, unique selectors
+ */
+function snn_sanitize_lenis_prevent_selectors($raw) {
+    $selectors = array();
+
+    foreach ((array) $raw as $item) {
+        if (!is_scalar($item)) {
+            continue;
+        }
+
+        $item = trim(sanitize_text_field((string) $item));
+        if ($item === '') {
+            continue;
+        }
+
+        if ($item[0] !== '.' && $item[0] !== '#') {
+            $item = '.' . $item;
+        }
+
+        if (preg_match('/^[.#]-?[A-Za-z_][A-Za-z0-9_-]*$/', $item) && !in_array($item, $selectors, true)) {
+            $selectors[] = $item;
+        }
+    }
+
+    return $selectors;
+}
+
 function snn_sanitize_interactions_settings($input) {
     $sanitized = array();
 
@@ -101,6 +133,9 @@ function snn_sanitize_interactions_settings($input) {
     $sanitized['lenis_orientation'] = isset($input['lenis_orientation']) ? sanitize_text_field($input['lenis_orientation']) : 'vertical';
     $sanitized['lenis_gestureOrientation'] = isset($input['lenis_gestureOrientation']) ? sanitize_text_field($input['lenis_gestureOrientation']) : 'vertical';
     $sanitized['lenis_easing'] = isset($input['lenis_easing']) ? sanitize_text_field($input['lenis_easing']) : 'default';
+
+    // Lenis ignore list (classes or IDs that keep native scrolling)
+    $sanitized['lenis_prevent_selectors'] = snn_sanitize_lenis_prevent_selectors(isset($input['lenis_prevent_selectors']) ? $input['lenis_prevent_selectors'] : array());
 
     // Page Transitions settings
     $sanitized['enable_page_transitions'] = isset($input['enable_page_transitions']) && $input['enable_page_transitions'] ? 1 : 0;
@@ -252,6 +287,83 @@ function snn_enable_lenis_callback() {
             <div class="lenis-field"><label><?php _e('Lerp (smoothness)', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.01" min="0.01" max="1" name="snn_interactions_settings[lenis_lerp]" value="<?php echo isset($options['lenis_lerp']) ? esc_attr($options['lenis_lerp']) : '0.1'; ?>"></label><p class="description"><?php _e('Linear interpolation intensity (0.01 to 1). Lower = smoother. Default: 0.1', 'snn'); ?></p></div>
             <div class="lenis-field"><label><?php _e('Wheel Multiplier', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.1" min="0.1" max="5" name="snn_interactions_settings[lenis_wheelMultiplier]" value="<?php echo isset($options['lenis_wheelMultiplier']) ? esc_attr($options['lenis_wheelMultiplier']) : '1'; ?>"></label><p class="description"><?php _e('Mouse wheel scroll speed. Default: 1', 'snn'); ?></p></div>
             <div class="lenis-field"><label><input type="checkbox" name="snn_interactions_settings[lenis_smoothWheel]" value="1" <?php checked(1, isset($options['lenis_smoothWheel']) ? $options['lenis_smoothWheel'] : 1); ?>> <?php _e('Smooth Wheel Events', 'snn'); ?></label><p class="description"><?php _e('Smooth the scroll initiated by wheel events. Default: enabled', 'snn'); ?></p></div>
+            <div class="lenis-field lenis-tags-field">
+                <label for="lenis-prevent-input"><strong><?php _e('Elements to Ignore (Classes or IDs)', 'snn'); ?></strong></label>
+                <div class="lenis-tags" data-name="snn_interactions_settings[lenis_prevent_selectors][]" data-remove="<?php esc_attr_e('Remove', 'snn'); ?>" data-error="<?php esc_attr_e('Use a class like .my-slider or an ID like #my-map. Letters, numbers, - and _ only.', 'snn'); ?>">
+                    <?php foreach (snn_sanitize_lenis_prevent_selectors(isset($options['lenis_prevent_selectors']) ? $options['lenis_prevent_selectors'] : array()) as $selector) : ?>
+                        <span class="lenis-tag"><code><?php echo esc_html($selector); ?></code><button type="button" class="lenis-tag-remove" aria-label="<?php esc_attr_e('Remove', 'snn'); ?>">&times;</button><input type="hidden" name="snn_interactions_settings[lenis_prevent_selectors][]" value="<?php echo esc_attr($selector); ?>"></span>
+                    <?php endforeach; ?>
+                    <input type="text" id="lenis-prevent-input" class="lenis-tag-input" placeholder="<?php esc_attr_e('.my-slider or #my-map', 'snn'); ?>" autocomplete="off">
+                </div>
+                <p class="lenis-tag-error" hidden></p>
+                <p class="description"><?php _e('Type a class (.name) or ID (#name), then press Enter or comma. Names without . or # are treated as classes. Lenis leaves these elements to normal scrolling, so nested scroll containers work.', 'snn'); ?></p>
+                <script>
+                (function () {
+                    const box = document.querySelector('.lenis-tags');
+                    if (!box) return;
+                    const input = box.querySelector('.lenis-tag-input');
+                    const error = box.parentNode.querySelector('.lenis-tag-error');
+                    const pattern = /^[.#]-?[A-Za-z_][A-Za-z0-9_-]*$/;
+
+                    const showError = (msg) => {
+                        error.textContent = msg;
+                        error.hidden = !msg;
+                    };
+                    const currentSelectors = () => Array.from(box.querySelectorAll('input[type="hidden"]'), (el) => el.value);
+                    const addTag = (selector) => {
+                        if (currentSelectors().includes(selector)) return;
+                        const tag = document.createElement('span');
+                        tag.className = 'lenis-tag';
+                        const code = document.createElement('code');
+                        code.textContent = selector;
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'lenis-tag-remove';
+                        removeBtn.setAttribute('aria-label', box.dataset.remove);
+                        removeBtn.textContent = '×';
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = box.dataset.name;
+                        hidden.value = selector;
+                        tag.append(code, removeBtn, hidden);
+                        box.insertBefore(tag, input);
+                    };
+                    const commit = () => {
+                        const invalid = [];
+                        input.value.split(/[\s,]+/).filter(Boolean).forEach((part) => {
+                            const selector = (part[0] === '.' || part[0] === '#') ? part : '.' + part;
+                            if (pattern.test(selector)) addTag(selector);
+                            else invalid.push(part);
+                        });
+                        input.value = invalid.join(' ');
+                        showError(invalid.length ? box.dataset.error : '');
+                    };
+
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault();
+                            commit();
+                        } else if (e.key === 'Backspace' && input.value === '') {
+                            const tags = box.querySelectorAll('.lenis-tag');
+                            if (tags.length) tags[tags.length - 1].remove();
+                        }
+                    });
+                    input.addEventListener('blur', commit);
+                    input.addEventListener('paste', (e) => {
+                        e.preventDefault();
+                        const pending = input.value.split(/[\s,]+/).filter(Boolean);
+                        const pasted = e.clipboardData.getData('text').split(/[\s,]+/).filter(Boolean);
+                        input.value = pending.concat(pasted).join(' ');
+                        commit();
+                    });
+                    box.addEventListener('click', (e) => {
+                        const removeBtn = e.target.closest('.lenis-tag-remove');
+                        if (removeBtn) removeBtn.parentNode.remove();
+                        else input.focus();
+                    });
+                })();
+                </script>
+            </div>
             <details class="lenis-accordion">
                 <summary class="lenis-field lenis-summary"><?php _e('Advanced Settings', 'snn'); ?></summary>
                 <div class="lenis-accordion-content">
@@ -267,7 +379,7 @@ function snn_enable_lenis_callback() {
                 </div>
             </details>
         </div>
-        <style>.lenis-config{margin-top:20px}.lenis-disabled{opacity:0.5;pointer-events:none}.lenis-field{margin-bottom:5px}.lenis-input-small{width:80px}.lenis-select{margin-left:10px}.lenis-accordion{border:1px solid #ddd;padding:;border-radius:4px}.lenis-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px}.lenis-accordion[open] .lenis-summary{margin-bottom:5px}.lenis-accordion-content{margin-top:15px}.lenis-settings label{display:inline-block}.lenis-settings .description{font-size:13px;color:#666}</style>
+        <style>.lenis-config{margin-top:20px}.lenis-disabled{opacity:0.5;pointer-events:none}.lenis-field{margin-bottom:5px}.lenis-input-small{width:80px}.lenis-select{margin-left:10px}.lenis-accordion{border:1px solid #ddd;padding:;border-radius:4px}.lenis-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px}.lenis-accordion[open] .lenis-summary{margin-bottom:5px}.lenis-accordion-content{margin-top:15px}.lenis-settings label{display:inline-block}.lenis-settings .description{font-size:13px;color:#666}.lenis-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:560px;min-height:38px;padding:4px 6px;border:1px solid #8c8f94;border-radius:4px;background:#fff;cursor:text}.lenis-tags:focus-within{border-color:#2271b1;box-shadow:0 0 0 1px #2271b1}.lenis-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 4px 2px 8px;background:#f0f0f1;border:1px solid #c3c4c7;border-radius:3px}.lenis-tag code{background:none;padding:0;font-size:13px}.lenis-tag-remove{border:0;background:none;cursor:pointer;color:#50575e;font-size:16px;line-height:1;padding:0 4px}.lenis-tag-remove:hover{color:#d63638}.lenis-tag-input{flex:1;min-width:160px;border:0!important;box-shadow:none!important;outline:none;background:transparent;padding:4px 2px!important}.lenis-tag-error{color:#d63638;margin:4px 0}</style>
         <script>document.addEventListener('DOMContentLoaded', function() { const enableCheckbox = document.getElementById('enable_lenis'); const configDiv = document.querySelector('.lenis-config'); if (enableCheckbox && configDiv) { enableCheckbox.addEventListener('change', function() { if (this.checked) { configDiv.classList.remove('lenis-disabled'); } else { configDiv.classList.add('lenis-disabled'); } }); } });</script>
     </div>
 <?php }
@@ -410,6 +522,10 @@ function snn_enqueue_lenis_scripts() {
         $overscroll = isset($options['lenis_overscroll']) ? $options['lenis_overscroll'] : 1;
         $easing = isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default';
 
+        // Classes or IDs from the settings that Lenis leaves to native scrolling
+        $preventSelectors = snn_sanitize_lenis_prevent_selectors(isset($options['lenis_prevent_selectors']) ? $options['lenis_prevent_selectors'] : array());
+        $preventJs = $preventSelectors ? '(node) => node.matches(' . wp_json_encode(implode(', ', $preventSelectors)) . ')' : 'null';
+
         // Easing function mapping
         $easingFunctions = array(
             'default' => '(t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))',
@@ -491,7 +607,8 @@ function snn_enqueue_lenis_scripts() {
                 touchMultiplier: " . $touchMultiplier . ",
                 touchInertiaExponent: " . $touchInertiaExponent . ",
                 infinite: " . ($infinite ? 'true' : 'false') . ",
-                overscroll: " . ($overscroll ? 'true' : 'false') . "
+                overscroll: " . ($overscroll ? 'true' : 'false') . ",
+                prevent: " . $preventJs . "
             });
 
             // Optimize scroll updates to reduce reflows
