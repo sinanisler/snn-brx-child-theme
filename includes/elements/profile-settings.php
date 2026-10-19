@@ -5,6 +5,55 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Bricks\Element;
 
+/* ========================================================================
+   Field allowlist shared by the element and its AJAX handler.
+   The form carries a signed list of the fields it shows; the handler only
+   saves those, so a crafted request cannot write any other user meta.
+   ======================================================================== */
+
+if ( ! function_exists( 'snn_profile_standard_fields' ) ) {
+	function snn_profile_standard_fields() {
+		return [ 'avatar', 'first_name', 'last_name', 'email', 'description', 'password', 'website' ];
+	}
+}
+
+if ( ! function_exists( 'snn_profile_custom_field_types' ) ) {
+	function snn_profile_custom_field_types() {
+		return [ 'text', 'textarea', 'url', 'email', 'number', 'checkbox' ];
+	}
+}
+
+if ( ! function_exists( 'snn_profile_meta_key_allowed' ) ) {
+	/**
+	 * Meta keys a Custom Meta Field may never write, even if configured in the builder:
+	 * underscore-prefixed (private) keys, anything starting with the table prefix
+	 * (wp_capabilities, wp_user_level, wp_2_capabilities...), and core keys that
+	 * control sessions, roles or the avatar attachment.
+	 */
+	function snn_profile_meta_key_allowed( $key ) {
+		global $wpdb;
+
+		if ( '' === $key || '_' === $key[0] ) {
+			return false;
+		}
+		if ( 0 === strpos( $key, strtolower( $wpdb->base_prefix ) ) ) {
+			return false;
+		}
+
+		$reserved = [
+			'session_tokens', 'capabilities', 'user_level', 'primary_blog', 'source_domain',
+			'use_ssl', 'default_password_nag', 'snn_profile_avatar',
+		];
+		return ! in_array( $key, $reserved, true );
+	}
+}
+
+if ( ! function_exists( 'snn_profile_fields_signature' ) ) {
+	function snn_profile_fields_signature( $payload, $user_id ) {
+		return hash_hmac( 'sha256', $payload . '|' . (int) $user_id, wp_salt( 'nonce' ) );
+	}
+}
+
 /**
  * Profile Settings Element
  * Allows users to edit their own profile with multi-layer security checks
@@ -225,6 +274,22 @@ class SNN_Element_Profile_Settings extends Element {
 		$user_email = $user_data->user_email;
 		$user_website = $user_data->user_url;
 
+		/* === Fields this form may save, signed so the handler can trust the list === */
+		$allowed_custom = [];
+		foreach ( $custom_fields as $field ) {
+			$key = isset( $field['field_key'] ) ? sanitize_key( $field['field_key'] ) : '';
+			if ( ! snn_profile_meta_key_allowed( $key ) ) {
+				continue;
+			}
+			$type = isset( $field['field_type'] ) ? $field['field_type'] : 'text';
+			$allowed_custom[ $key ] = in_array( $type, snn_profile_custom_field_types(), true ) ? $type : 'text';
+		}
+		$fields_payload = base64_encode( wp_json_encode( [
+			'standard' => array_values( array_intersect( snn_profile_standard_fields(), $enabled_fields ) ),
+			'custom'   => $allowed_custom,
+		] ) );
+		$fields_signature = snn_profile_fields_signature( $fields_payload, $current_user_id );
+
 		/* === Create unique nonce for this user === */
 		$nonce_action = 'snn_profile_update_' . $current_user_id;
 		$nonce_field = wp_nonce_field( $nonce_action, 'snn_profile_nonce', true, false );
@@ -288,6 +353,8 @@ class SNN_Element_Profile_Settings extends Element {
 			<?php echo $nonce_field; ?>
 			<input type="hidden" name="snn_profile_action" value="update_profile">
 			<input type="hidden" name="snn_current_user_id" value="<?php echo esc_attr( $current_user_id ); ?>">
+			<input type="hidden" name="snn_profile_fields" value="<?php echo esc_attr( $fields_payload ); ?>">
+			<input type="hidden" name="snn_profile_fields_sig" value="<?php echo esc_attr( $fields_signature ); ?>">
 
 			<?php
 			/* === Render fields in the order specified by repeater === */
@@ -370,8 +437,10 @@ class SNN_Element_Profile_Settings extends Element {
 				
 				<?php foreach ( $custom_fields as $field ) :
 					if ( empty( $field['field_key'] ) ) continue;
-					
+
 					$field_key = sanitize_key( $field['field_key'] );
+					// Reserved keys (roles, sessions, private meta) are never shown or saved.
+					if ( ! isset( $allowed_custom[ $field_key ] ) ) continue;
 					$field_label = isset( $field['field_label'] ) ? esc_html( $field['field_label'] ) : $field_key;
 					$field_type = isset( $field['field_type'] ) ? $field['field_type'] : 'text';
 					$field_placeholder = isset( $field['field_placeholder'] ) ? esc_attr( $field['field_placeholder'] ) : '';
@@ -545,7 +614,19 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 			] );
 		}
 
-		/* === SECURITY CHECK #5: Rate limiting (prevent spam) === */
+		/* === SECURITY CHECK #5: Only the fields this form shows may be saved === */
+		$fields_payload   = isset( $_POST['snn_profile_fields'] ) ? (string) wp_unslash( $_POST['snn_profile_fields'] ) : '';
+		$fields_signature = isset( $_POST['snn_profile_fields_sig'] ) ? (string) wp_unslash( $_POST['snn_profile_fields_sig'] ) : '';
+		if ( '' === $fields_payload || ! hash_equals( snn_profile_fields_signature( $fields_payload, $current_user_id ), $fields_signature ) ) {
+			wp_send_json_error( [
+				'message' => esc_html__( 'Security check failed. Please reload the page and try again.', 'snn' )
+			] );
+		}
+		$allowed_fields  = json_decode( base64_decode( $fields_payload ), true );
+		$allowed_std     = isset( $allowed_fields['standard'] ) && is_array( $allowed_fields['standard'] ) ? $allowed_fields['standard'] : [];
+		$allowed_custom  = isset( $allowed_fields['custom'] ) && is_array( $allowed_fields['custom'] ) ? $allowed_fields['custom'] : [];
+
+		/* === SECURITY CHECK #6: Rate limiting (prevent spam) === */
 		$rate_limit_key = 'snn_profile_update_' . $current_user_id;
 		$last_update = get_transient( $rate_limit_key );
 		if ( $last_update ) {
@@ -559,19 +640,19 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 		$response_data = [];
 
 		/* === Update First Name === */
-		if ( isset( $_POST['snn_first_name'] ) ) {
+		if ( in_array( 'first_name', $allowed_std, true ) && isset( $_POST['snn_first_name'] ) ) {
 			$first_name = sanitize_text_field( $_POST['snn_first_name'] );
 			update_user_meta( $current_user_id, 'first_name', $first_name );
 		}
 
 		/* === Update Last Name === */
-		if ( isset( $_POST['snn_last_name'] ) ) {
+		if ( in_array( 'last_name', $allowed_std, true ) && isset( $_POST['snn_last_name'] ) ) {
 			$last_name = sanitize_text_field( $_POST['snn_last_name'] );
 			update_user_meta( $current_user_id, 'last_name', $last_name );
 		}
 
 		/* === Update Email === */
-		if ( isset( $_POST['snn_email'] ) ) {
+		if ( in_array( 'email', $allowed_std, true ) && isset( $_POST['snn_email'] ) ) {
 			$new_email = sanitize_email( $_POST['snn_email'] );
 			
 			// Validate email
@@ -596,7 +677,7 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 		}
 
 		/* === Update Website URL === */
-		if ( isset( $_POST['snn_website'] ) ) {
+		if ( in_array( 'website', $allowed_std, true ) && isset( $_POST['snn_website'] ) ) {
 			$website = esc_url_raw( $_POST['snn_website'] );
 			wp_update_user( [
 				'ID'       => $current_user_id,
@@ -605,13 +686,13 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 		}
 
 		/* === Update Description === */
-		if ( isset( $_POST['snn_description'] ) ) {
+		if ( in_array( 'description', $allowed_std, true ) && isset( $_POST['snn_description'] ) ) {
 			$description = sanitize_textarea_field( $_POST['snn_description'] );
 			update_user_meta( $current_user_id, 'description', $description );
 		}
 
 		/* === Update Password === */
-		if ( isset( $_POST['snn_password_new'] ) && ! empty( $_POST['snn_password_new'] ) ) {
+		if ( in_array( 'password', $allowed_std, true ) && isset( $_POST['snn_password_new'] ) && ! empty( $_POST['snn_password_new'] ) ) {
 			$new_password = $_POST['snn_password_new'];
 			$confirm_password = isset( $_POST['snn_password_confirm'] ) ? $_POST['snn_password_confirm'] : '';
 
@@ -634,7 +715,7 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 		}
 
 		/* === Handle Avatar Upload === */
-		if ( isset( $_FILES['snn_avatar'] ) && ! empty( $_FILES['snn_avatar']['name'] ) ) {
+		if ( in_array( 'avatar', $allowed_std, true ) && isset( $_FILES['snn_avatar'] ) && ! empty( $_FILES['snn_avatar']['name'] ) ) {
 			
 			// Validate file upload
 			if ( $_FILES['snn_avatar']['error'] !== UPLOAD_ERR_OK ) {
@@ -680,38 +761,44 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 			$response_data['avatar_url'] = wp_get_attachment_url( $attachment_id );
 		}
 
-		/* === Update Custom Meta Fields === */
-		if ( isset( $_POST['snn_custom_fields'] ) && is_array( $_POST['snn_custom_fields'] ) ) {
-			foreach ( $_POST['snn_custom_fields'] as $key => $value ) {
-				$sanitized_key = sanitize_key( $key );
+		/* === Update Custom Meta Fields (only the signed keys, sanitized by their declared type) === */
+		$posted_custom = isset( $_POST['snn_custom_fields'] ) && is_array( $_POST['snn_custom_fields'] ) ? wp_unslash( $_POST['snn_custom_fields'] ) : [];
+		foreach ( $allowed_custom as $key => $type ) {
+			$key = sanitize_key( $key );
+			if ( ! snn_profile_meta_key_allowed( $key ) ) {
+				continue;
+			}
 
-				// Sanitize based on expected type
-				if ( $value === '1' ) {
-					// Checkbox field (boolean true)
-					$sanitized_value = '1';
-				} elseif ( filter_var( $value, FILTER_VALIDATE_URL ) ) {
+			// Unchecked checkboxes are not submitted at all, so absence means "off".
+			if ( 'checkbox' === $type ) {
+				$checked = isset( $posted_custom[ $key ] ) && '1' === $posted_custom[ $key ];
+				update_user_meta( $current_user_id, $key, $checked ? '1' : '0' );
+				continue;
+			}
+
+			if ( ! isset( $posted_custom[ $key ] ) || ! is_scalar( $posted_custom[ $key ] ) ) {
+				continue;
+			}
+			$value = (string) $posted_custom[ $key ];
+
+			switch ( $type ) {
+				case 'textarea':
+					$sanitized_value = sanitize_textarea_field( $value );
+					break;
+				case 'url':
 					$sanitized_value = esc_url_raw( $value );
-				} elseif ( filter_var( $value, FILTER_VALIDATE_EMAIL ) ) {
+					break;
+				case 'email':
 					$sanitized_value = sanitize_email( $value );
-				} elseif ( is_numeric( $value ) ) {
-					$sanitized_value = floatval( $value );
-				} else {
+					break;
+				case 'number':
+					$sanitized_value = is_numeric( $value ) ? floatval( $value ) : '';
+					break;
+				default:
 					$sanitized_value = sanitize_text_field( $value );
-				}
-
-				update_user_meta( $current_user_id, $sanitized_key, $sanitized_value );
 			}
-		}
 
-		/* === Handle unchecked checkboxes (they don't get submitted in form) === */
-		if ( isset( $_POST['snn_checkbox_fields'] ) && is_array( $_POST['snn_checkbox_fields'] ) ) {
-			foreach ( $_POST['snn_checkbox_fields'] as $checkbox_key ) {
-				$sanitized_key = sanitize_key( $checkbox_key );
-				// If checkbox wasn't in snn_custom_fields, it means it was unchecked
-				if ( ! isset( $_POST['snn_custom_fields'][ $checkbox_key ] ) ) {
-					update_user_meta( $current_user_id, $sanitized_key, '0' );
-				}
-			}
+			update_user_meta( $current_user_id, $key, $sanitized_value );
 		}
 
 		/* === Success Response === */

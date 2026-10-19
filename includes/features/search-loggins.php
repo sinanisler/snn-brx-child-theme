@@ -56,6 +56,8 @@ function snn_register_search_logs_taxonomies() {
         'public'       => false,
         'hierarchical' => false,
         'show_ui'      => false,
+        // Logs are private posts; the default counter only counts published ones.
+        'update_count_callback' => '_update_generic_term_count',
     ));
 }
 add_action('init', 'snn_register_search_logs_taxonomies');
@@ -87,7 +89,7 @@ function snn_log_search_query($query) {
         // Log the search query in a custom post type
         $post_data = array(
             'post_type'   => 'snn_search_logs',
-            'post_status' => 'publish',
+            'post_status' => 'private',
             'post_title'  => $query,
         );
         $post_id = wp_insert_post($post_data);
@@ -133,6 +135,7 @@ function snn_render_search_logs_page() {
         // Delete all snn_search_logs posts
         $logs_to_delete = get_posts(array(
             'post_type'      => 'snn_search_logs',
+            'post_status'    => 'any',
             'posts_per_page' => -1,
             'fields'         => 'ids',
         ));
@@ -206,6 +209,7 @@ function snn_render_search_logs_page() {
 
                     $args = array(
                         'post_type'      => 'snn_search_logs',
+                        'post_status'    => 'any',
                         'posts_per_page' => $logs_per_page,
                         'paged'          => $paged,
                         'orderby'        => 'date',

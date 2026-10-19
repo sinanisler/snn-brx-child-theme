@@ -343,7 +343,7 @@ function snn_log_user_activity( $action, $object = '', $object_id = 0, $log_type
             'post_type'    => 'snn_activity_log',
             'post_title'   => wp_strip_all_tags( $log_title ),
             'post_content' => $log_content,
-            'post_status'  => 'publish',
+            'post_status'  => 'private',
             'meta_input'   => array(
                 'log_type' => $log_type,
             ),
@@ -367,6 +367,7 @@ function snn_trim_activity_log() {
 
     $args = array(
         'post_type'      => 'snn_activity_log',
+        'post_status'    => 'any',
         'posts_per_page' => -1, // Get all posts to determine how many to delete
         'orderby'        => 'date',
         'order'          => 'ASC', // Order by oldest first
@@ -1697,6 +1698,7 @@ function snn_export_activity_log_csv() {
     // Query all logs (no pagination limit for export)
     $args = array(
         'post_type'      => 'snn_activity_log',
+        'post_status'    => 'any',
         'posts_per_page' => -1,
         'orderby'        => 'date',
         'order'          => 'DESC',
@@ -1983,6 +1985,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Query arguments to retrieve recent activity logs.
                 $args = array(
                     'post_type'      => 'snn_activity_log',
+                    'post_status'    => 'any',
                     'posts_per_page' => 50, // Display 50 logs per page for better performance
                     'orderby'        => 'date',
                     'order'          => 'DESC', // Order by newest first.

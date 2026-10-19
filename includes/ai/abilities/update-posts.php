@@ -57,12 +57,22 @@ See includes/ai/docs/block-generation-rules.md for guidelines.', 'snn' ),
             'execute_callback' => function( $input ) {
                 $post_id = absint( $input['post_id'] );
 
-                // Check if post exists
-                if ( ! get_post( $post_id ) ) {
+                // Same response for missing, internal and not-editable posts, so IDs cannot be probed.
+                $post          = get_post( $post_id );
+                $post_type_obj = $post ? snn_ability_post_type( $post->post_type ) : null;
+                if ( ! $post_type_obj || ! current_user_can( 'edit_post', $post_id ) ) {
                     return new WP_Error(
                         'post_not_found',
                         sprintf( 'Post with ID %d not found.', $post_id ),
                         array( 'status' => 404 )
+                    );
+                }
+
+                if ( isset( $input['status'] ) && ! snn_ability_can_use_status( $post_type_obj, $input['status'] ) ) {
+                    return new WP_Error(
+                        'permission_denied',
+                        sprintf( 'You are not allowed to set this post to "%s".', sanitize_key( $input['status'] ) ),
+                        array( 'status' => 403 )
                     );
                 }
 

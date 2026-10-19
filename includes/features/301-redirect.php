@@ -316,7 +316,7 @@ function snn_render_301_redirects_page() {
         'posts_per_page' => $max_logs,
         'orderby'        => 'date',
         'order'          => 'DESC',
-        'post_status'    => 'publish',
+        'post_status'    => 'private',
     ));
     ?>
 
@@ -849,7 +849,7 @@ function snn_log_redirect($redirect_from, $redirect_to) {
     $log_post = array(
         'post_type'   => 'snn_redirect_logs',
         'post_title'  => sprintf( __( 'Redirect from %1$s to %2$s', 'snn' ), $redirect_from, $redirect_to ),
-        'post_status' => 'publish',
+        'post_status' => 'private',
         'post_author' => 0,
     );
 
@@ -875,7 +875,7 @@ function snn_enforce_max_logs() {
     if ($days_to_keep > 0) {
         $date_threshold = date('Y-m-d H:i:s', strtotime("-{$days_to_keep} days"));
         $old_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'publish' AND post_date < %s",
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'private' AND post_date < %s",
             $date_threshold
         ));
         if (!empty($old_ids)) {
@@ -886,12 +886,12 @@ function snn_enforce_max_logs() {
     }
 
     $max_logs = get_option('snn_max_logs_to_keep', 100);
-    $total_logs = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'publish'");
+    $total_logs = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'private'");
 
     if ($total_logs > $max_logs) {
         $logs_to_delete = $total_logs - $max_logs;
         $old_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'publish' ORDER BY post_date ASC LIMIT %d",
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'private' ORDER BY post_date ASC LIMIT %d",
             $logs_to_delete
         ));
         if (!empty($old_ids)) {

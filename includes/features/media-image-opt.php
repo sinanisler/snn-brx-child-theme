@@ -43,6 +43,10 @@ function snn_image_optimization_page() {
         
         <div class="tab-content" style="margin-top: 20px;">
             <?php
+            // Existing media and its history are for editors and administrators only.
+            if (in_array($active_tab, array('existing', 'settings'), true) && !snn_can_manage_existing_images()) {
+                $active_tab = 'upload';
+            }
             switch ($active_tab) {
                 case 'existing':
                     snn_render_optimize_existing_media_tab();
@@ -2875,6 +2879,9 @@ function snn_render_optimization_settings_tab() {
 add_action('add_meta_boxes', 'snn_add_image_optimization_metabox');
 
 function snn_add_image_optimization_metabox() {
+    if (!snn_can_manage_existing_images()) {
+        return;
+    }
     add_meta_box(
         'snn_image_optimization',
         __('Image Optimization', 'snn'),
@@ -3114,6 +3121,25 @@ function snn_image_optimization_metabox_callback($post) {
 // AJAX HANDLERS
 // ============================================
 
+/**
+ * Optimizing, replacing, deleting or restoring EXISTING media changes files other
+ * people uploaded, so it is limited to editors and administrators. Uploading new
+ * files (the Upload tab) stays open to every role that can upload.
+ */
+function snn_can_manage_existing_images() {
+    return current_user_can('edit_others_posts');
+}
+
+/**
+ * Gate for handlers that act on one existing attachment.
+ */
+function snn_can_manage_existing_image($attachment_id) {
+    return snn_can_manage_existing_images()
+        && $attachment_id > 0
+        && get_post_type($attachment_id) === 'attachment'
+        && current_user_can('edit_post', $attachment_id);
+}
+
 // AJAX handler for saving images from Upload tab
 add_action('wp_ajax_snn_save_optimized_image', 'snn_save_optimized_image');
 // Own action for the Optimize & Upload page: the Bricks panel handler shares the one
@@ -3172,8 +3198,8 @@ add_action('wp_ajax_snn_scan_unoptimized_images', 'snn_scan_unoptimized_images')
 
 function snn_scan_unoptimized_images() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
-    
-    if (!current_user_can('upload_files')) {
+
+    if (!snn_can_manage_existing_images()) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
     
@@ -3260,12 +3286,16 @@ add_action('wp_ajax_snn_save_optimized_existing_image', 'snn_save_optimized_exis
 
 function snn_save_optimized_existing_image() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
-    
-    if (!current_user_can('upload_files')) {
+
+    if (!snn_can_manage_existing_images()) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
-    
+
     $attachment_id = intval($_POST['attachment_id']);
+
+    if (!snn_can_manage_existing_image($attachment_id)) {
+        wp_send_json_error(__('Permission denied.', 'snn'));
+    }
     
     if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
         wp_send_json_error(__('No image uploaded or upload error.', 'snn'));
@@ -3335,6 +3365,12 @@ function snn_save_optimized_existing_image() {
         }
     }
     
+    // The bytes replace a live attachment, so they must really be a WebP image.
+    $image_info = is_uploaded_file($uploaded_file) ? @getimagesize($uploaded_file) : false;
+    if (!$image_info || !defined('IMAGETYPE_WEBP') || $image_info[2] !== IMAGETYPE_WEBP) {
+        wp_send_json_error(__('The optimized file is not a valid WebP image.', 'snn'));
+    }
+
     // Move uploaded file
     if (!move_uploaded_file($uploaded_file, $webp_path)) {
         wp_send_json_error(__('Failed to save WebP file.', 'snn'));
@@ -3382,8 +3418,8 @@ add_action('wp_ajax_snn_get_optimization_history', 'snn_get_optimization_history
 
 function snn_get_optimization_history() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
-    
-    if (!current_user_can('upload_files')) {
+
+    if (!snn_can_manage_existing_images()) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
     
@@ -3451,11 +3487,15 @@ add_action('wp_ajax_snn_delete_original_file', 'snn_delete_original_file');
 function snn_delete_original_file() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
 
-    if (!current_user_can('upload_files')) {
+    if (!snn_can_manage_existing_images()) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
 
     $attachment_id = intval($_POST['attachment_id']);
+
+    if (!snn_can_manage_existing_image($attachment_id)) {
+        wp_send_json_error(__('Permission denied.', 'snn'));
+    }
 
     $original_file = get_post_meta($attachment_id, '_snn_original_file', true);
     $original_metadata = get_post_meta($attachment_id, '_snn_original_metadata', true);
@@ -3704,11 +3744,15 @@ add_action('wp_ajax_snn_restore_original_image', 'snn_restore_original_image');
 function snn_restore_original_image() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
 
-    if (!current_user_can('upload_files')) {
+    if (!snn_can_manage_existing_images()) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
 
     $attachment_id = intval($_POST['attachment_id']);
+
+    if (!snn_can_manage_existing_image($attachment_id)) {
+        wp_send_json_error(__('Permission denied.', 'snn'));
+    }
 
     // Check if original was deleted
     $original_deleted = get_post_meta($attachment_id, '_snn_original_deleted', true);

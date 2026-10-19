@@ -112,3 +112,26 @@ function snn_register_all_ability_categories() {
         );
     }
 }
+
+/**
+ * Post type object an ability may act on, or null.
+ *
+ * Internal post types (agent history, snippets, logs) have no admin UI and are
+ * never readable or writable through abilities, whatever the user's role.
+ */
+function snn_ability_post_type( $post_type ) {
+    $post_type_obj = get_post_type_object( $post_type );
+    return ( $post_type_obj && $post_type_obj->show_ui ) ? $post_type_obj : null;
+}
+
+/**
+ * Whether the current user may give a post of this type the requested status.
+ * Publishing, scheduling and making private need the type's publish capability,
+ * the same rule the post editor applies.
+ */
+function snn_ability_can_use_status( $post_type_obj, $status ) {
+    if ( in_array( $status, array( 'publish', 'future', 'private' ), true ) ) {
+        return current_user_can( $post_type_obj->cap->publish_posts );
+    }
+    return in_array( $status, array( 'draft', 'pending' ), true );
+}

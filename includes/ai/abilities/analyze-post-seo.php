@@ -58,8 +58,8 @@ function snn_register_analyze_post_seo_ability() {
                     return new WP_Error( 'invalid_post', __( 'Post not found.', 'snn' ) );
                 }
 
-                // Check permissions
-                if ( ! current_user_can( 'read_post', $post_id ) ) {
+                // Check permissions. Internal post types (logs, snippets, agent history) stay hidden.
+                if ( ! snn_ability_post_type( $post->post_type ) || ! current_user_can( 'read_post', $post_id ) ) {
                     return new WP_Error( 'permission_denied', __( 'You do not have permission to read this post.', 'snn' ) );
                 }
 

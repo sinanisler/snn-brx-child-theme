@@ -137,7 +137,7 @@ function snn_log_mail_event($args) {
     // Insert the log as a custom post.
     $post_data = array(
         'post_type'   => 'snn_mail_logs',
-        'post_status' => 'publish',
+        'post_status' => 'private',
         'post_title'  => __('Mail Log', 'snn') . ' - ' . date('Y-m-d H:i:s')
     );
     $post_id = wp_insert_post($post_data);
@@ -219,6 +219,7 @@ function snn_render_mail_logs_page() {
 
         $args = array(
             'post_type'      => 'snn_mail_logs',
+            'post_status'    => 'any',
             'posts_per_page' => $log_size_limit,
             'orderby'        => 'date',
             'order'          => 'DESC'

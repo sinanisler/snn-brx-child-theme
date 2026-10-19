@@ -64,6 +64,7 @@ function snn_handle_404_logs_actions() {
         $delete_value = sanitize_text_field($_POST['snn_delete_logs_value']);
         $args = array(
             'post_type'      => 'snn_404_logs',
+            'post_status'    => 'any',
             'posts_per_page' => -1,
             'fields'         => 'ids',
             'meta_query'     => array(
@@ -208,7 +209,7 @@ function snn_log_404_error() {
 
         $post_data = array(
             'post_type'   => 'snn_404_logs',
-            'post_status' => 'publish',
+            'post_status' => 'private',
             'post_title'  => __('404 Error', 'snn') . ' - ' . date('Y-m-d H:i:s')
         );
 
@@ -301,6 +302,7 @@ function snn_render_404_logs_page() {
                     <?php
                     $args = array(
                         'post_type'      => 'snn_404_logs',
+                        'post_status'    => 'any',
                         'posts_per_page' => $log_size_limit,
                         'orderby'        => 'date',
                         'order'          => 'DESC'

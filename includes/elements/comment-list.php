@@ -134,10 +134,15 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
         // Show moderation notice and unapproved comment if present
         if ($unapproved_id && $moderation_hash) {
             $unapproved_comment = get_comment($unapproved_id);
+            // Same proof core requires (wp_get_unapproved_comment_author_email): the hash must
+            // match this comment and the preview link is only valid for 10 minutes. Without it,
+            // ?unapproved=ID&moderation-hash=x exposed every pending comment to anyone.
             if (
                 $unapproved_comment &&
                 $unapproved_comment->comment_approved == '0' &&
-                $unapproved_comment->comment_post_ID == get_the_ID()
+                $unapproved_comment->comment_post_ID == get_the_ID() &&
+                hash_equals( wp_hash( $unapproved_comment->comment_date_gmt ), $moderation_hash ) &&
+                time() < strtotime( $unapproved_comment->comment_date_gmt . ' +10 minutes' )
             ) {
                 // Show notification
                 echo '<div class="snn-comment-moderation-notice">' . esc_html($moderation_notice) . '</div>';

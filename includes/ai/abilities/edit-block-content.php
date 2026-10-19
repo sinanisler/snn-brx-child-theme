@@ -284,7 +284,7 @@ CRITICAL WORDPRESS BLOCK RULES:
                 if ( ! $post ) {
                     return new WP_Error( 'invalid_post', __( 'Post not found.', 'snn' ) );
                 }
-                if ( ! current_user_can( 'edit_post', $post_id ) ) {
+                if ( ! snn_ability_post_type( $post->post_type ) || ! current_user_can( 'edit_post', $post_id ) ) {
                     return new WP_Error( 'permission_denied', __( 'You do not have permission to edit this post.', 'snn' ) );
                 }
 

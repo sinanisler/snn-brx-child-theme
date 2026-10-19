@@ -79,8 +79,13 @@ function snn_register_update_post_metadata_ability() {
                 }
 
                 // Check permissions
-                if ( ! current_user_can( 'edit_post', $post_id ) ) {
+                $post_type_obj = snn_ability_post_type( $post->post_type );
+                if ( ! $post_type_obj || ! current_user_can( 'edit_post', $post_id ) ) {
                     return new WP_Error( 'permission_denied', __( 'You do not have permission to edit this post.', 'snn' ) );
+                }
+
+                if ( isset( $input['status'] ) && ! snn_ability_can_use_status( $post_type_obj, $input['status'] ) ) {
+                    return new WP_Error( 'permission_denied', __( 'You do not have permission to give this post that status.', 'snn' ) );
                 }
 
                 $updated_fields = array();

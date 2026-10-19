@@ -206,23 +206,29 @@ class SNN_Chat_Overlay {
      * Save chat history to database
      */
     public function save_chat_history( $messages, $session_id = null ) {
-        if ( ! $session_id ) {
-            $session_id = uniqid( 'chat_', true );
+        $post_id = null;
+
+        // Only ever update the current user's own session. A session ID that belongs
+        // to someone else (or no longer exists) starts a new chat instead of
+        // overwriting theirs; the client adopts the returned ID.
+        if ( $session_id ) {
+            $existing = get_posts( array(
+                'post_type' => 'snn-agent-history',
+                'meta_key' => 'session_id',
+                'meta_value' => $session_id,
+                'author' => get_current_user_id(),
+                'posts_per_page' => 1,
+                'post_status' => 'private',
+            ) );
+
+            if ( ! empty( $existing ) ) {
+                $post_id = $existing[0]->ID;
+            }
         }
 
-        $post_id = null;
-        
-        // Check if session already exists
-        $existing = get_posts( array(
-            'post_type' => 'snn-agent-history',
-            'meta_key' => 'session_id',
-            'meta_value' => $session_id,
-            'posts_per_page' => 1,
-            'post_status' => 'private',
-        ) );
-
-        if ( ! empty( $existing ) ) {
-            $post_id = $existing[0]->ID;
+        if ( ! $post_id ) {
+            // Random, not time-based like uniqid(), so IDs cannot be guessed.
+            $session_id = 'chat_' . wp_generate_uuid4();
         }
 
         $title = date( 'Y-m-d H:i:s' ) . ' - ' . wp_get_current_user()->display_name;
@@ -262,6 +268,7 @@ class SNN_Chat_Overlay {
             'post_type' => 'snn-agent-history',
             'meta_key' => 'session_id',
             'meta_value' => $session_id,
+            'author' => get_current_user_id(),
             'posts_per_page' => 1,
             'post_status' => 'private',
         ) );

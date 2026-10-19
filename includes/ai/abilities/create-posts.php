@@ -86,11 +86,30 @@ See includes/ai/docs/block-generation-rules.md for complete guidelines.', 'snn' 
                 ),
             ),
             'execute_callback' => function( $input ) {
+                $post_type     = sanitize_key( $input['post_type'] ?? 'post' );
+                $status        = sanitize_key( $input['status'] ?? 'draft' );
+                $post_type_obj = snn_ability_post_type( $post_type );
+
+                if ( ! $post_type_obj || ! current_user_can( $post_type_obj->cap->create_posts ) ) {
+                    return new WP_Error(
+                        'permission_denied',
+                        sprintf( 'You are not allowed to create "%s" posts.', $post_type ),
+                        array( 'status' => 403 )
+                    );
+                }
+                if ( ! snn_ability_can_use_status( $post_type_obj, $status ) ) {
+                    return new WP_Error(
+                        'permission_denied',
+                        sprintf( 'You are not allowed to create posts with the status "%s".', $status ),
+                        array( 'status' => 403 )
+                    );
+                }
+
                 $post_data = array(
                     'post_title'   => sanitize_text_field( $input['title'] ),
                     'post_content' => wp_kses_post( $input['content'] ),
-                    'post_status'  => $input['status'] ?? 'draft',
-                    'post_type'    => $input['post_type'] ?? 'post',
+                    'post_status'  => $status,
+                    'post_type'    => $post_type,
                     'post_author'  => get_current_user_id(),
                 );
 

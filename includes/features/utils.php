@@ -289,3 +289,32 @@ add_action('admin_enqueue_scripts', function() {
         ]
     );
 });
+
+
+/**
+ * One-time move of log entries from "publish" to "private".
+ *
+ * Logs used to be stored as published posts, which WordPress treats as readable by
+ * any logged-in user (read_post only needs "read"), so mail logs with password-reset
+ * links could be read by Subscribers. New entries are saved as private; this flips
+ * the existing ones once.
+ */
+add_action('init', function () {
+    if (get_option('snn_logs_private_migrated') === '1') {
+        return;
+    }
+
+    global $wpdb;
+    $wpdb->query(
+        "UPDATE {$wpdb->posts} SET post_status = 'private'
+         WHERE post_status = 'publish'
+         AND post_type IN ('snn_mail_logs', 'snn_404_logs', 'snn_search_logs', 'snn_activity_log', 'snn_redirect_logs')"
+    );
+    // Invalidate cached query results and, where the object cache supports it, cached post objects.
+    wp_cache_set_last_changed('posts');
+    if (function_exists('wp_cache_supports') && wp_cache_supports('flush_group')) {
+        wp_cache_flush_group('posts');
+    }
+
+    update_option('snn_logs_private_migrated', '1', true);
+}, 1);
