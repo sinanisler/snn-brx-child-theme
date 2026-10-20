@@ -1,0 +1,9 @@
+<style>
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: .5; } }
+@keyframes unused { from { opacity: 0; } }
+.btn:hover { background: #000; }
+.btn::after { content: "\2192"; }
+@supports (display: grid) { .g { display: grid; } }
+</style>
+<section data-bricks="section"><div data-bricks="container"><div data-bricks="block" class="pulse g">p</div><a data-bricks="button" class="btn" href="#">B</a></div></section>

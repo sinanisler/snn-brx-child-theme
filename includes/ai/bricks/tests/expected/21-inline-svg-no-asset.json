@@ -1,0 +1,61 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "custom-html-css-script",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_display": "contents",
+        "content": "<svg class=\"logo\" viewBox=\"0 0 24 24\" width=\"48\" height=\"48\"><path d=\"M2 2h20v20H2z\" fill=\"currentColor\"></path></svg>"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "custom-html-css-script",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_display": "contents",
+        "content": "<div data-bricks=\"custom-html-css-script\"><svg viewBox=\"0 0 10 10\"><circle cx=\"5\" cy=\"5\" r=\"4\"></circle></svg></div>"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "logo",
+      "settings": {
+        "_cssCustom": ".logo {\n  width: 48px;\n} "
+      }
+    }
+  ]
+}

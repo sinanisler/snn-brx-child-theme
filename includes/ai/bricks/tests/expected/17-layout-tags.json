@@ -1,0 +1,176 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "flex",
+        "_direction": "row",
+        "_flexWrap": "nowrap",
+        "_alignItems": "stretch",
+        "_justifyContent": "flex-start",
+        "tag": "header"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E4",
+        "E5"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C2"
+        ],
+        "_display": "flex",
+        "_direction": "row",
+        "_flexWrap": "nowrap",
+        "_alignItems": "stretch",
+        "_justifyContent": "flex-start",
+        "_rowGap": "8px",
+        "_columnGap": "8px",
+        "_width": "auto",
+        "tag": "nav",
+        "_attributes": [
+          {
+            "_id": "A1",
+            "name": "aria-label",
+            "value": "Main"
+          }
+        ]
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "text-link",
+      "parent": "E3",
+      "children": [],
+      "settings": {
+        "text": "Home",
+        "link": {
+          "type": "external",
+          "url": "/"
+        }
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-link",
+      "parent": "E3",
+      "children": [],
+      "settings": {
+        "text": "About",
+        "link": {
+          "type": "external",
+          "url": "/about"
+        }
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E7"
+      ],
+      "settings": {
+        "_display": "block",
+        "tag": "footer"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E7",
+      "name": "container",
+      "parent": "E6",
+      "children": [
+        "E8",
+        "E9"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E8",
+      "name": "text-basic",
+      "parent": "E7",
+      "children": [],
+      "settings": {
+        "text": "Street 1",
+        "tag": "address"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E9",
+      "name": "block",
+      "parent": "E7",
+      "children": [
+        "E10"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto",
+        "tag": "custom",
+        "customTag": "main"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E10",
+      "name": "text-basic",
+      "parent": "E9",
+      "children": [],
+      "settings": {
+        "text": "m",
+        "tag": "span"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "top",
+      "settings": {
+        "_cssCustom": ".top {\n  display: flex;\n} "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "nav",
+      "settings": {
+        "_cssCustom": ".nav {\n  display: flex;\n  gap: 8px;\n} "
+      }
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "flex",
+        "_direction": "column",
+        "_flexWrap": "wrap",
+        "_alignItems": "center",
+        "_justifyContent": "flex-start",
+        "_rowGap": "12px",
+        "_columnGap": "4px",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "heading",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Title",
+        "tag": "h2"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Text",
+        "tag": "p"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "stack",
+      "settings": {
+        "_cssCustom": ".stack {\n  display: flex;\n  flex-direction: column;\n  flex-wrap: wrap;\n  align-items: center;\n  row-gap: 12px;\n  column-gap: 4px;\n} "
+      }
+    }
+  ]
+}

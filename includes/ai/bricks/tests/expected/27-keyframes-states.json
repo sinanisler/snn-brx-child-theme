@@ -1,0 +1,98 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E5"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E4"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1",
+          "C3"
+        ],
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "text-basic",
+      "parent": "E3",
+      "children": [],
+      "settings": {
+        "text": "p",
+        "tag": "span"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "button",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C2"
+        ],
+        "text": "B",
+        "link": {
+          "type": "external",
+          "url": "#"
+        }
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "pulse",
+      "settings": {
+        "_cssCustom": ".pulse {\n  animation: pulse 2s infinite;\n}\n\n@keyframes pulse { 0% { opacity: 1; } 50% { opacity: .5; } } "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "btn",
+      "settings": {
+        "_cssCustom": ".btn:hover {\n  background: #000;\n}\n\n.btn::after {\n  content: \"\\2192\";\n} "
+      }
+    },
+    {
+      "id": "C3",
+      "name": "g",
+      "settings": {
+        "_cssCustom": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E4"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C2"
+        ],
+        "_display": "flex",
+        "_direction": "row",
+        "_flexWrap": "nowrap",
+        "_alignItems": "stretch",
+        "_justifyContent": "flex-start",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "container",
+      "parent": "E3",
+      "children": [
+        "E5"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-basic",
+      "parent": "E4",
+      "children": [],
+      "settings": {
+        "text": "nested container",
+        "tag": "p"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "block",
+      "parent": 0,
+      "children": [
+        "E7"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C3"
+        ],
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E7",
+      "name": "text-basic",
+      "parent": "E6",
+      "children": [],
+      "settings": {
+        "text": "top-level div band",
+        "tag": "p"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "hero",
+      "settings": {
+        "_cssCustom": ".hero {\n  padding: 40px;\n} "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "x",
+      "settings": {
+        "_cssCustom": ".x {\n  display: flex;\n} "
+      }
+    },
+    {
+      "id": "C3",
+      "name": "band",
+      "settings": {
+        "_cssCustom": ""
+      }
+    }
+  ]
+}

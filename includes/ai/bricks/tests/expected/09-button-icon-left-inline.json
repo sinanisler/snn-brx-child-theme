@@ -1,0 +1,83 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "button",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "text": "Star us",
+        "link": {
+          "type": "external",
+          "url": "#x"
+        },
+        "icon": {
+          "library": "fontawesomeBrands",
+          "icon": "fab fa-github"
+        },
+        "iconPosition": "left",
+        "iconGap": "0.25em"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "button",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "text": "Send",
+        "tag": "button"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "cta",
+      "settings": {
+        "_cssCustom": ".cta {\n  padding: 10px;\n} "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "ico",
+      "settings": {
+        "_cssCustom": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "flex",
+        "_direction": "row",
+        "_flexWrap": "nowrap",
+        "_alignItems": "stretch",
+        "_justifyContent": "flex-start"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C2"
+        ],
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "x",
+        "tag": "p"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "wrap",
+      "settings": {
+        "_cssCustom": ".wrap {\n  display: flex;\n} "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "inner",
+      "settings": {
+        "_cssCustom": ".inner {\n  padding: 10px;\n} "
+      }
+    }
+  ]
+}

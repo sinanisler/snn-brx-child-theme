@@ -84,6 +84,8 @@ require_once SNN_PATH . 'includes/ai/abilities/generate-block-pattern.php';
 require_once SNN_PATH . 'includes/ai/abilities/edit-block-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-post-metadata.php';
 require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
+require_once SNN_PATH . 'includes/ai/bricks/abilities/register-bricks-abilities.php';
+require_once SNN_PATH . 'includes/ai/mcp/mcp-loader.php';
 }
 
 

@@ -1,0 +1,64 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "text-link",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "flex",
+        "_gap": "6px",
+        "text": "Read more",
+        "link": {
+          "type": "external",
+          "url": "/blog"
+        },
+        "icon": {
+          "library": "fontawesomeSolid",
+          "icon": "fas fa-chevron-right"
+        },
+        "iconSize": "0.875rem",
+        "iconPosition": "right",
+        "gap": "6px"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "more",
+      "settings": {
+        "_cssCustom": ".more {\n  display: flex;\n  gap: 6px;\n}\n\n.more i {\n  font-size: 0.875rem;\n} "
+      }
+    }
+  ]
+}

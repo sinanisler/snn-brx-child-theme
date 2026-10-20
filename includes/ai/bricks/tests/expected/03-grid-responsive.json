@@ -1,0 +1,135 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E4",
+        "E6",
+        "E8"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "grid",
+        "_gridTemplateColumns": "repeat(3, 1fr)",
+        "_gridAutoRows": "minmax(100px, auto)",
+        "_alignItemsGrid": "start",
+        "_gridGap": "24px 16px",
+        "_width": "auto",
+        "_gridTemplateColumns:tablet_portrait": "1fr 1fr",
+        "_gridTemplateColumns:mobile_landscape": "1fr",
+        "_gridGap:mobile_landscape": "12px"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "block",
+      "parent": "E3",
+      "children": [
+        "E5"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-basic",
+      "parent": "E4",
+      "children": [],
+      "settings": {
+        "text": "1",
+        "tag": "span"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "block",
+      "parent": "E3",
+      "children": [
+        "E7"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E7",
+      "name": "text-basic",
+      "parent": "E6",
+      "children": [],
+      "settings": {
+        "text": "2",
+        "tag": "span"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E8",
+      "name": "block",
+      "parent": "E3",
+      "children": [
+        "E9"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E9",
+      "name": "text-basic",
+      "parent": "E8",
+      "children": [],
+      "settings": {
+        "text": "3",
+        "tag": "span"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "grid",
+      "settings": {
+        "_cssCustom": ".grid {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 24px 16px;\n  grid-auto-rows: minmax(100px, auto);\n  align-items: start;\n}\n\n@media (max-width: 991px) {\n.grid {\n  grid-template-columns: 1fr 1fr;\n}\n}\n\n@media (max-width: 767px) {\n.grid {\n  grid-template-columns: 1fr;\n  gap: 12px;\n}\n} "
+      }
+    }
+  ]
+}

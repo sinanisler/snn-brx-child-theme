@@ -1,0 +1,11 @@
+{
+  "name": "snn-bricks-compiler-parity",
+  "private": true,
+  "description": "Runs the builder's JS HTML-to-Bricks compiler on samples/ to produce expected/ for run-parity.php.",
+  "scripts": {
+    "expected": "node export-expected.js"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3"
+  }
+}

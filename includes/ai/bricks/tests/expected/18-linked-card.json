@@ -1,0 +1,87 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E4",
+        "E5"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "flex",
+        "_direction": "column",
+        "_flexWrap": "nowrap",
+        "_alignItems": "stretch",
+        "_justifyContent": "flex-start",
+        "_width": "auto",
+        "tag": "a",
+        "link": {
+          "type": "external",
+          "url": "/post/1",
+          "newTab": true
+        }
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "heading",
+      "parent": "E3",
+      "children": [],
+      "settings": {
+        "text": "Post",
+        "tag": "h3"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-basic",
+      "parent": "E3",
+      "children": [],
+      "settings": {
+        "text": "Excerpt",
+        "tag": "p"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "card",
+      "settings": {
+        "_cssCustom": ".card {\n  display: flex;\n  flex-direction: column;\n  padding: 20px;\n} "
+      }
+    }
+  ]
+}

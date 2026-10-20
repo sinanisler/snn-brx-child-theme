@@ -1,0 +1,11 @@
+<style>
+.list > div { display: flex; gap: 4px; }
+.list div:nth-child(2) { flex-direction: column; }
+.list :not(.skip) { width: 50%; }
+[data-kind="x"] { display: grid; grid-template-columns: 1fr 2fr; }
+.wrap .deep p { max-width: 300px; }
+.a + .b { display: inline-flex; }
+.a ~ .c { display: none; }
+.has-kids:has(> .kid) { display: flex; }
+</style>
+<section data-bricks="section"><div data-bricks="container" class="wrap"><div data-bricks="block" class="list"><div data-bricks="block">1</div><div data-bricks="block">2</div><div data-bricks="block" class="skip">3</div></div><div data-bricks="block" data-kind="x"><div data-bricks="block" class="deep"><p>deep</p></div></div><div data-bricks="block" class="a">a</div><div data-bricks="block" class="b">b</div><div data-bricks="block" class="c">c</div><div data-bricks="block" class="has-kids"><div data-bricks="block" class="kid">k</div></div></div></section>

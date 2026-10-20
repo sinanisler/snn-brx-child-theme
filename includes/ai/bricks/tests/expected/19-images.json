@@ -1,0 +1,94 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "image",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_width": "100%",
+        "image": {
+          "url": "https://example.com/a.jpg",
+          "size": "full",
+          "external": true
+        },
+        "altText": "A photo"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "image",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "image": {
+          "url": "https://example.com/b.png",
+          "size": "full",
+          "external": true
+        }
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "image",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "image": {
+          "url": "https://example.com/lazy.webp",
+          "size": "full",
+          "external": true
+        },
+        "_attributes": [
+          {
+            "_id": "A1",
+            "name": "data-src",
+            "value": "https://example.com/lazy.webp"
+          }
+        ]
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "pic",
+      "settings": {
+        "_cssCustom": ".pic {\n  width: 100%;\n  border-radius: 8px;\n} "
+      }
+    }
+  ]
+}

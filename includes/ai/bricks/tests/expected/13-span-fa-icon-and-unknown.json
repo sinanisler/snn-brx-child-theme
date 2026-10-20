@@ -1,0 +1,86 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "icon",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "icon": {
+          "library": "fontawesomeSolid",
+          "icon": "fas fa-check"
+        },
+        "iconSize": "18px"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "custom-html-css-script",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "content": "<i class=\"material-icons\">home</i>",
+        "_display": "contents"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "custom-html-css-script",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "content": "<i data-lucide=\"star\"></i>",
+        "_display": "contents"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "x",
+      "settings": {
+        "_cssCustom": ".x {\n  font-size: 18px;\n} "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "material-icons",
+      "settings": {
+        "_cssCustom": ""
+      }
+    }
+  ]
+}

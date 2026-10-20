@@ -1,0 +1,117 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Quote",
+        "tag": "custom",
+        "customTag": "blockquote"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Cap",
+        "tag": "figcaption"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "small",
+        "tag": "custom",
+        "customTag": "small"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Label",
+        "tag": "custom",
+        "customTag": "label"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E7",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "code",
+        "tag": "custom",
+        "customTag": "pre"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E8",
+      "name": "text",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Rich <b>text</b>"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E9",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "2026",
+        "tag": "custom",
+        "customTag": "time"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": []
+}

@@ -1,0 +1,103 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E5"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "flex",
+        "_direction": "row",
+        "_flexWrap": "nowrap",
+        "_alignItems": "stretch",
+        "_justifyContent": "flex-start",
+        "_rowGap": "2rem",
+        "_columnGap": "2rem",
+        "_width": "100%",
+        "_display:mobile_landscape": "block",
+        "_direction:mobile_landscape": "revert-layer",
+        "_flexWrap:mobile_landscape": "revert-layer",
+        "_alignItems:mobile_landscape": "revert-layer",
+        "_justifyContent:mobile_landscape": "revert-layer",
+        "_rowGap:mobile_landscape": "revert-layer",
+        "_columnGap:mobile_landscape": "revert-layer"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E4"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "text-basic",
+      "parent": "E3",
+      "children": [],
+      "settings": {
+        "text": "L",
+        "tag": "span"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E6"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "text-basic",
+      "parent": "E5",
+      "children": [],
+      "settings": {
+        "text": "R",
+        "tag": "span"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "cols",
+      "settings": {
+        "_cssCustom": ".cols {\n  display: block;\n}\n\n@media (min-width: 768px) {\n.cols {\n  display: flex;\n  gap: 2rem;\n}\n}\n\n@media (min-width: 1280px) {\n.cols {\n  gap: 4rem;\n}\n} "
+      }
+    }
+  ]
+}

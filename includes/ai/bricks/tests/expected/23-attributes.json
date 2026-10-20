@@ -1,0 +1,99 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block",
+        "_attributes": [
+          {
+            "_id": "A1",
+            "name": "aria-labelledby",
+            "value": "t"
+          }
+        ]
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%",
+        "_attributes": [
+          {
+            "_id": "A2",
+            "name": "data-animate",
+            "value": "fade"
+          },
+          {
+            "_id": "A3",
+            "name": "role",
+            "value": "region"
+          }
+        ]
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "heading",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Hi",
+        "tag": "h1",
+        "_attributes": [
+          {
+            "_id": "A4",
+            "name": "title",
+            "value": "Main"
+          }
+        ]
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E5"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto",
+        "_attributes": [
+          {
+            "_id": "A5",
+            "name": "tabindex",
+            "value": "0"
+          }
+        ]
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-basic",
+      "parent": "E4",
+      "children": [],
+      "settings": {
+        "text": "click",
+        "tag": "span"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": []
+}

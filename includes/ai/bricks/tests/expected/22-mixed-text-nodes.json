@@ -1,0 +1,77 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4",
+        "E5",
+        "E6"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Loose text before",
+        "tag": "span"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "heading",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Heading <em>em</em>",
+        "tag": "h2"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "and after",
+        "tag": "span"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "Plain p with <a href=\"#\">a link</a> and <br>break",
+        "tag": "p"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": []
+}

@@ -1,0 +1,167 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3",
+        "E4",
+        "E11"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "text": "<li>One <strong>bold</strong></li><li>Two <a href=\"#\">link</a></li>",
+        "tag": "custom",
+        "customTag": "ul"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E4",
+      "name": "block",
+      "parent": "E2",
+      "children": [
+        "E5",
+        "E8"
+      ],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C2"
+        ],
+        "_display": "grid",
+        "_gridTemplateColumns": "1fr 1fr",
+        "_width": "auto",
+        "tag": "ul"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E5",
+      "name": "block",
+      "parent": "E4",
+      "children": [
+        "E6",
+        "E7"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto",
+        "tag": "li"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E6",
+      "name": "heading",
+      "parent": "E5",
+      "children": [],
+      "settings": {
+        "text": "Card",
+        "tag": "h3"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E7",
+      "name": "text-basic",
+      "parent": "E5",
+      "children": [],
+      "settings": {
+        "text": "Body",
+        "tag": "p"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E8",
+      "name": "block",
+      "parent": "E4",
+      "children": [
+        "E9",
+        "E10"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "auto",
+        "tag": "li"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E9",
+      "name": "heading",
+      "parent": "E8",
+      "children": [],
+      "settings": {
+        "text": "Card 2",
+        "tag": "h3"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E10",
+      "name": "text-basic",
+      "parent": "E8",
+      "children": [],
+      "settings": {
+        "text": "Body",
+        "tag": "p"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E11",
+      "name": "text-basic",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "text": "<li>first</li>",
+        "tag": "custom",
+        "customTag": "ol"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "list",
+      "settings": {
+        "_cssCustom": ".list li {\n  margin: 4px 0;\n} "
+      }
+    },
+    {
+      "id": "C2",
+      "name": "cards",
+      "settings": {
+        "_cssCustom": ".cards {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n} "
+      }
+    }
+  ]
+}

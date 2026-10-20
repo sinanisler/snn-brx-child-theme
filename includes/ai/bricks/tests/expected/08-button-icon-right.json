@@ -1,0 +1,72 @@
+{
+  "content": [
+    {
+      "id": "E1",
+      "name": "section",
+      "parent": 0,
+      "children": [
+        "E2"
+      ],
+      "settings": {
+        "_display": "block"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E2",
+      "name": "container",
+      "parent": "E1",
+      "children": [
+        "E3"
+      ],
+      "settings": {
+        "_display": "block",
+        "_width": "100%"
+      },
+      "themeStyles": []
+    },
+    {
+      "id": "E3",
+      "name": "button",
+      "parent": "E2",
+      "children": [],
+      "settings": {
+        "_cssGlobalClasses": [
+          "C1"
+        ],
+        "_display": "inline-flex",
+        "_alignItems": "center",
+        "_gap": "10px",
+        "text": "Go now",
+        "link": {
+          "type": "external",
+          "url": "/go",
+          "newTab": true,
+          "rel": "noopener nofollow"
+        },
+        "icon": {
+          "library": "fontawesomeSolid",
+          "icon": "fas fa-arrow-right"
+        },
+        "iconTypography": {
+          "font-size": "12px",
+          "color": {
+            "hex": "#ff0"
+          }
+        },
+        "iconPosition": "right",
+        "iconGap": "10px"
+      },
+      "themeStyles": []
+    }
+  ],
+  "globalClasses": [
+    {
+      "id": "C1",
+      "name": "btn",
+      "settings": {
+        "_cssCustom": ".btn {\n  display: inline-flex;\n  align-items: center;\n  gap: 10px;\n  color: #fff;\n}\n\n.btn i {\n  font-size: 12px;\n  color: #ff0;\n} "
+      }
+    }
+  ]
+}
