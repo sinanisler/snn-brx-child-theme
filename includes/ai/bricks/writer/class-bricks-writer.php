@@ -8,8 +8,12 @@
  * edits, and CSS regeneration — the exact path Bricks' MCP abilities use.
  * Older Bricks falls back to a revision + direct post meta write.
  *
- * Modes for a build: append, prepend, replace, insert-after (a root element),
- * replace-section (rebuild one top-level section in place).
+ * Modes for a build: append, prepend, replace, insert-after / insert-before (a
+ * root element), replace-section (rebuild one top-level section in place).
+ * remove_root_ids drops earlier top-level elements in the same save, so a
+ * rebuilt import pass replaces its old sections in one revision.
+ *
+ * Every build (and dry run) returns `feedback` (SNN_Bricks_Feedback).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class SNN_Bricks_Writer {
 
-    const MODES = array( 'append', 'prepend', 'replace', 'insert-after', 'replace-section' );
+    const MODES = array( 'append', 'prepend', 'replace', 'insert-after', 'insert-before', 'replace-section' );
+
+    private static function debug( $stage, array $data = array(), $level = 'info' ) {
+        if ( function_exists( 'snn_mcp_debug' ) ) {
+            snn_mcp_debug( 'stage', array_merge( array( 'stage' => $stage ), $data ), $level );
+        }
+    }
 
     /** Is Bricks active and usable for this post? */
     public static function check_target( $post_id ) {
@@ -123,7 +133,7 @@ class SNN_Bricks_Writer {
      *
      * @param int   $post_id
      * @param array $args html, css, mode, anchor_id, section_id, expected_digest, force, dry_run,
-     *                    upload_svgs, prompt, source
+     *                    upload_svgs, prompt, source, remove_root_ids, verify
      * @return array|WP_Error
      */
     public static function build_and_write( $post_id, array $args ) {
@@ -145,9 +155,35 @@ class SNN_Bricks_Writer {
             }
         }
 
-        $existing        = SNN_Bricks_Write_Guard::read_elements( $post_id, $area );
-        $digest_before   = SNN_Bricks_Write_Guard::digest( $existing );
+        $existing         = SNN_Bricks_Write_Guard::read_elements( $post_id, $area );
+        $original         = $existing;
+        $digest_before    = SNN_Bricks_Write_Guard::digest( $existing );
         $existing_classes = SNN_Bricks_Global_Classes_Store::read_classes();
+        self::debug( 'build.start', array( 'postId' => (int) $post_id, 'mode' => $mode, 'dryRun' => $dry_run, 'existingElements' => count( $existing ), 'htmlChars' => strlen( (string) ( $args['html'] ?? '' ) ), 'cssChars' => strlen( (string) ( $args['css'] ?? '' ) ) ) );
+
+        // Earlier top-level elements to drop in this same save; the first one's
+        // slot is where an anchor among them points.
+        $removed_ids = array();
+        $slot        = null;
+        $remove      = array_values( array_filter( array_map( 'strval', (array) ( $args['remove_root_ids'] ?? array() ) ) ) );
+        if ( $remove && $mode !== 'replace-section' ) {
+            $doomed = array();
+            foreach ( $remove as $r ) {
+                $doomed += self::subtree_ids( $existing, $r );
+            }
+            $kept = array();
+            foreach ( $existing as $el ) {
+                if ( isset( $doomed[ $el['id'] ?? '' ] ) ) {
+                    if ( $slot === null && in_array( (string) $el['id'], $remove, true ) ) {
+                        $slot = count( $kept );
+                    }
+                    $removed_ids[] = (string) $el['id'];
+                    continue;
+                }
+                $kept[] = $el;
+            }
+            $existing = $kept;
+        }
 
         // The HTML carries its CSS in <style>; a separate css argument is prepended.
         $html = (string) ( $args['html'] ?? '' );
@@ -165,13 +201,21 @@ class SNN_Bricks_Writer {
             return self::replace_section( $post_id, $area, $existing, $existing_classes, $html, $svg, $args, $digest_before );
         }
 
+        $t0    = microtime( true );
         $build = SNN_Bricks_Html_To_Bricks::build( $html, array(
             'existing_classes' => $existing_classes,
-            'taken_ids'        => self::page_ids( $existing ),
+            'taken_ids'        => self::page_ids( $original ),
             'svg_assets'       => $svg['assets'],
         ) );
+        self::debug( 'build.compiled', array(
+            'ms'       => (int) round( ( microtime( true ) - $t0 ) * 1000 ),
+            'sections' => count( $build['sections'] ),
+            'classes'  => count( $build['classesToCreate'] ),
+            'warnings' => $build['warnings'],
+            'svgs'     => array_diff_key( $svg, array( 'assets' => 1 ) ),
+        ), $build['sections'] ? 'info' : 'warn' );
         if ( ! $build['sections'] ) {
-            return new WP_Error( 'snn_nothing_compiled', 'The HTML produced no Bricks elements.', array( 'status' => 422, 'warnings' => $build['warnings'] ) );
+            return new WP_Error( 'snn_nothing_compiled', 'The HTML produced no Bricks elements. Check that it has top-level <section> elements with data-bricks hints (snn-bricks-start-here).', array( 'status' => 422, 'warnings' => $build['warnings'] ) );
         }
 
         $new_nodes = array();
@@ -192,8 +236,14 @@ class SNN_Bricks_Writer {
                 $tree = array_merge( $new_nodes, $existing );
                 break;
             case 'insert-after':
+            case 'insert-before':
                 $anchor = (string) ( $args['anchor_id'] ?? '' );
-                $at     = null;
+                $tree   = $existing;
+                if ( $slot !== null && in_array( $anchor, $remove, true ) ) {
+                    array_splice( $tree, $slot, 0, $new_nodes ); // the removed elements' place
+                    break;
+                }
+                $at = null;
                 foreach ( $existing as $i => $el ) {
                     if ( ( $el['id'] ?? '' ) === $anchor ) {
                         $at = $i;
@@ -202,14 +252,14 @@ class SNN_Bricks_Writer {
                 if ( $at === null || ( $existing[ $at ]['parent'] ?? 0 ) !== 0 && ( $existing[ $at ]['parent'] ?? 0 ) !== '0' ) {
                     return new WP_Error( 'snn_bad_anchor', 'anchor_id must be the id of a top-level element on the page.', array( 'status' => 400 ) );
                 }
-                $tree = $existing;
-                array_splice( $tree, $at + 1, 0, $new_nodes );
+                array_splice( $tree, $mode === 'insert-after' ? $at + 1 : $at, 0, $new_nodes );
                 break;
             default:
                 $tree = array_merge( $existing, $new_nodes );
         }
 
-        $summary = array(
+        $root_ids = array_values( array_filter( array_column( $build['sections'], 'rootId' ) ) );
+        $summary  = array(
             'postId'          => (int) $post_id,
             'mode'            => $mode,
             'dryRun'          => $dry_run,
@@ -221,6 +271,8 @@ class SNN_Bricks_Writer {
             'classesReused'   => $build['classesReused'],
             'renamedClasses'  => $build['renames'],
             'pageCss'         => (bool) $build['pageCssElement'],
+            'pageCssId'       => $build['pageCssElement'] ? $build['pageCssElement']['id'] : null,
+            'removedRootIds'  => array_values( array_intersect( $removed_ids, $remove ) ),
             'svgs'            => array_diff_key( $svg, array( 'assets' => 1 ) ),
             'warnings'        => $build['warnings'],
             'documentDigestBefore' => $digest_before,
@@ -228,6 +280,10 @@ class SNN_Bricks_Writer {
         if ( $dry_run ) {
             $summary['elements']      = $new_nodes;
             $summary['globalClasses'] = $build['classesToCreate'];
+            // The planned classes are not stored yet; the outline shows their names anyway.
+            $summary['feedback'] = SNN_Bricks_Feedback::report( $post_id, $original, $tree, array(
+                'focus' => $root_ids, 'verify' => false, 'saved' => false, 'warnings' => $build['warnings'],
+            ) );
             return $summary;
         }
 
@@ -243,8 +299,10 @@ class SNN_Bricks_Writer {
             if ( $classes['created'] ) {
                 update_option( SNN_Bricks_Global_Classes_Store::classes_option(), $classes_before );
             }
+            self::debug( 'build.save_failed', array( 'error' => $saved ), 'error' );
             return $saved;
         }
+        self::debug( 'build.saved', array( 'revisionId' => $saved['revisionId'], 'elements' => count( $saved['elements'] ), 'classesCreated' => count( $classes['created'] ) ) );
 
         $colors = SNN_Bricks_Global_Classes_Store::add_palette_colors( $build['colorVars'], $build['ids'] );
         $vars   = SNN_Bricks_Global_Classes_Store::add_variables( $build['sizeVars'], $build['ids'] );
@@ -259,7 +317,7 @@ class SNN_Bricks_Writer {
                 );
             }
         }
-        SNN_Bricks_Section_Manifest::record( $post_id, $rows, $saved['elements'], $mode === 'replace' ? self::page_ids( $existing ) : array() );
+        SNN_Bricks_Section_Manifest::record( $post_id, $rows, $saved['elements'], $mode === 'replace' ? self::page_ids( $existing ) : $removed_ids );
 
         $summary['classesCreated']   = $classes['created'];
         $summary['colorsAdded']      = is_wp_error( $colors ) ? 0 : $colors;
@@ -270,6 +328,27 @@ class SNN_Bricks_Writer {
         $summary['permalink']        = get_permalink( $post_id );
         $summary['builderUrl']       = add_query_arg( 'bricks', 'run', get_permalink( $post_id ) );
         unset( $summary['classesToCreate'] );
+        $summary['feedback'] = SNN_Bricks_Feedback::report( $post_id, $original, $saved['elements'], array(
+            'focus'    => $root_ids,
+            'verify'   => $args['verify'] ?? true,
+            'warnings' => $build['warnings'],
+        ) );
+        return $summary;
+    }
+
+    /** Recompute next steps once the caller knows the import progress after this build. */
+    public static function attach_import_progress( array $summary, array $progress ) {
+        if ( isset( $summary['feedback'] ) ) {
+            $summary['feedback']['next'] = array_values( array_filter( $summary['feedback']['next'], function ( $line ) {
+                return strpos( $line, 'Import' ) !== 0;
+            } ) );
+            if ( $progress['nextChunk'] !== null ) {
+                array_unshift( $summary['feedback']['next'], 'Import: ' . $progress['built'] . ' of ' . $progress['total'] . ' passes built. Next: snn-bricks-import-chunk with import_id "' . $progress['importId'] . '" and chunk "' . $progress['nextChunk'] . '".' );
+            } else {
+                array_unshift( $summary['feedback']['next'], 'Import complete (' . $progress['total'] . ' passes). Compare pageSections with the design order, then open the permalink at desktop and 390px width, or call snn-bricks-render-summary.' );
+            }
+        }
+        $summary['import'] = $progress;
         return $summary;
     }
 
@@ -336,6 +415,9 @@ class SNN_Bricks_Writer {
         );
         if ( ! empty( $args['dry_run'] ) ) {
             $summary['elements'] = $build['content'];
+            $summary['feedback'] = SNN_Bricks_Feedback::report( $post_id, $existing, $tree, array(
+                'focus' => array( $build['rootId'] ), 'verify' => false, 'saved' => false, 'warnings' => $build['warnings'],
+            ) );
             return $summary;
         }
 
@@ -365,7 +447,13 @@ class SNN_Bricks_Writer {
         $summary['revisionId']     = $saved['revisionId'];
         $summary['documentDigest'] = $saved['documentDigest'];
         $summary['changed']        = $saved['changed'];
+        $summary['permalink']      = get_permalink( $post_id );
         unset( $summary['classesToCreate'] );
+        $summary['feedback'] = SNN_Bricks_Feedback::report( $post_id, $existing, $saved['elements'], array(
+            'focus'    => array( $build['rootId'] ),
+            'verify'   => $args['verify'] ?? true,
+            'warnings' => $build['warnings'],
+        ) );
         return $summary;
     }
 }

@@ -32,6 +32,8 @@ require_once $snn_bricks_dir . '/writer/class-global-classes-store.php';
 require_once $snn_bricks_dir . '/writer/class-section-manifest.php';
 require_once $snn_bricks_dir . '/writer/class-bricks-writer.php';
 require_once $snn_bricks_dir . '/writer/class-edit-ops.php';
+require_once $snn_bricks_dir . '/writer/class-feedback.php';
+require_once $snn_bricks_dir . '/writer/class-import-session.php';
 
 require_once __DIR__ . '/bricks-start-here.php';
 require_once __DIR__ . '/bricks-get-page-tree.php';
@@ -39,7 +41,9 @@ require_once __DIR__ . '/bricks-find-elements.php';
 require_once __DIR__ . '/bricks-get-global-classes.php';
 require_once __DIR__ . '/bricks-render-summary.php';
 require_once __DIR__ . '/bricks-upload-asset.php';
+require_once __DIR__ . '/bricks-upload-zip-part.php';
 require_once __DIR__ . '/bricks-import-zip.php';
+require_once __DIR__ . '/bricks-import-chunk.php';
 require_once __DIR__ . '/bricks-html-to-bricks.php';
 require_once __DIR__ . '/bricks-edit-elements.php';
 

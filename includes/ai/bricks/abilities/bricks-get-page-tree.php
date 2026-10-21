@@ -87,41 +87,7 @@ function snn_bricks_get_page_tree( $input ) {
         $manifest[ $row['rootId'] ?? '' ] = $row;
     }
 
-    $max     = max( 10, min( 2000, (int) ( $input['max_elements'] ?? 300 ) ) );
-    $lines   = array();
-    $emitted = 0;
-    $truncated = false;
-    $walk = function ( $id, $depth ) use ( &$walk, &$lines, &$emitted, &$truncated, $max, $by_id, $ops ) {
-        if ( ! isset( $by_id[ $id ] ) ) {
-            return;
-        }
-        if ( $emitted >= $max ) {
-            $truncated = true;
-            return;
-        }
-        $emitted++;
-        $el      = $by_id[ $id ];
-        $classes = implode( ' ', array_map( function ( $c ) {
-            return '.' . $c;
-        }, $ops->class_names_of( $el ) ) );
-        $line = str_repeat( '  ', $depth ) . '[' . $el['id'] . '] ' . ( $el['name'] ?? 'block' );
-        if ( $classes !== '' ) {
-            $line .= '  ' . $classes;
-        }
-        $text = SNN_Bricks_Edit_Ops::text_of( $el );
-        if ( $text !== '' && ( $el['name'] ?? '' ) !== 'custom-html-css-script' ) {
-            $line .= '  "' . $text . '"';
-        }
-        $icon = $el['settings']['icon'] ?? null;
-        if ( is_array( $icon ) ) {
-            $line .= '  icon=' . ( $icon['icon'] ?? ( $icon['library'] ?? 'svg' ) );
-        }
-        $lines[] = $line;
-        foreach ( $ops->children_of( $id ) as $cid ) {
-            $walk( $cid, $depth + 1 );
-        }
-    };
-
+    $max   = max( 10, min( 2000, (int) ( $input['max_elements'] ?? 300 ) ) );
     $roots = array();
     if ( ! empty( $input['root_id'] ) ) {
         if ( ! isset( $by_id[ $input['root_id'] ] ) ) {
@@ -136,9 +102,7 @@ function snn_bricks_get_page_tree( $input ) {
             }
         }
     }
-    foreach ( $roots as $r ) {
-        $walk( $r, 0 );
-    }
+    list( $lines, $truncated ) = SNN_Bricks_Feedback::outline( $state['elements'], $ops, $roots, $max );
     if ( $truncated ) {
         $lines[] = '(outline truncated at ' . $max . ' elements — use root_id or element_id for detail)';
     }

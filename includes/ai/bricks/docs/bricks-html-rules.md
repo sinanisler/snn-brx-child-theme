@@ -11,12 +11,26 @@ You write HTML + CSS. The server compiles it into native Bricks elements with th
 1. `snn-bricks-start-here` (this) — once per session.
 2. `snn-bricks-get-page-tree` with `post_id` — read the page, note `documentDigest` and `lockedBy`.
 3. Optional: `snn-bricks-get-global-classes` — reuse existing class names and palette.
-4. Images: send public URLs directly in `src`, or upload first with `snn-bricks-upload-asset` and use the returned URL. A design-export `.zip` goes to `snn-bricks-import-zip`.
+4. Images: send public URLs directly in `src`, or upload first with `snn-bricks-upload-asset` and use the returned URL. A design-export `.zip` goes to `snn-bricks-import-zip` (see "Design exports" below).
 5. `snn-bricks-html-to-bricks` with `html`, `css`, `mode`, `expected_digest` (from step 2) and an `idempotencyKey`. Use `dry_run: true` to inspect the compiled elements first.
-6. Small changes later: `snn-bricks-find-elements` → `snn-bricks-edit-elements`. Rebuild one section: `snn-bricks-html-to-bricks` with `mode: "replace-section"` and `section_id`.
-7. Verify: open `permalink` in a browser (desktop and 390px) when you can; otherwise `snn-bricks-render-summary`.
+6. Read `feedback` in the reply (see "The feedback loop"), fix what it reports, and use the returned `documentDigest` for the next write.
+7. Small changes later: `snn-bricks-find-elements` → `snn-bricks-edit-elements`. Rebuild one section: `snn-bricks-html-to-bricks` with `mode: "replace-section"` and `section_id`.
+8. Verify: open `permalink` in a browser (desktop and 390px) when you can; `feedback.render` and `snn-bricks-render-summary` are the server-side check.
 
-Modes: `append` (default), `prepend`, `replace` (whole page), `insert-after` (+ `anchor_id`, a top-level id), `replace-section` (+ `section_id`).
+Modes: `append` (default), `prepend`, `replace` (whole page), `insert-after` / `insert-before` (+ `anchor_id`, a top-level id), `replace-section` (+ `section_id`).
+
+## The feedback loop
+
+Every write — and every `dry_run` — of `snn-bricks-html-to-bricks` and `snn-bricks-edit-elements` returns `feedback`:
+
+- `changes` — elements added, removed and changed, with the changed setting keys. Check that it matches what you meant to change and nothing else.
+- `outline` — the affected sections as `[id] type .classes "text"`. Use these ids for follow-up edits.
+- `pageSections` — the whole page's top-level order; affected sections are flagged. Check the new sections landed where they belong.
+- `checks` — heading outline problems, empty text, images without a source, buttons without a link, and canvas-export leftovers (`position:absolute`, 4-digit pixel widths) in the classes used.
+- `render` — Bricks' own server render: landmarks, responsive CSS present, CSS syntax errors (builds by default; edits with `verify: true`).
+- `next` — what to do next.
+
+Work in small steps: build or change one thing, read `feedback`, correct, continue. Do not report a page as finished while `checks.issues` lists problems you can fix.
 
 If a write returns `snn_post_locked`, the page is open in the Bricks builder; saving there later would overwrite your write. Ask the user to close the builder tab, then retry. Only pass `force: true` when the user says so. If it returns `snn_document_digest_mismatch`, read the page again before retrying. Never retry with a reused `idempotencyKey` for a different request.
 
@@ -61,13 +75,26 @@ If a write returns `snn_post_locked`, the page is open in the Bricks builder; sa
 2. Loop block: `data-loop="post_type_slug" data-loop-posts-per-page="6"` (optional `data-loop-orderby`, `data-loop-order`)
 3. One template card inside — Bricks repeats it. Dynamic tags: `{post_title}`, `{post_excerpt}`, `{post_date}`, `{post_link}`, `{featured_image}`, `{cf_FIELDNAME}`.
 
-## Cleaning design exports (zip from Figma, Penpot, Webflow …)
+## Design exports (zip from Figma, Penpot, Webflow …)
 
-`snn-bricks-import-zip` returns the export's HTML and CSS with images already in the media library. Exports are canvas markup; before building, rewrite it:
+This is the same pipeline the Bricks AI agent runs in the builder, with the server holding the state.
 
-- Absolute positioning and fixed pixel canvas widths (`width: 1440px`, `position: absolute`, `left/top`) become normal flow: flex/grid, max-width containers, percentage or auto widths.
-- Drop meaningless wrapper divs and generated class names (`box-1`, `frame-1206`); rename classes semantically.
-- Remove fixed heights that only fitted the canvas, and empty spacer divs.
-- Add responsive `@media` queries — exports have none.
-- Keep every text and every image URL exactly as given. Never drop a section. Check the section order: it is not re-sorted by visual position.
-- Large exports: convert and send a few sections per call with `mode: "append"`.
+**1. Get the zip to the server.** Never type file bytes out yourself.
+
+- Hosted chat (claude.ai, ChatGPT …): ask the user to upload the zip under **SNN Settings > MCP > Design zip for MCP** (or the media library) and give you the attachment ID → `attachment_id`.
+- The zip is online → `zip_url`.
+- You can read the file with a tool (Claude Code, a script) → `snn-bricks-upload-zip-part` in 2 MB parts, then `upload_id`. `zip_base64` works up to 25 MB but large single requests are often refused by hosting limits.
+
+**2. Start the import.** `snn-bricks-import-zip` with the source and `post_id`. Images go to the media library, SVGs and stylesheets are inlined, absolutely placed sections are put in render order (`orderNote` says what was checked), and the page is cut into small passes. You get `importId`, a `plan` (one row per pass) and `firstChunk`.
+
+**3. Convert pass by pass.** For each pass: rewrite `markup` + `css` following `rules` (they come with the first pass), then call `snn-bricks-html-to-bricks` with `post_id`, `import_id`, `chunk`, `html`, `css`. The server places each pass in design order, whatever order you send them in. The reply's `feedback.next` names the next pass; fetch it with `snn-bricks-import-chunk`.
+
+- Reply getting too long? `snn-bricks-import-chunk` with `split: true` halves the pass (`"3"` → `"3.0"`, `"3.1"`).
+- A pass came out wrong? Send it again with `rebuild: true`: it replaces the earlier build in place.
+- Progress at any time: `snn-bricks-import-chunk` with only `import_id`.
+
+**Conversion rules** (also in `rules`): reproduce the design faithfully — same text, colours, fonts, order and images; never drop a section or invent content. Absolute positioning and fixed canvas sizes (`width: 1440px`, `position: absolute`, `left/top`) become normal flow (flex/grid, max-width containers). Drop generated wrappers and class names (`box-1`, `frame-1206`) and use the given class prefix. Remove canvas-only heights and spacer divs. Add responsive `@media` queries. Keep every image URL exactly as given.
+
+**4. Finish.** When `feedback.next` says the import is complete, compare `pageSections` with the design, check `report.skipped` (fonts and videos are not imported: tell the user), and verify the page at desktop and 390px.
+
+`compile: true` builds the export directly without conversion — only for exports that are already clean semantic HTML.

@@ -8,8 +8,16 @@
  * SVG assets, and rewrite every reference. The result is the HTML + CSS an
  * MCP client (or the compiler directly) works from.
  *
- * Not ported: sorting sections by rendered position. That needs a layout
- * engine; the result reports it so the client can order sections itself.
+ * Section order: the builder lays the export out in an iframe and sorts the
+ * top-level sections by their rendered top. PHP has no layout engine, so
+ * sort_visual_order() reads the same signal from the CSS instead: when every
+ * section is absolutely placed with a pixel `top`, they are sorted by it.
+ * Flow layouts keep source order, exactly as the browser would render them.
+ * report.visualOrder says which case applied.
+ *
+ * Chunking (split_chunks / bisect / prune_css) is the builder's splitChunks,
+ * bisect and pruneCss, so an MCP client converts the same passes the builder
+ * agent does (see SNN_Bricks_Import_Session).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SNN_Bricks_Zip_Import {
 
     const LIMITS = array(
-        'zipBytes'       => 26214400,  // 25 MB (decoded) — base64 in a tool call
+        'zipBytes'       => 52428800,  // 50 MB, the builder's cap
+        'base64Bytes'    => 26214400,  // 25 MB decoded when the zip rides inside one tool call
         'entries'        => 800,
         'unpackedBytes'  => 262144000, // 250 MB zip-bomb guard
         'images'         => 80,
@@ -29,6 +38,9 @@ class SNN_Bricks_Zip_Import {
     );
 
     const RASTER = array( 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif' );
+
+    /** Markup per conversion pass, the builder's CHUNK_CHARS. */
+    const CHUNK_CHARS = 4000;
 
     private $zip;
     private $entries = array(); // path => ['index' => int, 'size' => int]
@@ -98,19 +110,36 @@ class SNN_Bricks_Zip_Import {
             return new WP_Error( 'snn_zip_unavailable', 'The PHP zip extension is not installed on this server.' );
         }
         if ( strlen( $bytes ) > self::LIMITS['zipBytes'] ) {
-            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 25 MB. Upload images separately with snn-bricks-upload-asset and send HTML/CSS instead.' );
+            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 50 MB.' );
         }
         require_once ABSPATH . 'wp-admin/includes/file.php';
         $tmp = wp_tempnam( 'snn-design.zip' );
         file_put_contents( $tmp, $bytes );
+        try {
+            return self::extract_file( $tmp, $options );
+        } finally {
+            @unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+        }
+    }
+
+    /** Same as extract(), for a zip already on disk (media library, assembled upload). */
+    public static function extract_file( $file, array $options = array() ) {
+        if ( ! class_exists( 'ZipArchive' ) ) {
+            return new WP_Error( 'snn_zip_unavailable', 'The PHP zip extension is not installed on this server.' );
+        }
+        if ( ! is_readable( $file ) ) {
+            return new WP_Error( 'snn_zip_unreadable', 'The .zip file is missing on the server.' );
+        }
+        if ( filesize( $file ) > self::LIMITS['zipBytes'] ) {
+            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 50 MB.' );
+        }
         $self = new self();
         try {
-            return $self->run( $tmp, $options );
+            return $self->run( $file, $options );
         } finally {
             if ( $self->zip ) {
                 $self->zip->close();
             }
-            @unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
         }
     }
 
@@ -220,6 +249,9 @@ class SNN_Bricks_Zip_Import {
         foreach ( SNN_Bricks_Dom::find_tags( $parsed['body'], array( 'style' ) ) as $st ) {
             SNN_Bricks_Dom::remove( $st );
         }
+        // Canvas exports often list sections bottom-up and place them with
+        // absolute offsets — convert them in the order they render instead.
+        $report['visualOrder'] = self::sort_visual_order( $parsed['body'], $css );
         $body_html = trim( SNN_Bricks_Dom::inner_html( $parsed['body'] ) );
         if ( $body_html === '' ) {
             return new WP_Error( 'snn_zip_empty_body', 'The HTML file has an empty <body>.' );
@@ -387,5 +419,236 @@ class SNN_Bricks_Zip_Import {
         }, $html );
 
         return $html;
+    }
+
+    // ── section order ────────────────────────────────────────────────
+
+    /**
+     * Reorder the top-level sections by where they render (sortSectionsByVisualOrder).
+     * Only absolutely placed sections can be ordered without a layout engine,
+     * so the sort runs when every section has a pixel top; flow layouts already
+     * render in source order.
+     *
+     * @return string flow | single | checked | reordered | uncertain
+     */
+    public static function sort_visual_order( $body, $css ) {
+        $root = self::chunk_root( $body );
+        $kids = self::section_nodes( $root );
+        if ( count( $kids ) < 2 ) {
+            return 'single';
+        }
+
+        $rules = array();
+        foreach ( SNN_Bricks_Css::top_level_blocks( SNN_Bricks_Css::strip_comments( (string) $css ) ) as $block ) {
+            if ( $block['body'] === null || $block['prelude'] === '' || $block['prelude'][0] === '@' ) {
+                continue; // desktop canvas only: @media rules do not decide the order
+            }
+            $decl = array_intersect_key( SNN_Bricks_Css::parse_declarations( $block['body'] ), array( 'position' => 1, 'top' => 1, 'inset' => 1, 'transform' => 1 ) );
+            if ( $decl ) {
+                $rules[] = array( 'selectors' => SNN_Bricks_Css::split_selector_list( $block['prelude'] ), 'decl' => $decl );
+            }
+        }
+
+        $tops     = array();
+        $absolute = 0;
+        foreach ( $kids as $i => $el ) {
+            $decl = array();
+            foreach ( $rules as $rule ) {
+                foreach ( $rule['selectors'] as $sel ) {
+                    if ( strpos( $sel, ':' ) === false && SNN_Bricks_Dom::matches( $el, $sel ) ) {
+                        $decl = array_merge( $decl, $rule['decl'] );
+                        break;
+                    }
+                }
+            }
+            $decl = array_merge( $decl, array_intersect_key(
+                SNN_Bricks_Css::parse_declarations( (string) SNN_Bricks_Dom::attr( $el, 'style' ) ),
+                array( 'position' => 1, 'top' => 1, 'inset' => 1, 'transform' => 1 )
+            ) );
+            if ( ! in_array( strtolower( trim( $decl['position'] ?? '' ) ), array( 'absolute', 'fixed' ), true ) ) {
+                continue;
+            }
+            $absolute++;
+            $top = isset( $decl['top'] ) ? self::px( $decl['top'] ) : ( isset( $decl['inset'] ) ? self::px( preg_split( '/\s+/', trim( $decl['inset'] ) )[0] ) : null );
+            if ( $top === null ) {
+                return 'uncertain';
+            }
+            if ( isset( $decl['transform'] ) && preg_match( '/translate(?:Y\(\s*|\(\s*[^,)]+,\s*)(-?[\d.]+)px/i', $decl['transform'], $t ) ) {
+                $top += (float) $t[1];
+            }
+            $tops[ $i ] = $top;
+        }
+        if ( ! $absolute ) {
+            return 'flow';
+        }
+        if ( $absolute !== count( $kids ) ) {
+            return 'uncertain'; // flow siblings need their rendered heights
+        }
+
+        $order = array_keys( $kids );
+        usort( $order, function ( $a, $b ) use ( $tops ) {
+            return $tops[ $a ] <=> $tops[ $b ] ?: $a <=> $b;
+        } );
+        if ( $order === array_keys( $kids ) ) {
+            return 'checked';
+        }
+        foreach ( $order as $i ) {
+            $root->appendChild( $kids[ $i ] );
+        }
+        return 'reordered';
+    }
+
+    private static function px( $value ) {
+        $v = strtolower( trim( (string) $value ) );
+        if ( $v === '0' ) {
+            return 0.0;
+        }
+        return preg_match( '/^(-?[\d.]+)px$/', $v, $m ) ? (float) $m[1] : null;
+    }
+
+    // ── conversion passes (the builder's splitChunks / bisect / pruneCss) ──
+
+    /**
+     * Walk past single-child wrappers — these exports usually bury the whole
+     * page inside one positioned div — then that node's children are the sections.
+     */
+    public static function chunk_root( $body ) {
+        $node = $body;
+        while ( true ) {
+            $kids = SNN_Bricks_Dom::children( $node );
+            if ( count( $kids ) !== 1 || ! SNN_Bricks_Dom::children( $kids[0] ) ) {
+                return $node;
+            }
+            $node = $kids[0];
+        }
+    }
+
+    private static function section_nodes( $root ) {
+        return array_values( array_filter( SNN_Bricks_Dom::children( $root ), function ( $el ) {
+            return ! in_array( SNN_Bricks_Dom::tag( $el ), array( 'style', 'link', 'script' ), true );
+        } ) );
+    }
+
+    /** First h1–h4 text, else the first class, else the tag. */
+    public static function section_label( $el ) {
+        foreach ( SNN_Bricks_Dom::descendants( $el ) as $d ) {
+            if ( in_array( SNN_Bricks_Dom::tag( $d ), array( 'h1', 'h2', 'h3', 'h4' ), true ) ) {
+                $text = trim( preg_replace( '/\s+/u', ' ', SNN_Bricks_Dom::text( $d ) ) );
+                if ( $text !== '' ) {
+                    return mb_substr( $text, 0, 40 );
+                }
+                break;
+            }
+        }
+        $cls = preg_split( '/\s+/', trim( (string) SNN_Bricks_Dom::attr( $el, 'class' ) ) )[0];
+        return $cls !== '' ? $cls : SNN_Bricks_Dom::tag( $el );
+    }
+
+    /**
+     * Break the export into conversion passes. Output size, not input size, is
+     * what breaks a conversion, so each pass stays small and keeps its sections
+     * apart so a failing pass can be split again.
+     *
+     * @return array[] [ ['label' => string, 'parts' => string[]] ]
+     */
+    public static function split_chunks( $body_html, $max_chars = self::CHUNK_CHARS ) {
+        $parsed = SNN_Bricks_Dom::parse( $body_html );
+        $root   = self::chunk_root( $parsed['body'] );
+        $kids   = self::section_nodes( $root );
+        if ( count( $kids ) < 2 ) {
+            return array( array( 'label' => 'Design', 'parts' => array( trim( SNN_Bricks_Dom::inner_html( $root ) ) ) ) );
+        }
+
+        $chunks = array();
+        $buf    = array();
+        $len    = 0;
+        $first  = null;
+        foreach ( $kids as $el ) {
+            $h = SNN_Bricks_Dom::outer_html( $el );
+            if ( $len && $len + mb_strlen( $h ) > $max_chars ) {
+                $chunks[] = array( 'label' => self::section_label( $first ), 'parts' => $buf );
+                $buf      = array();
+                $len      = 0;
+            }
+            if ( ! $buf ) {
+                $first = $el;
+            }
+            $buf[] = $h;
+            $len  += mb_strlen( $h );
+        }
+        if ( $buf ) {
+            $chunks[] = array( 'label' => self::section_label( $first ), 'parts' => $buf );
+        }
+        return $chunks;
+    }
+
+    /** Halve a pass so each retry has a smaller job; null when it is one section. */
+    public static function bisect( array $chunk ) {
+        if ( count( $chunk['parts'] ) < 2 ) {
+            return null;
+        }
+        $mid = (int) ceil( count( $chunk['parts'] ) / 2 );
+        $mk  = function ( array $parts ) use ( $chunk ) {
+            $kids = SNN_Bricks_Dom::children( SNN_Bricks_Dom::parse( $parts[0] )['body'] );
+            return array( 'label' => $kids ? self::section_label( $kids[0] ) : $chunk['label'], 'parts' => $parts );
+        };
+        return array( $mk( array_slice( $chunk['parts'], 0, $mid ) ), $mk( array_slice( $chunk['parts'], $mid ) ) );
+    }
+
+    /** Keep only the CSS a pass can use: rules whose classes all appear in its markup. */
+    public static function prune_css( $css, $markup ) {
+        $classes = array();
+        if ( preg_match_all( '/class\s*=\s*["\']([^"\']+)["\']/i', (string) $markup, $m ) ) {
+            foreach ( $m[1] as $list ) {
+                foreach ( preg_split( '/\s+/', $list, -1, PREG_SPLIT_NO_EMPTY ) as $c ) {
+                    $classes[ strtolower( $c ) ] = true;
+                }
+            }
+        }
+        $keep = function ( $selector_list ) use ( $classes ) {
+            foreach ( explode( ',', $selector_list ) as $sel ) {
+                if ( ! preg_match_all( '/\.[-_a-zA-Z0-9]+/', $sel, $found ) ) {
+                    return true; // tag / :root / attribute selectors — always keep
+                }
+                $all = true;
+                foreach ( $found[0] as $c ) {
+                    if ( ! isset( $classes[ strtolower( substr( $c, 1 ) ) ] ) ) {
+                        $all = false;
+                        break;
+                    }
+                }
+                if ( $all ) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        $raw = function ( $b ) {
+            return $b['body'] === null ? $b['prelude'] : $b['prelude'] . '{' . $b['body'] . '}';
+        };
+
+        $out = array();
+        foreach ( SNN_Bricks_Css::top_level_blocks( (string) $css ) as $block ) {
+            if ( $block['prelude'] !== '' && $block['prelude'][0] === '@' ) {
+                if ( $block['body'] !== null && preg_match( '/^@(media|supports|layer|container)/i', $block['prelude'] ) ) {
+                    $inner = array();
+                    foreach ( SNN_Bricks_Css::top_level_blocks( $block['body'] ) as $b ) {
+                        if ( ( $b['prelude'] !== '' && $b['prelude'][0] === '@' ) || $keep( $b['prelude'] ) ) {
+                            $inner[] = $raw( $b );
+                        }
+                    }
+                    if ( $inner ) {
+                        $out[] = $block['prelude'] . "{\n" . implode( "\n", $inner ) . "\n}";
+                    }
+                    continue;
+                }
+                $out[] = $raw( $block ); // @font-face, @keyframes, @import — cheap, always keep
+                continue;
+            }
+            if ( $keep( $block['prelude'] ) ) {
+                $out[] = $raw( $block );
+            }
+        }
+        return implode( "\n", $out );
     }
 }

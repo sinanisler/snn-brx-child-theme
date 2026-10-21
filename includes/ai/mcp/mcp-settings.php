@@ -3,7 +3,8 @@
  * MCP settings: master switch + Read / Write toggle per ability group.
  *
  * Stored as one option, snn_mcp_settings:
- *   [ 'enabled' => bool, 'groups' => [ group => [ 'read' => bool, 'write' => bool ] ] ]
+ *   [ 'enabled' => bool, 'groups' => [ group => [ 'read' => bool, 'write' => bool ] ],
+ *     'debug' => bool, 'debug_payloads' => bool ]
  *
  * Reads default on, writes default off: an MCP client acts as a real user, and
  * a write means it changes the site without anyone in the admin watching.
@@ -21,8 +22,10 @@ function snn_mcp_get_settings() {
     $saved    = get_option( 'snn_mcp_settings', array() );
     $saved    = is_array( $saved ) ? $saved : array();
     $settings = array(
-        'enabled' => array_key_exists( 'enabled', $saved ) ? (bool) $saved['enabled'] : true,
-        'groups'  => array(),
+        'enabled'        => array_key_exists( 'enabled', $saved ) ? (bool) $saved['enabled'] : true,
+        'groups'         => array(),
+        'debug'          => ! empty( $saved['debug'] ),
+        'debug_payloads' => ! empty( $saved['debug_payloads'] ),
     );
     foreach ( array_keys( snn_mcp_ability_groups() ) as $group ) {
         $row = isset( $saved['groups'][ $group ] ) && is_array( $saved['groups'][ $group ] ) ? $saved['groups'][ $group ] : array();
@@ -51,8 +54,10 @@ function snn_mcp_group_allows( $group, $kind ) {
 function snn_mcp_sanitize_settings( $input ) {
     $input = is_array( $input ) ? $input : array();
     $out   = array(
-        'enabled' => ! empty( $input['enabled'] ),
-        'groups'  => array(),
+        'enabled'        => ! empty( $input['enabled'] ),
+        'groups'         => array(),
+        'debug'          => ! empty( $input['debug'] ),
+        'debug_payloads' => ! empty( $input['debug_payloads'] ),
     );
     foreach ( array_keys( snn_mcp_ability_groups() ) as $group ) {
         $out['groups'][ $group ] = array(
@@ -134,13 +139,93 @@ function snn_mcp_render_settings() {
             </table>
             <p class="description"><?php esc_html_e( 'Write needs Read. Writes are off by default. Every MCP call is recorded in the Activity Log (type "MCP ability") when the Activity Log is on.', 'snn' ); ?></p>
 
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Debug log', 'snn' ); ?></th>
+                    <td>
+                        <label><input type="checkbox" name="snn_mcp_settings[debug]" value="1" <?php checked( $settings['debug'] ); ?> />
+                            <?php esc_html_e( 'Log every MCP request, tool call, step, timing, error and PHP fatal error', 'snn' ); ?></label><br>
+                        <label><input type="checkbox" name="snn_mcp_settings[debug_payloads]" value="1" <?php checked( $settings['debug_payloads'] ); ?> />
+                            <?php esc_html_e( 'Log full payloads (HTML/CSS the client sent and received, up to 200 KB per value)', 'snn' ); ?></label>
+                        <p class="description"><?php esc_html_e( 'Passwords, tokens and base64 file data are never logged. Turn this off when you are done: payloads can contain page content.', 'snn' ); ?></p>
+                    </td>
+                </tr>
+            </table>
+
             <?php submit_button(); ?>
         </form>
+
+        <?php snn_mcp_render_zip_upload(); ?>
 
         <h2><?php esc_html_e( 'Connect a client', 'snn' ); ?></h2>
         <p><?php esc_html_e( 'Claude Code (HTTP transport):', 'snn' ); ?></p>
         <pre style="background:#fff;padding:12px;border:1px solid #ccd0d4;max-width:820px;white-space:pre-wrap">claude mcp add --transport http snn-site <?php echo esc_html( $endpoint ); ?> --header "Authorization: Basic BASE64(username:application-password)"</pre>
         <p><?php esc_html_e( 'Start with the tool snn-bricks-start-here: it returns the HTML rules and the recommended order of calls for building Bricks pages.', 'snn' ); ?></p>
+
+        <?php
+        if ( $settings['debug'] ) {
+            snn_mcp_debug_render_panel();
+        }
+        ?>
     </div>
     <?php
+}
+
+/**
+ * Design-zip upload for MCP clients that cannot send files (claude.ai and
+ * other hosted chats): the zip goes to the media library from the browser,
+ * and the client gets only its attachment ID.
+ */
+function snn_mcp_render_zip_upload() {
+    $uploaded = isset( $_GET['snn_zip'] ) ? absint( $_GET['snn_zip'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+    $error    = isset( $_GET['snn_zip_error'] ) ? sanitize_text_field( wp_unslash( $_GET['snn_zip_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+    ?>
+    <h2><?php esc_html_e( 'Design zip for MCP', 'snn' ); ?></h2>
+    <p><?php esc_html_e( 'Hosted AI chats cannot send a file to your site. Upload the design-export .zip here (max 50 MB), then give the AI the attachment ID. The tool snn-bricks-import-zip reads it on the server.', 'snn' ); ?></p>
+    <?php if ( $uploaded && get_post_type( $uploaded ) === 'attachment' ) : ?>
+        <div class="notice notice-success inline"><p>
+            <?php echo esc_html( sprintf( __( 'Uploaded %1$s as attachment %2$d. Tell the AI:', 'snn' ), basename( (string) get_attached_file( $uploaded ) ), $uploaded ) ); ?>
+            <code><?php echo esc_html( sprintf( 'Import the design zip attachment_id %d into page <ID or title> with snn-bricks-import-zip.', $uploaded ) ); ?></code>
+        </p></div>
+    <?php elseif ( $error ) : ?>
+        <div class="notice notice-error inline"><p><?php echo esc_html( $error ); ?></p></div>
+    <?php endif; ?>
+    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="snn_mcp_upload_zip" />
+        <?php wp_nonce_field( 'snn_mcp_upload_zip' ); ?>
+        <input type="file" name="snn_design_zip" accept=".zip,application/zip" required />
+        <?php submit_button( __( 'Upload zip', 'snn' ), 'secondary', 'submit', false ); ?>
+    </form>
+    <?php
+}
+
+add_action( 'admin_post_snn_mcp_upload_zip', 'snn_mcp_handle_zip_upload' );
+function snn_mcp_handle_zip_upload() {
+    if ( ! current_user_can( 'upload_files' ) || ! current_user_can( 'manage_options' ) ) {
+        wp_die( esc_html__( 'Not allowed.', 'snn' ) );
+    }
+    check_admin_referer( 'snn_mcp_upload_zip' );
+    $back = admin_url( 'admin.php?page=snn-mcp-settings' );
+    $file = $_FILES['snn_design_zip'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+    if ( ! $file || ! empty( $file['error'] ) || ! preg_match( '/\.zip$/i', (string) $file['name'] ) ) {
+        wp_safe_redirect( add_query_arg( 'snn_zip_error', rawurlencode( __( 'Choose a .zip file. If it is large, the server upload limit may be lower than the file: ', 'snn' ) . ini_get( 'upload_max_filesize' ) ), $back ) );
+        exit;
+    }
+    if ( (int) $file['size'] > 52428800 ) { // SNN_Bricks_Zip_Import::LIMITS['zipBytes']
+        wp_safe_redirect( add_query_arg( 'snn_zip_error', rawurlencode( __( 'The zip is larger than 50 MB.', 'snn' ) ), $back ) );
+        exit;
+    }
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+    $id = media_handle_upload( 'snn_design_zip', 0, array(), array(
+        'test_form' => false,
+        'mimes'     => array( 'zip' => 'application/zip' ),
+    ) );
+    if ( is_wp_error( $id ) ) {
+        wp_safe_redirect( add_query_arg( 'snn_zip_error', rawurlencode( $id->get_error_message() ), $back ) );
+        exit;
+    }
+    wp_safe_redirect( add_query_arg( 'snn_zip', (int) $id, $back ) );
+    exit;
 }

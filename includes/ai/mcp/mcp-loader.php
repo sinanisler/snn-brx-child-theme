@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/mcp-settings.php';
 require_once __DIR__ . '/mcp-audit.php';
+require_once __DIR__ . '/mcp-debug.php';
 
 /**
  * Ability groups shown in the settings screen. A group lists ability names;
