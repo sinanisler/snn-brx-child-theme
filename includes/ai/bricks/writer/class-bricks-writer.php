@@ -190,6 +190,8 @@ class SNN_Bricks_Writer {
         if ( ! empty( $args['css'] ) ) {
             $html = '<style>' . $args['css'] . '</style>' . $html;
         }
+        // Export image paths the user already uploaded (SNN_Bricks_Asset_Drop) become real URLs.
+        $html = SNN_Bricks_Asset_Drop::rewrite_html( $post_id, $html );
 
         // SVGs → media library first (Bricks renders SVG natively only from an attachment).
         $svg = array( 'assets' => array(), 'uploaded' => 0, 'reused' => 0, 'skipped' => array(), 'notAllowed' => 0 );

@@ -79,11 +79,19 @@ If a write returns `snn_post_locked`, the page is open in the Bricks builder; sa
 
 This is the same pipeline the Bricks AI agent runs in the builder, with the server holding the state.
 
-**1. Get the zip to the server.** Never type file bytes out yourself.
+**Never stop at an empty page or wait for an upload before building.** If the user gave you a zip you can read but cannot send (hosted chats such as claude.ai: a tool call carries only text you type, never a file), build the page now:
 
-- Hosted chat (claude.ai, ChatGPT …): ask the user to upload the zip under **SNN Settings > MCP > Design zip for MCP** (or the media library) and give you the attachment ID → `attachment_id`.
+1. Read the export's HTML and CSS yourself (in your sandbox).
+2. Convert it section by section following the conversion rules below and build each part with `snn-bricks-html-to-bricks` (`mode: "append"`, in design order). Keep every image path exactly as in the export (`images/hero.png`, `url(assets/bg.jpg)`).
+3. The build replies' `feedback.assets` lists those paths and gives an `uploadUrl`. When the page is built, give the user the page link and that upload link: they drop the zip once, and every image is uploaded and placed by file name. Builds after that get the real URLs automatically.
+
+Never type file bytes (base64) out yourself.
+
+**1. Or send the zip to the server** when you can (the server then also uploads images, orders sections and cuts the passes for you):
+
+- The user already uploaded it (SNN Settings > MCP > Design zip, or the media library) → `attachment_id`.
 - The zip is online → `zip_url`.
-- You can read the file with a tool (Claude Code, a script) → `snn-bricks-upload-zip-part` in 2 MB parts, then `upload_id`. `zip_base64` works up to 25 MB but large single requests are often refused by hosting limits.
+- You can read the file with a tool and send it (Claude Code, a script) → `snn-bricks-upload-zip-part` in 2 MB parts, then `upload_id`; or `zip_base64` up to 25 MB.
 
 **2. Start the import.** `snn-bricks-import-zip` with the source and `post_id`. Images go to the media library, SVGs and stylesheets are inlined, absolutely placed sections are put in render order (`orderNote` says what was checked), and the page is cut into small passes. You get `importId`, a `plan` (one row per pass) and `firstChunk`.
 

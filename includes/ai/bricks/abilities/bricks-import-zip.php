@@ -41,7 +41,7 @@ function snn_register_bricks_import_zip_ability() {
 
     wp_register_ability( 'snn/bricks-import-zip', array(
         'label'       => __( 'Bricks: Import Design Zip', 'snn' ),
-        'description' => __( 'Start a design-export .zip import (Figma/Penpot/Webflow "export to HTML"), the same pipeline as the Bricks AI agent in the builder: images are uploaded to the media library, SVGs and stylesheets inlined, sections put in render order, and the page cut into small conversion passes. Give the zip as attachment_id (hosted chats: ask the user to upload it under SNN Settings > MCP), zip_url, upload_id (snn-bricks-upload-zip-part) or zip_base64. Returns importId, the pass plan and the first pass with the conversion rules. Then, for each pass: convert it, send it to snn-bricks-html-to-bricks with import_id and chunk, and fetch the next pass with snn-bricks-import-chunk. Each build answers with feedback and the next step.', 'snn' ),
+        'description' => __( 'Start a design-export .zip import (Figma/Penpot/Webflow "export to HTML"), the same pipeline as the Bricks AI agent in the builder: images are uploaded to the media library, SVGs and stylesheets inlined, sections put in render order, and the page cut into small conversion passes. Give the zip as attachment_id, zip_url, upload_id (snn-bricks-upload-zip-part) or zip_base64. If you can read the zip but cannot send it (hosted chats), do NOT call this and do not wait: convert the HTML/CSS yourself, build it with snn-bricks-html-to-bricks keeping the export\'s image paths, and give the user feedback.assets.uploadUrl to drop the zip for the images (see snn-bricks-start-here). Returns importId, the pass plan and the first pass with the conversion rules. Then, for each pass: convert it, send it to snn-bricks-html-to-bricks with import_id and chunk, and fetch the next pass with snn-bricks-import-chunk. Each build answers with feedback and the next step.', 'snn' ),
         'category'    => 'snn-bricks',
         'input_schema' => array(
             'type'       => 'object',
@@ -85,7 +85,7 @@ function snn_bricks_import_zip( array $input ) {
         'zip_base64'    => ! empty( $input['zip_base64'] ),
     ) ) );
     if ( count( $given ) !== 1 ) {
-        return new WP_Error( 'snn_bad_source', 'Give exactly one of attachment_id, zip_url, upload_id or zip_base64. In a hosted chat, ask the user to upload the zip under SNN Settings > MCP > Design zip and send you the attachment ID.', array( 'status' => 400 ) );
+        return new WP_Error( 'snn_bad_source', 'Give exactly one of attachment_id, zip_url, upload_id or zip_base64. If you cannot send the file, build the page from its HTML/CSS with snn-bricks-html-to-bricks instead (keep image paths); the reply gives the user an upload link for the images.', array( 'status' => 400 ) );
     }
     $options = array( 'html_path' => $input['html_path'] ?? '' );
     $debug   = function ( $data, $level = 'info' ) {

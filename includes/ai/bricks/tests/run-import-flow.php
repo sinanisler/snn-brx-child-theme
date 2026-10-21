@@ -180,6 +180,37 @@ t_ok( ! is_wp_error( $e ) && strpos( $e['feedback']['outline'], 'Hero edited' ) 
 $dry = t_run( 'snn/bricks-html-to-bricks', array( 'post_id' => $post_id, 'dry_run' => true, 'html' => '<section data-bricks="section"><div data-bricks="container"><h2 data-bricks="heading"></h2></div></section>' ) );
 t_ok( ! is_wp_error( $dry ) && strpos( implode( ' ', $dry['feedback']['next'] ), 'Dry run' ) === 0 && $dry['feedback']['checks']['issues'], 'dry run feedback: ' . wp_json_encode( $dry['feedback']['checks']['issues'] ?? null ) );
 
+echo "8. build first, images later (hosted chat that cannot send the zip)\n";
+$p2 = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'draft', 'post_title' => 'MCP build-first test' ) );
+$b  = t_run( 'snn/bricks-html-to-bricks', array(
+    'post_id' => $p2,
+    'html'    => '<section data-bricks="section" class="bf-hero"><div data-bricks="container"><h1 data-bricks="heading">Hi</h1><img data-bricks="image" src="images/a.png" alt=""></div></section>',
+    'css'     => '.bf-hero{background-image:url(images/a.png);padding:40px}',
+) );
+t_ok( ! is_wp_error( $b ), 'built with export image paths ' . t_err( $b ) );
+t_ok( ! is_wp_error( $b ) && ( $b['feedback']['assets']['missing'] ?? array() ) === array( 'images/a.png' ), 'feedback.assets lists the missing path: ' . wp_json_encode( $b['feedback']['assets'] ?? null ) );
+$url = $b['feedback']['assets']['uploadUrl'] ?? '';
+parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $q );
+t_ok( $url && SNN_Bricks_Asset_Drop::valid_token( $p2, $q['token'] ?? '' ) && ! SNN_Bricks_Asset_Drop::valid_token( $p2, 'wrong' ), 'upload link token valid, wrong token refused' );
+t_ok( strpos( $b['feedback']['next'][0], $url ) !== false, 'next step hands the link to the user' );
+$tmpz = wp_tempnam( 'drop.zip' );
+file_put_contents( $tmpz, $bytes );
+$placed = SNN_Bricks_Asset_Drop::place( $p2, SNN_Bricks_Asset_Drop::files_from_zip( $tmpz ) );
+@unlink( $tmpz );
+t_ok( ! is_wp_error( $placed ) && $placed['placed'] === 1 && ! $placed['stillMissing'], 'zip dropped: images placed ' . wp_json_encode( $placed ) );
+$els = SNN_Bricks_Write_Guard::read_elements( $p2, SNN_Bricks_Write_Guard::area( $p2 ) );
+$img = array_values( array_filter( $els, function ( $e ) { return $e['name'] === 'image'; } ) )[0] ?? null;
+t_ok( $img && strpos( $img['settings']['image']['url'], 'wp-content/uploads' ) !== false && ! empty( $img['settings']['image']['id'] ), 'image element now has library url + id' );
+$cls = array_values( array_filter( SNN_Bricks_Global_Classes_Store::read_classes(), function ( $c ) { return ( $c['name'] ?? '' ) === 'bf-hero'; } ) )[0] ?? null;
+t_ok( $cls && strpos( $cls['settings']['_cssCustom'], 'wp-content/uploads' ) !== false, 'class background url rewritten' );
+$b2 = t_run( 'snn/bricks-html-to-bricks', array( 'post_id' => $p2, 'html' => '<section data-bricks="section"><div data-bricks="container"><img data-bricks="image" src="images/a.png" alt=""></div></section>' ) );
+t_ok( ! is_wp_error( $b2 ) && empty( $b2['feedback']['assets'] ), 'later build with the same path gets the real url ' . t_err( $b2 ) );
+if ( $cls ) {
+    $all = array_values( array_filter( SNN_Bricks_Global_Classes_Store::read_classes(), function ( $c ) { return ( $c['name'] ?? '' ) !== 'bf-hero'; } ) );
+    update_option( SNN_Bricks_Global_Classes_Store::classes_option(), $all );
+}
+wp_delete_post( $p2, true );
+
 wp_delete_post( $post_id, true );
 // Images the imports uploaded, and the test zip.
 foreach ( $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND ID > %d", $t_max_id ) ) as $id ) {

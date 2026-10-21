@@ -34,6 +34,7 @@ require_once $snn_bricks_dir . '/writer/class-bricks-writer.php';
 require_once $snn_bricks_dir . '/writer/class-edit-ops.php';
 require_once $snn_bricks_dir . '/writer/class-feedback.php';
 require_once $snn_bricks_dir . '/writer/class-import-session.php';
+require_once $snn_bricks_dir . '/writer/class-asset-drop.php';
 
 require_once __DIR__ . '/bricks-start-here.php';
 require_once __DIR__ . '/bricks-get-page-tree.php';

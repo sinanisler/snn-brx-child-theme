@@ -12,7 +12,7 @@ add_action( 'wp_abilities_api_init', 'snn_register_bricks_start_here_ability' );
 function snn_register_bricks_start_here_ability() {
     wp_register_ability( 'snn/bricks-start-here', array(
         'label'       => __( 'Bricks: Start Here', 'snn' ),
-        'description' => __( 'Call this FIRST before building or editing Bricks pages. Returns the HTML authoring rules (data-bricks hints, section > container > content structure, class-based CSS, responsive breakpoints of this site, how to clean design exports) and the recommended order of tool calls.', 'snn' ),
+        'description' => __( 'Call this FIRST before building or editing Bricks pages. Returns the HTML authoring rules (data-bricks hints, section > container > content structure, class-based CSS, responsive breakpoints of this site, how to clean design exports, how to build from a zip you cannot send) and the recommended order of tool calls. Always build the page: never stop at an empty draft waiting for the user.', 'snn' ),
         'category'    => 'snn-bricks',
         'input_schema' => array(
             'type'       => 'object',

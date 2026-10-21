@@ -66,6 +66,15 @@ class SNN_Bricks_Feedback {
         if ( ! empty( $opts['verify'] ) ) {
             $out['render'] = self::render( $post_id, $saved ? null : $after );
         }
+        // Export image paths with no file on the site yet: the user uploads them in one step.
+        $missing = SNN_Bricks_Asset_Drop::missing( $after, $classes );
+        if ( $missing ) {
+            $out['assets'] = array(
+                'missing'   => array_slice( $missing, 0, self::MAX_LIST ),
+                'count'     => count( $missing ),
+                'uploadUrl' => $saved ? SNN_Bricks_Asset_Drop::link( $post_id ) : null,
+            );
+        }
         $out['next'] = self::next_steps( $out, $opts, $focus );
         if ( function_exists( 'snn_mcp_debug' ) ) {
             snn_mcp_debug( 'stage', array(
@@ -346,6 +355,9 @@ class SNN_Bricks_Feedback {
 
     private static function next_steps( array $out, array $opts, array $focus ) {
         $next = array();
+        if ( ! empty( $out['assets']['uploadUrl'] ) ) {
+            $next[] = $out['assets']['count'] . ' image path(s) from the export have no file on the site yet. Keep building; when the page is done, give the user this link to drop the design .zip (or the images) — every image is placed automatically: ' . $out['assets']['uploadUrl'];
+        }
         if ( empty( $opts['saved'] ) && array_key_exists( 'saved', $opts ) ) {
             $next[] = 'Dry run: nothing was saved. Send the same call without dry_run to write it.';
         }
