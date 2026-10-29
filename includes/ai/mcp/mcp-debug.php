@@ -3,7 +3,7 @@
  * MCP debug log.
  *
  * Off by default (SNN Settings > MCP > Debug). When on, every request to an
- * MCP Adapter route writes JSON lines to a private log file:
+ * MCP server route writes JSON lines to a private log file:
  *
  *  - request   JSON-RPC method, tool name, body size, client, PHP limits
  *  - ability.* start / end / denied / invalid input, with timings, memory and
@@ -199,7 +199,7 @@ function snn_mcp_debug_on_response( $response, $handler, $request ) {
 
 add_action( 'wp_before_execute_ability', 'snn_mcp_debug_before_ability', 1, 2 );
 function snn_mcp_debug_before_ability( $name, $input ) {
-    if ( ! snn_mcp_debug_enabled() || strpos( (string) $name, 'mcp-adapter/' ) === 0 ) {
+    if ( ! snn_mcp_debug_enabled() ) {
         return;
     }
     $GLOBALS['snn_mcp_debug_ability_started'][ $name ] = microtime( true );
@@ -208,7 +208,7 @@ function snn_mcp_debug_before_ability( $name, $input ) {
 
 add_filter( 'wp_ability_execute_result', 'snn_mcp_debug_after_ability', 5, 3 );
 function snn_mcp_debug_after_ability( $result, $name, $input ) {
-    if ( ! snn_mcp_debug_enabled() || strpos( (string) $name, 'mcp-adapter/' ) === 0 ) {
+    if ( ! snn_mcp_debug_enabled() ) {
         return $result;
     }
     $started = $GLOBALS['snn_mcp_debug_ability_started'][ $name ] ?? microtime( true );

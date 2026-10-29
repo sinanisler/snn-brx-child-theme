@@ -100,23 +100,28 @@ function snn_mcp_render_settings() {
     <div class="wrap">
         <h1><?php esc_html_e( 'MCP (Model Context Protocol)', 'snn' ); ?></h1>
 
-        <?php if ( ! snn_mcp_adapter_active() ) : ?>
-            <div class="notice notice-warning"><p>
-                <?php esc_html_e( 'The MCP Adapter plugin is not active. Install and activate "MCP Adapter" (WordPress/mcp-adapter) to expose these abilities to MCP clients.', 'snn' ); ?>
+        <?php if ( snn_mcp_adapter_active() && $settings['enabled'] ) : ?>
+            <div class="notice notice-info inline"><p>
+                <?php esc_html_e( 'The MCP Adapter plugin is also active. This built-in server takes over its default endpoint, so these abilities do not need the plugin. Deactivate it unless another plugin uses it.', 'snn' ); ?>
             </p></div>
         <?php endif; ?>
 
         <p><?php esc_html_e( 'MCP clients (Claude, Cursor, ChatGPT and others) connect to the endpoint below as a real WordPress user, using an Application Password (Users > Profile > Application Passwords). Every ability still runs its own permission checks for that user.', 'snn' ); ?></p>
-        <p><strong><?php esc_html_e( 'Endpoint:', 'snn' ); ?></strong> <code><?php echo esc_html( $endpoint ); ?></code></p>
+        <?php if ( $settings['enabled'] ) : ?>
+            <p><strong><?php esc_html_e( 'Endpoint:', 'snn' ); ?></strong> <code><?php echo esc_html( $endpoint ); ?></code></p>
+            <p class="description"><?php echo esc_html( sprintf( __( 'Connectors set up with the older URL %s keep working.', 'snn' ), snn_mcp_legacy_endpoint_url() ) ); ?></p>
+        <?php else : ?>
+            <p><?php esc_html_e( 'The built-in MCP server is off, so no endpoint is served. Turn it on below to connect clients.', 'snn' ); ?></p>
+        <?php endif; ?>
 
         <form method="post" action="options.php">
             <?php settings_fields( 'snn_mcp_settings_group' ); ?>
             <table class="form-table" role="presentation">
                 <tr>
-                    <th scope="row"><?php esc_html_e( 'Expose theme abilities', 'snn' ); ?></th>
+                    <th scope="row"><?php esc_html_e( 'Built-in MCP server', 'snn' ); ?></th>
                     <td><label>
                         <input type="checkbox" name="snn_mcp_settings[enabled]" value="1" <?php checked( $settings['enabled'] ); ?> />
-                        <?php esc_html_e( 'Make the enabled groups below available through MCP', 'snn' ); ?>
+                        <?php esc_html_e( 'Run the MCP server. The groups below choose which abilities it exposes. Off means no endpoint at all.', 'snn' ); ?>
                     </label></td>
                 </tr>
             </table>

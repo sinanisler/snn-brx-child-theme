@@ -3,16 +3,17 @@
  * Audit trail for abilities executed through MCP.
  *
  * Abilities run the same way for the theme's chat agents (REST) and for MCP
- * clients, so the source is told apart by the request route: the MCP Adapter
- * serves its servers under /wp-json/mcp/. Each MCP execution writes one
- * Activity Log entry with the user, ability, post ID and outcome.
+ * clients, so the source is told apart by the request route: the built-in MCP
+ * server answers under /wp-json/snn-mcp/v1/ and its legacy URL under /wp-json/mcp/.
+ * Each MCP execution writes one Activity Log entry with the user, ability, post
+ * ID and outcome.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/** True while handling a request to an MCP Adapter server route. */
+/** True while handling a request to an MCP server route. */
 function snn_mcp_is_mcp_request() {
     if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
         return false;
@@ -24,12 +25,12 @@ function snn_mcp_is_mcp_request() {
     if ( $route === '' && isset( $_SERVER['REQUEST_URI'] ) ) {
         $route = (string) wp_unslash( $_SERVER['REQUEST_URI'] );
     }
-    return (bool) preg_match( '#(^|/)(wp-json/)?mcp/#', $route );
+    return (bool) preg_match( '#(^|/)(wp-json/)?(snn-mcp/v1/mcp|mcp/)#', $route );
 }
 
 add_filter( 'wp_ability_execute_result', 'snn_mcp_audit_execution', 10, 4 );
 function snn_mcp_audit_execution( $result, $name, $input, $ability ) {
-    if ( strpos( (string) $name, 'mcp-adapter/' ) === 0 || ! snn_mcp_is_mcp_request() ) {
+    if ( ! snn_mcp_is_mcp_request() ) {
         return $result;
     }
     if ( ! function_exists( 'snn_log_user_activity' ) ) {

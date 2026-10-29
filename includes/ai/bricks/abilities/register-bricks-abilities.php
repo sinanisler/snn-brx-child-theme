@@ -3,8 +3,8 @@
  * Bricks abilities (snn/bricks-*) — loader, category and shared helpers.
  *
  * These are ordinary WordPress abilities: the theme's agents can call them over
- * REST, and the MCP Adapter exposes them as MCP tools when the "Bricks" group
- * is enabled under SNN Settings > MCP (includes/ai/mcp/).
+ * REST, and the built-in MCP server (includes/ai/mcp/server/) exposes them as
+ * MCP tools when the "Bricks" group is enabled under SNN Settings > MCP.
  *
  * Loaded from functions.php after the Bricks theme is available.
  */

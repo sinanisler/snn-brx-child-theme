@@ -1,21 +1,24 @@
 <?php
 /**
- * MCP exposure for snn/* abilities
+ * MCP for snn/* abilities: which abilities are exposed, and the built-in server.
  *
- * The theme does not ship its own MCP server. The official MCP Adapter plugin
- * (WordPress/mcp-adapter) turns registered abilities into MCP tools on
- * /wp-json/mcp/mcp-adapter-default-server, the same endpoint Bricks' own
- * bricks/* abilities use. This file only decides which snn/* abilities that
- * server may see:
+ * The theme runs its own MCP server (server/): it needs no plugin, because the
+ * Abilities API is part of WordPress core. This file decides which abilities
+ * that server may see:
  *
  *  - meta.mcp.public comes from the per-group Read / Write toggles in
  *    mcp-settings.php (writes are off by default).
  *  - The legacy top-level readonly / destructive / idempotent flags the theme's
- *    abilities carry are copied into meta.annotations, which is where core and
- *    MCP clients read them (clients use them to decide when to ask for approval).
+ *    abilities carry are copied into meta.annotations, which is where MCP
+ *    clients read them (clients use them to decide when to ask for approval).
  *
  * Exposure through REST (show_in_rest) is untouched, so the theme's own chat
  * agents keep calling every ability the way they do today.
+ *
+ * Isolation: every name here is prefixed SNN_MCP_ or snn_mcp_, the server has
+ * its own REST namespace (snn-mcp/v1), and the whole thing can be switched off
+ * in SNN Settings > MCP. While it is on, the MCP Adapter's default server is
+ * switched off, so the two never serve the same endpoint.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,6 +28,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/mcp-settings.php';
 require_once __DIR__ . '/mcp-audit.php';
 require_once __DIR__ . '/mcp-debug.php';
+require_once __DIR__ . '/server/class-mcp-protocol.php';
+require_once __DIR__ . '/server/class-mcp-tools.php';
+require_once __DIR__ . '/server/class-mcp-server.php';
 
 /**
  * Ability groups shown in the settings screen. A group lists ability names;
@@ -120,37 +126,29 @@ function snn_mcp_filter_ability_args( $args, $name ) {
 }
 
 /**
- * List the exposed Bricks abilities as named tools on the default server
- * (snn/bricks-html-to-bricks → tool "snn-bricks-html-to-bricks"), the same way
- * Bricks lists its high-frequency abilities. Every other enabled ability stays
- * callable through the adapter's mcp-adapter-execute-ability dispatcher.
+ * The MCP Adapter registers its own default server (and three abilities) on
+ * rest_api_init. While the built-in server is on, that default server stays off,
+ * so the two never serve the same endpoint. Other servers a plugin creates with
+ * the adapter are not affected.
  */
-add_filter( 'mcp_adapter_default_server_config', 'snn_mcp_append_named_tools', 20 );
-function snn_mcp_append_named_tools( $config ) {
-    if ( ! is_array( $config ) || ! snn_mcp_is_enabled() || ! function_exists( 'wp_get_abilities' ) ) {
-        return $config;
-    }
-    $tools = isset( $config['tools'] ) && is_array( $config['tools'] ) ? $config['tools'] : array();
-    foreach ( wp_get_abilities() as $ability ) {
-        $name = $ability->get_name();
-        if ( strpos( $name, 'snn/bricks-' ) !== 0 ) {
-            continue;
-        }
-        $meta = $ability->get_meta();
-        if ( ! empty( $meta['mcp']['public'] ) && ! in_array( $name, $tools, true ) ) {
-            $tools[] = $name;
-        }
-    }
-    $config['tools'] = $tools;
-    return $config;
+add_filter( 'mcp_adapter_create_default_server', 'snn_mcp_disable_adapter_default_server' );
+function snn_mcp_disable_adapter_default_server( $create ) {
+    return snn_mcp_is_enabled() ? false : $create;
 }
+
+add_action( 'rest_api_init', array( 'SNN_MCP_Server', 'register_routes' ), 20 );
 
 /** Whether the MCP Adapter plugin is active, so the settings screen can say so. */
 function snn_mcp_adapter_active() {
     return class_exists( '\WP\MCP\Core\McpAdapter' ) || defined( 'WP_MCP_DIR' ) || function_exists( 'mcp_adapter' );
 }
 
-/** URL of the default MCP Adapter server endpoint. */
+/** URL of the built-in MCP server. */
 function snn_mcp_endpoint_url() {
-    return rest_url( 'mcp/mcp-adapter-default-server' );
+    return rest_url( SNN_MCP_Server::NAMESPACE_CANONICAL . SNN_MCP_Server::ROUTE_CANONICAL );
+}
+
+/** URL that connectors set up with the MCP Adapter still use. */
+function snn_mcp_legacy_endpoint_url() {
+    return rest_url( SNN_MCP_Server::NAMESPACE_LEGACY . SNN_MCP_Server::ROUTE_LEGACY );
 }
