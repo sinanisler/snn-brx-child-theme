@@ -4965,7 +4965,7 @@ IMPORTANT RULES:
             const ZipImport = (function() {
 
                 const LIMITS = {
-                    zipBytes:       50 * 1024 * 1024,   // user-facing cap
+                    zipBytes:       100 * 1024 * 1024,  // user-facing cap
                     entries:        800,
                     unpackedBytes:  250 * 1024 * 1024,  // zip-bomb guard
                     images:         80,

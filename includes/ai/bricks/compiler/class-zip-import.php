@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SNN_Bricks_Zip_Import {
 
     const LIMITS = array(
-        'zipBytes'       => 52428800,  // 50 MB, the builder's cap
+        'zipBytes'       => 104857600, // 100 MB, the builder's cap
         'base64Bytes'    => 26214400,  // 25 MB decoded when the zip rides inside one tool call
         'entries'        => 800,
         'unpackedBytes'  => 262144000, // 250 MB zip-bomb guard
@@ -110,7 +110,7 @@ class SNN_Bricks_Zip_Import {
             return new WP_Error( 'snn_zip_unavailable', 'The PHP zip extension is not installed on this server.' );
         }
         if ( strlen( $bytes ) > self::LIMITS['zipBytes'] ) {
-            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 50 MB.' );
+            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 100 MB.' );
         }
         require_once ABSPATH . 'wp-admin/includes/file.php';
         $tmp = wp_tempnam( 'snn-design.zip' );
@@ -131,7 +131,7 @@ class SNN_Bricks_Zip_Import {
             return new WP_Error( 'snn_zip_unreadable', 'The .zip file is missing on the server.' );
         }
         if ( filesize( $file ) > self::LIMITS['zipBytes'] ) {
-            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 50 MB.' );
+            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 100 MB.' );
         }
         $self = new self();
         try {

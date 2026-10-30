@@ -269,7 +269,7 @@ function snn_mcp_render_zip_upload() {
     $error    = isset( $_GET['snn_zip_error'] ) ? sanitize_text_field( wp_unslash( $_GET['snn_zip_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
     ?>
     <h2><?php esc_html_e( 'Design zip for MCP', 'snn' ); ?></h2>
-    <p><?php esc_html_e( 'Hosted AI chats cannot send a file to your site. Upload the design-export .zip here (max 50 MB), then give the AI the attachment ID. The tool snn-bricks-import-zip reads it on the server.', 'snn' ); ?></p>
+    <p><?php esc_html_e( 'Hosted AI chats cannot send a file to your site. Upload the design-export .zip here (max 100 MB), then give the AI the attachment ID. The tool snn-bricks-import-zip reads it on the server.', 'snn' ); ?></p>
     <?php if ( $uploaded && get_post_type( $uploaded ) === 'attachment' ) : ?>
         <div class="notice notice-success inline"><p>
             <?php echo esc_html( sprintf( __( 'Uploaded %1$s as attachment %2$d. Tell the AI:', 'snn' ), basename( (string) get_attached_file( $uploaded ) ), $uploaded ) ); ?>
@@ -299,8 +299,8 @@ function snn_mcp_handle_zip_upload() {
         wp_safe_redirect( add_query_arg( 'snn_zip_error', rawurlencode( __( 'Choose a .zip file. If it is large, the server upload limit may be lower than the file: ', 'snn' ) . ini_get( 'upload_max_filesize' ) ), $back ) );
         exit;
     }
-    if ( (int) $file['size'] > 52428800 ) { // SNN_Bricks_Zip_Import::LIMITS['zipBytes']
-        wp_safe_redirect( add_query_arg( 'snn_zip_error', rawurlencode( __( 'The zip is larger than 50 MB.', 'snn' ) ), $back ) );
+    if ( (int) $file['size'] > 104857600 ) { // SNN_Bricks_Zip_Import::LIMITS['zipBytes']
+        wp_safe_redirect( add_query_arg( 'snn_zip_error', rawurlencode( __( 'The zip is larger than 100 MB.', 'snn' ) ), $back ) );
         exit;
     }
     require_once ABSPATH . 'wp-admin/includes/file.php';

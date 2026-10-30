@@ -26,7 +26,7 @@ function snn_register_bricks_import_zip_ability() {
     $props = array_merge(
         array(
             'attachment_id' => array( 'type' => 'integer', 'description' => 'A .zip in the media library. Hosted chats (claude.ai, ChatGPT) should use this: the user uploads the zip under SNN Settings > MCP and gives you the ID.' ),
-            'zip_url'       => array( 'type' => 'string', 'description' => 'Public http(s) URL of the .zip (max 50 MB).' ),
+            'zip_url'       => array( 'type' => 'string', 'description' => 'Public http(s) URL of the .zip (max 100 MB).' ),
             'upload_id'     => array( 'type' => 'string', 'description' => 'A zip sent in parts with snn-bricks-upload-zip-part.' ),
             'zip_base64'    => array( 'type' => 'string', 'description' => 'The whole .zip as base64 (max 25 MB decoded). Only for clients that can read the file with a tool; never type file bytes out yourself.' ),
             'post_id'       => array( 'type' => 'integer', 'description' => 'Target page. Optional here; needed for compile=true and when building passes.' ),

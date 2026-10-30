@@ -410,7 +410,7 @@ class SNN_Bricks_Import_Session {
             return new WP_Error( 'snn_part_out_of_order', 'Expected part ' . $meta['received'] . ', got ' . $index . '.', array( 'status' => 409, 'expected' => $meta['received'] ) );
         }
         if ( $meta['bytes'] + strlen( $bytes ) > SNN_Bricks_Zip_Import::LIMITS['zipBytes'] ) {
-            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 50 MB.', array( 'status' => 413 ) );
+            return new WP_Error( 'snn_zip_too_large', 'The .zip is larger than 100 MB.', array( 'status' => 413 ) );
         }
         file_put_contents( $file, $bytes, FILE_APPEND | LOCK_EX );
         $meta['received']++;
