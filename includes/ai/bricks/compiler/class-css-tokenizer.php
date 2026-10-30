@@ -544,7 +544,8 @@ class SNN_Bricks_Css {
         $first_brace = strpos( $css, '{' );
         if ( $first_brace !== false ) {
             $preamble = trim( substr( $css, 0, $first_brace ) );
-            if ( $preamble !== '' && preg_match_all( '/@(import|charset|namespace)[^;]+;/i', $preamble, $at ) ) {
+            // A quoted URL may contain ';' (Google Fonts: wght@400;700), so skip quoted strings.
+            if ( $preamble !== '' && preg_match_all( '/@(import|charset|namespace)(?:"[^"]*"|\'[^\']*\'|[^;"\'])+;/i', $preamble, $at ) ) {
                 foreach ( $at[0] as $r ) {
                     if ( strpos( $result, $r ) === false ) {
                         $result = $r . "\n" . $result;

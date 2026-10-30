@@ -20,6 +20,8 @@ class SNN_Bricks_Compile_Context {
     public $svg_assets = array();
     /** @var array|null Bricks colour palettes */
     public $palette = null;
+    /** @var array<int, array{src: string, bytes: int}> <script> tags kept as embedded code */
+    public $scripts = array();
 
     public function __construct( $rule_set, $plan, $svg_assets = array(), $palette = null ) {
         $this->rule_set   = $rule_set ? $rule_set : new SNN_Bricks_Rule_Set();

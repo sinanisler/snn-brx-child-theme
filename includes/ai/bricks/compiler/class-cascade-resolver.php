@@ -168,4 +168,41 @@ class SNN_Bricks_Cascade {
         }
         return $out;
     }
+
+    /**
+     * Declarations from contextual rules (`.card p`, `.faq-item summary`) that apply to one
+     * element at one width. Bricks does not keep the design's DOM path, so these move onto the
+     * element itself. Layout is left out: the native layout pass already sets it.
+     */
+    public static function contextual_decls_at( $el, $set, $width ) {
+        $out = array();
+        foreach ( self::matched_rules_for( $el, $set ) as $r ) {
+            if ( ! self::rule_applies_at( $r, $width ) || ! preg_match( '/[\s>+~]/', trim( $r['selector'] ) ) ) {
+                continue;
+            }
+            foreach ( $r['decls'] as $k => $v ) {
+                $out[ $k ] = $v;
+            }
+            foreach ( $r['important'] as $k => $v ) {
+                $out[ $k ] = $v;
+            }
+        }
+        return $out;
+    }
+
+    /** Declarations of the plain `body` rule: the values text inherits in the browser. */
+    public static function body_decls( $set ) {
+        $out = array();
+        if ( ! $set ) {
+            return $out;
+        }
+        foreach ( $set->rules as $r ) {
+            if ( strtolower( trim( $r['selector'] ) ) === 'body' && empty( $r['media'] ) ) {
+                foreach ( $r['decls'] as $k => $v ) {
+                    $out[ $k ] = $v;
+                }
+            }
+        }
+        return $out;
+    }
 }

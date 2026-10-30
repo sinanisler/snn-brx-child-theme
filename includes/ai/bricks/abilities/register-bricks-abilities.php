@@ -22,6 +22,8 @@ require_once $snn_bricks_dir . '/compiler/class-selector-matcher.php';
 require_once $snn_bricks_dir . '/compiler/class-cascade-resolver.php';
 require_once $snn_bricks_dir . '/compiler/class-native-layout.php';
 require_once $snn_bricks_dir . '/compiler/class-element-features.php';
+require_once $snn_bricks_dir . '/compiler/class-nested-elements.php';
+require_once $snn_bricks_dir . '/compiler/class-animations.php';
 require_once $snn_bricks_dir . '/compiler/class-html-to-bricks.php';
 require_once $snn_bricks_dir . '/compiler/class-svg-sanitizer.php';
 require_once $snn_bricks_dir . '/compiler/class-assets.php';
@@ -37,6 +39,7 @@ require_once $snn_bricks_dir . '/writer/class-import-session.php';
 require_once $snn_bricks_dir . '/writer/class-asset-drop.php';
 
 require_once __DIR__ . '/bricks-start-here.php';
+require_once __DIR__ . '/bricks-settings.php';
 require_once __DIR__ . '/bricks-get-page-tree.php';
 require_once __DIR__ . '/bricks-find-elements.php';
 require_once __DIR__ . '/bricks-get-global-classes.php';

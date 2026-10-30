@@ -28,7 +28,7 @@ class SNN_MCP_Server {
     const NAMESPACE_LEGACY = 'mcp';
     const ROUTE_LEGACY     = '/mcp-adapter-default-server';
 
-    const INSTRUCTIONS = 'WordPress abilities of this site. Discover them with mcp-adapter-discover-abilities, or call a named tool directly. For Bricks pages, start with snn-bricks-start-here.';
+    const INSTRUCTIONS = 'WordPress abilities of this site. Discover them with mcp-adapter-discover-abilities, or call a named tool directly. For Bricks pages, start with snn-bricks-start-here. Bricks HTML hints (data-bricks on each element): section (top-level section/header/footer), container (one per section, direct child), block (inner layout div), heading (h1-h6), text-basic (p/span/li), text (rich text with inline formatting), button (buttons, href for the link), text-link (inline a), image (img, keep src), icon (one FontAwesome i per button/link), divider (hr and line divs), accordion (details items with summary), tabs (div data-bricks="tab" data-title), slider (slides, data-per-page), custom-html-css-script (iframes, forms, tables). Scripts are kept as embedded code and listed in the build warnings: use Bricks elements, data-animate and CSS first, and a script only where Bricks cannot do the job. SVG and other Bricks settings: snn-bricks-settings-get and snn-bricks-settings-set. Full rules come from snn-bricks-start-here.';
 
     public static function register_routes() {
         if ( ! snn_mcp_is_enabled() ) {

@@ -27,8 +27,7 @@ function snn_register_bricks_start_here_ability() {
             ),
         ),
         'execute_callback' => function () {
-            $file  = dirname( __DIR__ ) . '/docs/bricks-html-rules.md';
-            $rules = file_exists( $file ) ? (string) file_get_contents( $file ) : '';
+            $rules = (string) require dirname( __DIR__ ) . '/rules/html-rules.php';
             $plan  = SNN_Bricks_Native_Layout::breakpoint_plan();
 
             $breakpoints = array( array( 'key' => $plan['base']['key'], 'width' => $plan['base']['width'], 'base' => true ) );

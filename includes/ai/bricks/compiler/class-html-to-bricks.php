@@ -57,12 +57,20 @@ class SNN_Bricks_Html_To_Bricks {
     /** Bricks' text-basic tag control only offers these; anything else needs customTag. */
     const TEXT_TAG_OPTIONS = array( 'div', 'p', 'span', 'figcaption', 'address', 'figure' );
 
-    const SKIP_TAGS = array( 'script', 'style', 'meta', 'link', 'title', 'br', 'wbr' );
+    // Scripts are not skipped: each one is kept as embedded code (see keep_script()).
+    const SKIP_TAGS = array( 'style', 'meta', 'link', 'title', 'br', 'wbr' );
+
+    // Settings that carry the design's typography and paint, never layout (native layout owns that).
+    const PAINT_OR_TYPE_PATTERN = '/^(line-height|letter-spacing|color|font-|text-|text-transform|text-decoration|background|border|box-shadow|opacity|fill|stroke|filter|cursor|transition)/';
+
+    // Text-bearing Bricks elements that receive inherited typography and contextual rules.
+    const TEXT_EXTRA_NAMES = array( 'heading', 'text-basic', 'text', 'text-link', 'button' );
 
     const IGNORED_ATTRS = array(
         'id', 'class', 'style', 'data-bricks',
         'data-loop', 'data-loop-posts-per-page', 'data-loop-orderby', 'data-loop-order',
         'data-icon', 'data-icon-position', 'data-icon-gap', 'data-icon-size',
+        'data-animate', 'data-animate-trigger', 'data-animate-duration', 'data-animate-delay', 'data-animate-offset',
         'data-href', 'href', 'src', 'alt', 'target', 'rel',
     );
 
@@ -136,7 +144,12 @@ class SNN_Bricks_Html_To_Bricks {
             );
         }
 
-        return array( 'content' => $content, 'globalClasses' => $global_classes, 'classNameToId' => $class_to_id );
+        return array(
+            'content'       => $content,
+            'globalClasses' => $global_classes,
+            'classNameToId' => $class_to_id,
+            'scripts'       => $ctx->scripts,
+        );
     }
 
     /** Register class names worn in markup with no CSS rule of their own. */
@@ -162,17 +175,117 @@ class SNN_Bricks_Html_To_Bricks {
         return $added;
     }
 
+    /**
+     * A <script> becomes a custom HTML element holding the tag as written, so it runs on the
+     * page. Bricks cannot edit it as an element, so the build reports each one.
+     */
+    private static function keep_script( $el, $parent_id, $ctx, $ids, array &$content ) {
+        $html = SNN_Bricks_Dom::outer_html( $el );
+        $src  = (string) SNN_Bricks_Dom::attr( $el, 'src' );
+        $id   = $ids->next();
+
+        $content[] = array(
+            'id'          => $id,
+            'name'        => 'custom-html-css-script',
+            'parent'      => $parent_id,
+            'children'    => array(),
+            'settings'    => array( 'content' => $html, '_display' => 'contents' ),
+            'themeStyles' => array(),
+        );
+        $ctx->scripts[] = array( 'src' => $src !== '' ? $src : 'inline', 'bytes' => strlen( $html ) );
+
+        return $id;
+    }
+
+    /**
+     * Custom CSS for one text-bearing element, as Bricks writes it on the element itself.
+     * Covers three things a browser gives the design for free: contextual rules that no
+     * longer match the converted DOM, body line-height / letter-spacing / colour that text
+     * inherits, and the inherit values that stop Bricks' own button defaults overriding it.
+     */
+    public static function element_css_extras( $el, $bricks_name, $ctx, array $own_decls ) {
+        if ( $ctx === null || ! in_array( $bricks_name, self::TEXT_EXTRA_NAMES, true ) ) {
+            return '';
+        }
+        $base  = $ctx->plan['base']['width'];
+        $decls = array();
+
+        foreach ( SNN_Bricks_Cascade::contextual_decls_at( $el, $ctx->rule_set, $base ) as $k => $v ) {
+            if ( preg_match( self::PAINT_OR_TYPE_PATTERN, $k ) ) {
+                $decls[ $k ] = $v;
+            }
+        }
+
+        foreach ( array( 'line-height', 'letter-spacing', 'color' ) as $k ) {
+            if ( isset( $own_decls[ $k ] ) ) {
+                continue;
+            }
+            $value = self::inherited_value( $el, $k, $ctx );
+            if ( $value !== null ) {
+                $decls[ $k ] = $value;
+            }
+        }
+
+        if ( $bricks_name === 'button' ) {
+            foreach ( array( 'letter-spacing', 'text-align' ) as $k ) {
+                if ( ! isset( $own_decls[ $k ] ) && ! isset( $decls[ $k ] ) ) {
+                    $decls[ $k ] = 'inherit';
+                }
+            }
+        }
+
+        if ( ! $decls ) {
+            return '';
+        }
+        $lines = array();
+        foreach ( $decls as $k => $v ) {
+            $lines[] = $k . ': ' . $v . ';';
+        }
+        return '%root% { ' . implode( ' ', $lines ) . ' }';
+    }
+
+    /**
+     * The value a browser gives an inherited property: the nearest ancestor that sets it, or
+     * the body's value when no ancestor does. Null when nothing sets it.
+     */
+    private static function inherited_value( $el, $prop, $ctx ) {
+        $base   = $ctx->plan['base']['width'];
+        $parent = SNN_Bricks_Dom::parent( $el );
+        while ( $parent && SNN_Bricks_Dom::is_element( $parent ) && ! in_array( SNN_Bricks_Dom::tag( $parent ), array( 'body', 'html' ), true ) ) {
+            $decls = SNN_Bricks_Cascade::resolve_decls_at( $parent, $ctx->rule_set, $base );
+            if ( isset( $decls[ $prop ] ) ) {
+                return $decls[ $prop ];
+            }
+            $parent = SNN_Bricks_Dom::parent( $parent );
+        }
+        $body = SNN_Bricks_Cascade::body_decls( $ctx->rule_set );
+        return $body[ $prop ] ?? null;
+    }
+
     /** STEP 2c: walk the DOM and emit minimal Bricks elements. */
     private static function walk( $el, $parent_id, $ctx, array $class_to_id, $ids, array &$content ) {
         if ( ! SNN_Bricks_Dom::is_element( $el ) ) {
             return null;
         }
         $tag = SNN_Bricks_Dom::tag( $el );
+        if ( $tag === 'script' ) {
+            return self::keep_script( $el, $parent_id, $ctx, $ids, $content );
+        }
         if ( in_array( $tag, self::SKIP_TAGS, true ) ) {
             return null;
         }
 
         $explicit_name = SNN_Bricks_Dom::attr( $el, 'data-bricks' );
+
+        // Accordion, tabs and slider become Bricks' own nested elements, with their items as children.
+        $nested = SNN_Bricks_Nested::name_for( $el, $explicit_name );
+        if ( $nested ) {
+            $walk_child = function ( $node, $parent ) use ( &$content, $ctx, $class_to_id, $ids ) {
+                return self::walk( $node, $parent, $ctx, $class_to_id, $ids, $content );
+            };
+            return SNN_Bricks_Nested::build( $el, $nested, $parent_id, $ids, $content, $walk_child, $class_to_id, $ctx );
+        }
+
         $bricks_name   = SNN_Bricks_Features::bricks_name_for( $el );
         $base_width    = $ctx->plan['base']['width'];
         $own_decls     = SNN_Bricks_Cascade::resolve_decls_at( $el, $ctx->rule_set, $base_width );
@@ -245,6 +358,18 @@ class SNN_Bricks_Html_To_Bricks {
 
         if ( SNN_Bricks_Native_Layout::is_layout( $bricks_name ) ) {
             SNN_Bricks_Features::apply_layout_tag( $element, $el, $bricks_name, $tag );
+        }
+
+        // data-animate → Bricks' own startAnimation interaction (scripts never convert).
+        $interactions = SNN_Bricks_Animate::interactions_for( $el, $id );
+        if ( $interactions ) {
+            $element['settings']['_interactions'] = $interactions;
+        }
+
+        // Inherited typography and contextual rules, as the element's own custom CSS.
+        $extra_css = self::element_css_extras( $el, $bricks_name, $ctx, $own_decls );
+        if ( $extra_css !== '' ) {
+            $element['settings']['_cssCustom'] = $extra_css;
         }
 
         $is_leaf = false;
@@ -660,6 +785,24 @@ class SNN_Bricks_Html_To_Bricks {
         return array( 'renames' => $renames, 'reuse' => $reuse );
     }
 
+    /**
+     * @import lines for remote stylesheets linked with <link rel="stylesheet">
+     * (Google Fonts ...). Such links usually sit in <head>, which the body
+     * markup never carries, so they are carried over as @import, the same way
+     * the zip importer does it.
+     */
+    public static function remote_sheet_imports( $html ) {
+        $out = array();
+        if ( preg_match_all( '#<link\b[^>]*>#i', (string) $html, $links ) ) {
+            foreach ( $links[0] as $tag ) {
+                if ( preg_match( '/\brel\s*=\s*["\']?[^"\'>]*stylesheet/i', $tag ) && preg_match( '/\bhref\s*=\s*["\'](https?:\/\/[^"\']+|\/\/[^"\']+)["\']/i', $tag, $h ) ) {
+                    $out[] = '@import url("' . html_entity_decode( $h[1], ENT_QUOTES ) . '");';
+                }
+            }
+        }
+        return array_values( array_unique( $out ) );
+    }
+
     // ── full builds ────────────────────────────────────────────────────────
 
     /**
@@ -746,6 +889,14 @@ class SNN_Bricks_Html_To_Bricks {
         // PHASE 0d: non-class CSS (@import, :root, body, *, @font-face ...).
         $global_css = SNN_Bricks_Css::rename_classes_in_css( SNN_Bricks_Css::extract_global_css( $all_style_css ), $renames );
 
+        // Remote stylesheets from <head> (Google Fonts) must lead the page CSS: @import has to come first.
+        $imports = array_filter( self::remote_sheet_imports( $full_html ), function ( $import ) use ( $global_css ) {
+            return strpos( $global_css, $import ) === false;
+        } );
+        if ( $imports ) {
+            $global_css = implode( "\n", $imports ) . "\n" . $global_css;
+        }
+
         // Resolvable :root variables → Bricks palette colours / global variables.
         $color_vars = array();
         $size_vars  = array();
@@ -763,7 +914,8 @@ class SNN_Bricks_Html_To_Bricks {
         }
 
         // PHASE 2: compile each section with the shared class map and cascade.
-        $compiled = array();
+        $compiled     = array();
+        $kept_scripts = array();
         foreach ( $sections as $i => $section ) {
             $data = self::compile( $section['html'], $class_to_id, $rule_set, array(
                 'svg_assets' => $args['svg_assets'] ?? array(),
@@ -774,11 +926,21 @@ class SNN_Bricks_Html_To_Bricks {
                 $warnings[] = 'Section "' . $section['label'] . '" produced no elements and was skipped.';
                 continue;
             }
+            $kept_scripts = array_merge( $kept_scripts, $data['scripts'] ?? array() );
             $fixed = self::validate_and_fix( $data['content'], $ids );
             foreach ( $fixed['errors'] as $e ) {
                 $warnings[] = $section['label'] . ': ' . $e;
             }
             $compiled[] = array( 'label' => $section['label'], 'html' => $section['html'], 'content' => $fixed['content'] );
+        }
+
+        // Scripts are kept as embedded code. Report each one so the reviewer sees it ran.
+        if ( $kept_scripts ) {
+            $list = array();
+            foreach ( $kept_scripts as $s ) {
+                $list[] = $s['src'] . ' (' . $s['bytes'] . ' bytes)';
+            }
+            $warnings[] = count( $kept_scripts ) . ' <script> tag(s) kept as embedded code, not converted to Bricks elements: ' . implode( '; ', $list ) . '. Check them in the page source before publishing.';
         }
 
         // PHASE 2.5: classes attached to elements become global classes; markup-only

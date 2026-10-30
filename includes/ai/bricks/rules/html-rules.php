@@ -1,3 +1,14 @@
+<?php
+/**
+ * The HTML authoring rules for Bricks pages, returned by snn-bricks-start-here.
+ * Kept in PHP (not a .md file) so every MCP client gets them in the tool reply.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+return <<<'BRICKS_HTML_RULES'
 # Building Bricks pages from HTML (SNN-BRX)
 
 You write HTML + CSS. The server compiles it into native Bricks elements with the same compiler the Bricks AI agent uses in the builder:
@@ -50,7 +61,12 @@ If a write returns `snn_post_locked`, the page is open in the Bricks builder; sa
   - `data-bricks="image"` — `<img>` (keep `src` exactly as given)
   - `data-bricks="icon"` — FontAwesome `<i class="fas fa-star">` (fas, fab; avoid far)
   - `data-bricks="divider"` — `<hr>` and decorative line divs
-  - `data-bricks="custom-html-css-script"` — raw HTML kept verbatim: iframes, video embeds, forms, tables
+  - `data-bricks="accordion"` — Bricks' accordion. Its items are `<details>` children, each with a `<summary>` title; the rest of the details is the content. A container made only of `<details>` becomes an accordion without a hint. Add `open` on the first details to expand it.
+  - `data-bricks="tabs"` — Bricks' tabs. Its children are `<div data-bricks="tab" data-title="Label">`, one per tab, holding the content. Do not build tabs from radio inputs or scripts.
+  - `data-bricks="slider"` — Bricks' slider. Its children are the slides (any element). Options: `data-per-page="2"`, `data-arrows="false"`, `data-pagination="false"`, `data-gap="20"`. Do not build sliders from scroll-snap or scripts.
+  - `data-bricks="custom-html-css-script"` — raw HTML kept verbatim: iframes, video embeds, forms, tables.
+- Scripts: a `<script>` is kept as embedded code, in place, and runs on the page. Bricks cannot edit it as an element, so the build reports every kept script in its warnings. Use Bricks' native elements and `data-animate` first; use a script only for behaviour Bricks cannot do (counters, cursor effects, custom widgets).
+- Entrance animations are Bricks' own interactions. Put `data-animate="fadeInUp"` on any element (any animate.css name: fadeIn, fadeInDown, fadeInUp, fadeInLeft, zoomIn, bounceIn …). Optional `data-animate-delay="0.2s"` and `data-animate-duration="0.9s"`. Triggers: the default is "enter viewport" (plays when the element scrolls into view); `data-animate-trigger="contentLoaded"` plays on page load (use it for the hero); `data-animate-trigger="scroll"` plays when the page passes the element, with `data-animate-offset="120px"` (px, % or vh); `data-animate-trigger="hover"` plays on hover.
 - Any tag the list does not name (form, table, video, input, details …) is preserved verbatim.
 - Icons in buttons and links: ONE FontAwesome `<i>` or ONE inline `<svg>` directly inside the button/link, at the start or end of the label. It becomes the button's native icon (side, size, colour, gap). No other icon fonts (Lucide, Material Symbols, Bootstrap Icons).
 - Standalone SVG graphics (logos, illustrations): write the `<svg>` directly with no data-bricks wrapper — it is uploaded and becomes a native Bricks SVG element (needs Bricks SVG upload permission; otherwise it stays as code).
@@ -106,3 +122,9 @@ Never type file bytes (base64) out yourself.
 **4. Finish.** When `feedback.next` says the import is complete, compare `pageSections` with the design, check `report.skipped` (fonts and videos are not imported: tell the user), and verify the page at desktop and 390px.
 
 `compile: true` builds the export directly without conversion — only for exports that are already clean semantic HTML.
+
+## SVG and Bricks settings
+
+- A standalone `<svg>` (no `data-bricks` wrapper) becomes a native Bricks SVG element when the user may upload SVG. The upload is sanitised by Bricks. Without that permission the SVG stays as code.
+- `snn-bricks-settings-get` reads Bricks global settings and the SVG upload permission of a user. `snn-bricks-settings-set` changes them: `settings` (Bricks keys, validated by Bricks) and `svg_upload: { enabled: true }`. Both need an admin key. Check the permission first when an SVG stays as code.
+BRICKS_HTML_RULES;
