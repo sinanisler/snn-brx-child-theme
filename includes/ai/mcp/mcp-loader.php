@@ -28,6 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/mcp-settings.php';
 require_once __DIR__ . '/mcp-audit.php';
 require_once __DIR__ . '/mcp-debug.php';
+require_once __DIR__ . '/mcp-tokens.php';
 require_once __DIR__ . '/server/class-mcp-protocol.php';
 require_once __DIR__ . '/server/class-mcp-tools.php';
 require_once __DIR__ . '/server/class-mcp-server.php';

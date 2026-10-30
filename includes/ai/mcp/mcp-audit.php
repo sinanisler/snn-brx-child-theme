@@ -48,8 +48,9 @@ function snn_mcp_audit_execution( $result, $name, $input, $ability ) {
     }
 
     $outcome = is_wp_error( $result ) ? 'error: ' . $result->get_error_code() : 'ok';
+    $token   = snn_mcp_token_name();
     snn_log_user_activity(
-        sprintf( 'MCP ability %s (%s)', $name, $outcome ),
+        sprintf( 'MCP ability %s (%s)%s', $name, $outcome, '' !== $token ? ' via token "' . $token . '"' : '' ),
         'mcp',
         $post_id,
         'mcp_ability'

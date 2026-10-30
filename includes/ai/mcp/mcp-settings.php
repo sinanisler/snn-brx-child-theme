@@ -106,7 +106,7 @@ function snn_mcp_render_settings() {
             </p></div>
         <?php endif; ?>
 
-        <p><?php esc_html_e( 'MCP clients (Claude, Cursor, ChatGPT and others) connect to the endpoint below as a real WordPress user, using an Application Password (Users > Profile > Application Passwords). Every ability still runs its own permission checks for that user.', 'snn' ); ?></p>
+        <p><?php esc_html_e( 'Create one token per AI assistant below. Its link carries the token, so the assistant needs nothing else. Every ability still runs its own permission checks for the user who created the token.', 'snn' ); ?></p>
         <?php if ( $settings['enabled'] ) : ?>
             <p><strong><?php esc_html_e( 'Endpoint:', 'snn' ); ?></strong> <code><?php echo esc_html( $endpoint ); ?></code></p>
             <p class="description"><?php echo esc_html( sprintf( __( 'Connectors set up with the older URL %s keep working.', 'snn' ), snn_mcp_legacy_endpoint_url() ) ); ?></p>
@@ -160,18 +160,101 @@ function snn_mcp_render_settings() {
             <?php submit_button(); ?>
         </form>
 
-        <?php snn_mcp_render_zip_upload(); ?>
+        <?php snn_mcp_render_tokens(); ?>
 
-        <h2><?php esc_html_e( 'Connect a client', 'snn' ); ?></h2>
-        <p><?php esc_html_e( 'Claude Code (HTTP transport):', 'snn' ); ?></p>
-        <pre style="background:#fff;padding:12px;border:1px solid #ccd0d4;max-width:820px;white-space:pre-wrap">claude mcp add --transport http snn-site <?php echo esc_html( $endpoint ); ?> --header "Authorization: Basic BASE64(username:application-password)"</pre>
-        <p><?php esc_html_e( 'Start with the tool snn-bricks-start-here: it returns the HTML rules and the recommended order of calls for building Bricks pages.', 'snn' ); ?></p>
+        <?php snn_mcp_render_zip_upload(); ?>
 
         <?php
         if ( $settings['debug'] ) {
             snn_mcp_debug_render_panel();
         }
         ?>
+    </div>
+    <?php
+}
+
+/**
+ * Tokens: one row per AI assistant, a form to add one, and the links for the
+ * token just created. The token is shown once, from a short-lived transient.
+ */
+function snn_mcp_render_tokens() {
+    $notice_key = snn_mcp_token_notice_key();
+    $new        = get_transient( $notice_key );
+    if ( $new ) {
+        delete_transient( $notice_key );
+    }
+    $tokens   = snn_mcp_tokens_get();
+    $endpoint = snn_mcp_endpoint_url();
+    ?>
+    <h2><?php esc_html_e( 'AI assistants', 'snn' ); ?></h2>
+    <p class="description"><?php esc_html_e( 'Give each assistant its own link, so you can see and cut off each one separately. Revoking a token stops that assistant at once.', 'snn' ); ?></p>
+
+    <?php if ( ! empty( $_GET['snn_mcp_revoked'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
+        <div class="notice notice-success inline"><p><?php esc_html_e( 'Token revoked.', 'snn' ); ?></p></div>
+    <?php endif; ?>
+
+    <?php if ( $new ) : ?>
+        <?php $url = snn_mcp_token_url( $new['token'] ); ?>
+        <div class="notice notice-success inline" style="padding-bottom:12px">
+            <p><strong><?php echo esc_html( sprintf( __( 'Token for %s created. Copy its link now: the token is not shown again.', 'snn' ), $new['name'] ) ); ?></strong></p>
+            <?php snn_mcp_render_copy_box( __( 'claude.ai, Claude desktop app, Cowork: Settings > Connectors > Add custom connector, paste this address', 'snn' ), $url ); ?>
+            <?php snn_mcp_render_copy_box( __( 'Claude Code: run this in a terminal', 'snn' ), 'claude mcp add --transport http ' . ( sanitize_title( $new['name'] ) ?: 'snn-site' ) . ' "' . $url . '"' ); ?>
+            <?php snn_mcp_render_copy_box( __( 'Any other MCP client: server address', 'snn' ), $endpoint ); ?>
+            <?php snn_mcp_render_copy_box( __( 'Any other MCP client: header', 'snn' ), 'Authorization: Bearer ' . $new['token'] ); ?>
+        </div>
+    <?php endif; ?>
+
+    <table class="widefat striped" style="max-width:820px">
+        <thead><tr>
+            <th><?php esc_html_e( 'Name', 'snn' ); ?></th>
+            <th><?php esc_html_e( 'Access', 'snn' ); ?></th>
+            <th><?php esc_html_e( 'Last used', 'snn' ); ?></th>
+            <th><?php esc_html_e( 'Created', 'snn' ); ?></th>
+            <th></th>
+        </tr></thead>
+        <tbody>
+        <?php if ( empty( $tokens ) ) : ?>
+            <tr><td colspan="5"><?php esc_html_e( 'No tokens yet. Add one for each AI below.', 'snn' ); ?></td></tr>
+        <?php endif; ?>
+        <?php foreach ( $tokens as $id => $record ) : ?>
+            <tr>
+                <td><strong><?php echo esc_html( $record['name'] ); ?></strong></td>
+                <td><?php echo 'write' === $record['access'] ? esc_html__( 'Read and write', 'snn' ) : esc_html__( 'Read only', 'snn' ); ?></td>
+                <td><?php echo $record['last_used'] ? esc_html( sprintf( __( '%s ago', 'snn' ), human_time_diff( (int) $record['last_used'] ) ) ) : esc_html__( 'Never', 'snn' ); ?></td>
+                <td><?php echo esc_html( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $record['created'] ) ); ?></td>
+                <td><a class="button-link-delete" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=snn_mcp_revoke_token&id=' . rawurlencode( (string) $id ) ), 'snn_mcp_revoke_token_' . $id ) ); ?>" onclick="return confirm('<?php echo esc_js( __( 'Revoke this token? That assistant loses access at once.', 'snn' ) ); ?>');"><?php esc_html_e( 'Revoke', 'snn' ); ?></a></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <h3><?php esc_html_e( 'New token', 'snn' ); ?></h3>
+    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+        <input type="hidden" name="action" value="snn_mcp_create_token" />
+        <?php wp_nonce_field( 'snn_mcp_create_token' ); ?>
+        <label><?php esc_html_e( 'Name', 'snn' ); ?>
+            <input type="text" name="name" maxlength="60" required placeholder="<?php esc_attr_e( 'e.g. Claude, Sinan', 'snn' ); ?>" />
+        </label>
+        <label><?php esc_html_e( 'Access', 'snn' ); ?>
+            <select name="access">
+                <option value="read"><?php esc_html_e( 'Read only: look, scan, report', 'snn' ); ?></option>
+                <option value="write"><?php esc_html_e( 'Read and write', 'snn' ); ?></option>
+            </select>
+        </label>
+        <?php submit_button( __( 'Create token', 'snn' ), 'secondary', 'submit', false ); ?>
+    </form>
+    <p class="description"><?php esc_html_e( 'Read and write still respects the groups above: a group whose Write is off stays read only for every token.', 'snn' ); ?></p>
+    <p class="description"><?php esc_html_e( 'Start each assistant with the tool snn-bricks-start-here: it returns the HTML rules and the recommended order of calls for building Bricks pages.', 'snn' ); ?></p>
+    <?php
+}
+
+/** A labelled, read-only text field with a Copy button. */
+function snn_mcp_render_copy_box( $label, $text ) {
+    ?>
+    <p style="margin:12px 0 4px"><strong><?php echo esc_html( $label ); ?></strong></p>
+    <div style="display:flex;gap:8px;max-width:820px">
+        <input type="text" readonly class="large-text code" style="flex:1" value="<?php echo esc_attr( $text ); ?>" onclick="this.select()" />
+        <button type="button" class="button" onclick="this.previousElementSibling.select(); navigator.clipboard && navigator.clipboard.writeText(this.previousElementSibling.value);"><?php esc_html_e( 'Copy', 'snn' ); ?></button>
     </div>
     <?php
 }

@@ -11,7 +11,8 @@
  *
  * The server is stateless: it never issues an Mcp-Session-Id, so every POST
  * stands alone and carries MCP-Protocol-Version. Each request authenticates as a
- * WordPress user (Application Password, or a logged-in session with a REST nonce),
+ * WordPress user (an access token from mcp-tokens.php, an Application Password, or
+ * a logged-in session with a REST nonce),
  * and every tool still runs the ability's own permission check.
  */
 
@@ -53,7 +54,12 @@ class SNN_MCP_Server {
         return isset( $routes[ '/' . self::NAMESPACE_LEGACY . self::ROUTE_LEGACY ] );
     }
 
-    public static function check_permission() {
+    public static function check_permission( WP_REST_Request $request ) {
+        $token = snn_mcp_token_authenticate( $request );
+        if ( is_wp_error( $token ) ) {
+            return $token;
+        }
+
         if ( ! is_user_logged_in() ) {
             return false;
         }

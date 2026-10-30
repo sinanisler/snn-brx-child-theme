@@ -192,7 +192,7 @@ class SNN_MCP_Tools {
         // Plugins add their own named tools through the filter below (Bricks does this
         // for its high-frequency abilities). Like the adapter did, these need no public flag.
         foreach ( self::extra_named_ability_names() as $name ) {
-            if ( ! isset( $by_name[ $name ] ) && wp_has_ability( $name ) ) {
+            if ( ! isset( $by_name[ $name ] ) && wp_has_ability( $name ) && self::extra_ability_allowed( wp_get_ability( $name ) ) ) {
                 $by_name[ $name ] = wp_get_ability( $name );
             }
         }
@@ -218,6 +218,18 @@ class SNN_MCP_Tools {
         $names  = is_array( $config ) && is_array( $config['tools'] ?? null ) ? $config['tools'] : array();
 
         return array_filter( $names, 'is_string' );
+    }
+
+    /**
+     * Named tools from a plugin need no public flag, but a group toggle that turns
+     * the ability off (an explicit public=false) and a read-only token still apply.
+     */
+    private static function extra_ability_allowed( $ability ) {
+        $mcp = self::mcp_meta( $ability );
+        if ( isset( $mcp['public'] ) && ! $mcp['public'] ) {
+            return false;
+        }
+        return snn_mcp_token_allows_ability( $ability );
     }
 
     /** Ability name to MCP tool name: slashes become hyphens. Null when the result is not a valid tool name. */
@@ -575,9 +587,11 @@ class SNN_MCP_Tools {
         $mcp  = self::mcp_meta( $ability );
 
         if ( isset( $mcp['public'] ) ) {
-            return (bool) $mcp['public'];
+            $public = (bool) $mcp['public'];
+        } else {
+            $public = true === ( $meta['public'] ?? false );
         }
-        return true === ( $meta['public'] ?? false );
+        return $public && snn_mcp_token_allows_ability( $ability );
     }
 
     private static function mcp_meta( $ability ) {
