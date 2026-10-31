@@ -221,13 +221,39 @@ class SNN_Bricks_Feedback {
         foreach ( $elements as $el ) {
             $ids[ (string) $el['id'] ] = true;
         }
+        // A section's label is its first heading, else its first text: the text sits in its children.
+        $by_id = array();
+        foreach ( $elements as $el ) {
+            $by_id[ (string) $el['id'] ] = $el;
+        }
+        $top_of = function ( $el ) use ( $by_id ) {
+            $guard = 0;
+            while ( $guard++ < 500 && isset( $by_id[ (string) ( $el['parent'] ?? '0' ) ] ) ) {
+                $el = $by_id[ (string) $el['parent'] ];
+            }
+            return (string) $el['id'];
+        };
+        $labels = array();
+        foreach ( array( 'heading', '' ) as $want ) {
+            foreach ( $elements as $el ) {
+                $text = SNN_Bricks_Edit_Ops::text_of( $el, 40 );
+                if ( $text === '' || ( $want !== '' && $el['name'] !== $want ) ) {
+                    continue;
+                }
+                $top = $top_of( $el );
+                if ( ! isset( $labels[ $top ] ) ) {
+                    $labels[ $top ] = $text;
+                }
+            }
+        }
+
         $out = array();
         foreach ( $elements as $el ) {
             $p = (string) ( $el['parent'] ?? '0' );
             if ( $p !== '0' && $p !== '' && isset( $ids[ $p ] ) ) {
                 continue;
             }
-            $label = SNN_Bricks_Edit_Ops::text_of( $el, 40 ) ?: ( $el['label'] ?? $el['name'] );
+            $label = SNN_Bricks_Edit_Ops::text_of( $el, 40 ) ?: ( $labels[ (string) $el['id'] ] ?? ( $el['label'] ?? $el['name'] ) );
             if ( $el['name'] === 'custom-html-css-script' && preg_match( '/^\s*<style\b/i', (string) ( $el['settings']['content'] ?? '' ) ) ) {
                 $label = 'Page CSS';
             }

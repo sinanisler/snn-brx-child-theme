@@ -66,6 +66,9 @@ class SNN_Bricks_Html_To_Bricks {
     // Text-bearing Bricks elements that receive inherited typography and contextual rules.
     const TEXT_EXTRA_NAMES = array( 'heading', 'text-basic', 'text', 'text-link', 'button' );
 
+    /** @var string[] Notes from the current compile(), returned to build() as warnings. */
+    private static $notes = array();
+
     const IGNORED_ATTRS = array(
         'id', 'class', 'style', 'data-bricks',
         'data-loop', 'data-loop-posts-per-page', 'data-loop-orderby', 'data-loop-order',
@@ -85,7 +88,13 @@ class SNN_Bricks_Html_To_Bricks {
      * @param array                      $options          svg_assets, ids (SNN_Bricks_Id_Pool), plan, palette
      * @return array{content: array, globalClasses: array, classNameToId: array}
      */
+    /** Record a compile note; build() reports it as a warning for the section. */
+    public static function note( $text ) {
+        self::$notes[] = $text;
+    }
+
     public static function compile( $html, $class_name_to_id = null, $rule_set = null, array $options = array() ) {
+        self::$notes = array();
         $parsed  = SNN_Bricks_Dom::parse( $html );
         $body    = $parsed['body'];
         $ids     = $options['ids'] ?? new SNN_Bricks_Id_Pool();
@@ -149,6 +158,7 @@ class SNN_Bricks_Html_To_Bricks {
             'globalClasses' => $global_classes,
             'classNameToId' => $class_to_id,
             'scripts'       => $ctx->scripts,
+            'notes'         => self::$notes,
         );
     }
 
@@ -376,7 +386,11 @@ class SNN_Bricks_Html_To_Bricks {
         switch ( $bricks_name ) {
             case 'heading':
                 $element['settings']['text'] = trim( SNN_Bricks_Dom::inner_html( $el ) );
-                $element['settings']['tag']  = in_array( $tag, array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ), true ) ? $tag : 'h2';
+                $level = in_array( $tag, array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ), true ) ? $tag : '';
+                if ( $level === '' ) {
+                    self::note( 'a <' . $tag . '> with data-bricks="heading" became an h2 in Bricks ("' . substr( trim( strip_tags( $element['settings']['text'] ) ), 0, 40 ) . '"). Use an h1 to h6 tag, or data-bricks="text-basic" for a paragraph.' );
+                }
+                $element['settings']['tag'] = $level ?: 'h2';
                 $is_leaf = true;
                 break;
 
@@ -763,9 +777,16 @@ class SNN_Bricks_Html_To_Bricks {
             $current = $by_name[ $name ];
             if ( self::norm_css( $current['settings']['_cssCustom'] ?? '' ) === self::norm_css( $gc['css'] ) ) {
                 $reuse[ $name ] = $current['id'];
-            } else {
-                $rename( $name );
+                continue;
             }
+            // A "-N" twin from an earlier build with the same CSS is reused, so rebuilds do not add -2, -3, -4 ...
+            $twin = self::numbered_twin( $name, $gc['css'], $by_name );
+            if ( $twin !== null ) {
+                $renames[ $name ] = $twin['name'];
+                $reuse[ $name ]   = $twin['id'];
+                continue;
+            }
+            $rename( $name );
         }
 
         $changed = true;
@@ -774,7 +795,7 @@ class SNN_Bricks_Html_To_Bricks {
             foreach ( array_keys( $reuse ) as $name ) {
                 $mentioned = SNN_Bricks_Css::class_names_in_css( $class_map[ $name ]['css'] );
                 foreach ( array_keys( $renames ) as $r ) {
-                    if ( isset( $mentioned[ $r ] ) ) {
+                    if ( $r !== $name && isset( $mentioned[ $r ] ) ) {
                         $rename( $name );
                         $changed = true;
                         break;
@@ -785,12 +806,57 @@ class SNN_Bricks_Html_To_Bricks {
         return array( 'renames' => $renames, 'reuse' => $reuse );
     }
 
+    /** A "name-N" global class (N from 1) that already holds this CSS under its own name, or null. */
+    private static function numbered_twin( $name, $css, array $by_name ) {
+        for ( $n = 1; $n <= 20; $n++ ) {
+            $twin = $name . '-' . $n;
+            if ( ! isset( $by_name[ $twin ] ) ) {
+                continue;
+            }
+            $renamed = SNN_Bricks_Css::rename_classes_in_css( $css, array( $name => $twin ) );
+            if ( self::norm_css( $by_name[ $twin ]['settings']['_cssCustom'] ?? '' ) === self::norm_css( $renamed ) ) {
+                return array( 'name' => $twin, 'id' => $by_name[ $twin ]['id'] );
+            }
+        }
+        return null;
+    }
+
     /**
      * @import lines for remote stylesheets linked with <link rel="stylesheet">
      * (Google Fonts ...). Such links usually sit in <head>, which the body
      * markup never carries, so they are carried over as @import, the same way
      * the zip importer does it.
      */
+    /**
+     * Font weights the page asks for but its Google Fonts @import does not load. The browser then
+     * shows the nearest loaded face, so the page looks lighter or heavier than the design names.
+     */
+    public static function font_weight_notes( $css ) {
+        $loaded = array();
+        if ( preg_match_all( '/family=([^&"\'\s:]+):wght@([\d;]+)/', $css, $m, PREG_SET_ORDER ) ) {
+            foreach ( $m as $hit ) {
+                $loaded[ str_replace( '+', ' ', $hit[1] ) ] = array_map( 'intval', explode( ';', $hit[2] ) );
+            }
+        }
+        if ( ! $loaded || ! preg_match_all( '/([^{}]+)\{([^{}]*)\}/', $css, $rules, PREG_SET_ORDER ) ) {
+            return array();
+        }
+        $notes = array();
+        foreach ( $rules as $rule ) {
+            if ( ! preg_match( '/font-family\s*:\s*([^;}]+)/i', $rule[2], $f ) || ! preg_match( '/font-weight\s*:\s*(\d{3})\b/i', $rule[2], $w ) ) {
+                continue;
+            }
+            $family = trim( explode( ',', $f[1] )[0], " \t\"'" );
+            $weight = (int) $w[1];
+            if ( ! isset( $loaded[ $family ] ) || in_array( $weight, $loaded[ $family ], true ) ) {
+                continue;
+            }
+            $notes[ $family . ' ' . $weight ] = 'font-weight ' . $weight . ' on "' . trim( $rule[1] ) . '" uses ' . $family
+                . ', but the page\'s @import loads only ' . implode( ', ', $loaded[ $family ] ) . '. The browser shows the nearest loaded weight; add this one to the import.';
+        }
+        return array_values( $notes );
+    }
+
     public static function remote_sheet_imports( $html ) {
         $out = array();
         if ( preg_match_all( '#<link\b[^>]*>#i', (string) $html, $links ) ) {
@@ -913,6 +979,10 @@ class SNN_Bricks_Html_To_Bricks {
             }
         }
 
+        foreach ( self::font_weight_notes( $all_style_css ) as $note ) {
+            $warnings[] = $note;
+        }
+
         // PHASE 2: compile each section with the shared class map and cascade.
         $compiled     = array();
         $kept_scripts = array();
@@ -927,6 +997,9 @@ class SNN_Bricks_Html_To_Bricks {
                 continue;
             }
             $kept_scripts = array_merge( $kept_scripts, $data['scripts'] ?? array() );
+            foreach ( $data['notes'] ?? array() as $note ) {
+                $warnings[] = $section['label'] . ': ' . $note;
+            }
             $fixed = self::validate_and_fix( $data['content'], $ids );
             foreach ( $fixed['errors'] as $e ) {
                 $warnings[] = $section['label'] . ': ' . $e;

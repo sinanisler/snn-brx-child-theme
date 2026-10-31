@@ -113,14 +113,15 @@ class SNN_Bricks_Nested {
                 }
             }
 
-            // Title row: heading and the chevron icon, as Bricks' accordion template builds it.
+            // Title row: heading and the chevron icon, as Bricks' accordion template builds it. The row takes
+            // no summary classes: their padding and ::after would repeat on the row, which the heading carries.
             $title = self::node( $content, 'block', $content[ $item ]['id'], $ids, array(
                 '_display'        => 'flex', // the row must stay a flex row, whatever the summary's own display says
                 '_direction'      => 'row',
                 '_alignItems'     => 'center',
                 '_justifyContent' => 'space-between',
                 '_hidden'         => array( '_cssClasses' => 'accordion-title-wrapper' ),
-            ), $summary ? self::global_ids( $summary, $class_to_id ) : array() );
+            ) );
             self::link( $content, $item, $title );
             self::style( $content, $title, $summary );
 
