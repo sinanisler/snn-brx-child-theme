@@ -6100,51 +6100,17 @@ function snn_pixabay_image_proxy_handler() {
         exit;
     }
 
-    $q       = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : 'nature';
-    $api_key = get_option( 'snn_pixabay_api_key', '' );
+    $q    = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : 'nature';
+    $hits = SNN_Pixabay::search( array( 'query' => $q, 'per_page' => 5 ) );
 
-    $api_url = add_query_arg(
-        array(
-            'key'        => $api_key,
-            'q'          => urlencode( $q ),
-            'image_type' => 'photo',
-            'safesearch' => 'true',
-            'per_page'   => 5,
-            'order'      => 'popular',
-            'lang'       => 'en',
-        ),
-        'https://pixabay.com/api/'
-    );
+    if ( is_wp_error( $hits ) ) {
+        status_header( 'snn_pixabay_rate_limited' === $hits->get_error_code() ? 429 : 404 );
+        exit;
+    }
 
-    $response = wp_remote_get( $api_url, array( 'timeout' => 10 ) );
-
-    if ( ! is_wp_error( $response ) ) {
-        $http_code       = wp_remote_retrieve_response_code( $response );
-        $rate_remaining  = (int) wp_remote_retrieve_header( $response, 'x-ratelimit-remaining' );
-        $rate_reset      = (int) wp_remote_retrieve_header( $response, 'x-ratelimit-reset' );
-
-        // Detect rate limit: HTTP 429 OR remaining quota is 0
-        $is_rate_limited = ( 429 === $http_code ) ||
-                           ( '' !== wp_remote_retrieve_header( $response, 'x-ratelimit-remaining' ) && $rate_remaining <= 0 );
-
-        if ( $is_rate_limited ) {
-            // Store reset time so we can log/debug if needed
-            if ( $rate_reset > 0 ) {
-                set_transient( 'snn_pixabay_rate_reset', time() + $rate_reset, $rate_reset );
-            }
-            status_header( 429 );
-            exit;
-        }
-
-        $body = wp_remote_retrieve_body( $response );
-        $data = json_decode( $body, true );
-
-        if ( ! empty( $data['hits'] ) ) {
-            $hit       = $data['hits'][0];
-            $image_url = ! empty( $hit['largeImageURL'] ) ? $hit['largeImageURL'] : $hit['webformatURL'];
-            wp_redirect( $image_url );
-            exit;
-        }
+    if ( ! empty( $hits ) ) {
+        wp_redirect( $hits[0]['large_url'] );
+        exit;
     }
 
     // No results from Pixabay
@@ -6261,32 +6227,15 @@ function snn_save_image_to_library_handler() {
         wp_send_json_error( array( 'message' => 'Only HTTP/HTTPS URLs are allowed.' ) );
     }
 
-    // If this is a Pixabay proxy URL, resolve it directly via the Pixabay API.
-    // We cannot do a loopback HTTP HEAD to admin-ajax.php (it requires auth and would return 403).
-    // Instead, extract the 'q' param and call Pixabay directly — same logic as the proxy handler.
+    // If this is a Pixabay proxy URL, swap it for the best matching image before sideloading.
+    // We cannot do a loopback HTTP HEAD to admin-ajax.php (it requires auth and would return 403),
+    // so the 'q' param goes through the same Pixabay helper the proxy uses.
     if ( strpos( $url, 'action=snn_pixabay_image' ) !== false ) {
         $parsed_qs = array();
         wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $parsed_qs );
-        $q       = sanitize_text_field( $parsed_qs['q'] ?? 'nature' );
-        $api_key = get_option( 'snn_pixabay_api_key', '' );
-
-        $api_url = add_query_arg( array(
-            'key'        => $api_key,
-            'q'          => urlencode( $q ),
-            'image_type' => 'photo',
-            'safesearch' => 'true',
-            'per_page'   => 5,
-            'order'      => 'popular',
-            'lang'       => 'en',
-        ), 'https://pixabay.com/api/' );
-
-        $api_response = wp_remote_get( $api_url, array( 'timeout' => 10 ) );
-        if ( ! is_wp_error( $api_response ) ) {
-            $pix_data = json_decode( wp_remote_retrieve_body( $api_response ), true );
-            if ( ! empty( $pix_data['hits'][0] ) ) {
-                $hit = $pix_data['hits'][0];
-                $url = ! empty( $hit['largeImageURL'] ) ? $hit['largeImageURL'] : $hit['webformatURL'];
-            }
+        $hits = SNN_Pixabay::search( array( 'query' => sanitize_text_field( $parsed_qs['q'] ?? 'nature' ), 'per_page' => 5 ) );
+        if ( ! is_wp_error( $hits ) && ! empty( $hits ) ) {
+            $url = $hits[0]['large_url'];
         }
     }
 

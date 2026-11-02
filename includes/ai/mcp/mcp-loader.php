@@ -62,6 +62,10 @@ function snn_mcp_ability_groups() {
                 'snn/get-site-info', 'snn/active-theme-info', 'snn/installed-plugin-list-and-infos', 'snn/get-users',
             ),
         ),
+        'stock-images' => array(
+            'label'     => __( 'Stock photos (Pixabay search and import)', 'snn' ),
+            'abilities' => array( 'snn/pixabay-image' ),
+        ),
         'bricks'   => array(
             'label'     => __( 'Bricks (page tree, HTML to Bricks, element edits, assets)', 'snn' ),
             // Every snn/bricks-* ability belongs here, see snn_mcp_group_for_ability().
