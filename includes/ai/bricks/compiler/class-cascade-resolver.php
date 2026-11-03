@@ -24,9 +24,12 @@ class SNN_Bricks_Rule_Set {
     public $match_cache;
     /** @var array "objectId|width" → resolved declarations */
     public $decl_cache = array();
+    /** @var \SplObjectStorage element → bool, a :hover/:focus rule sets its layout */
+    public $state_layout;
 
     public function __construct() {
         $this->match_cache = new \SplObjectStorage();
+        $this->state_layout = new \SplObjectStorage();
     }
 }
 
@@ -39,6 +42,22 @@ class SNN_Bricks_Cascade {
     const STATE_PSEUDO = '/:(hover|focus-within|focus-visible|focus|active|visited|target|checked|disabled)\b/i';
 
     const PSEUDO_ELEMENT = '/::?(before|after|first-letter|first-line|placeholder|marker|selection)\b/i';
+
+    /** Layout property → the Bricks setting keys it is written to. A state rule owns these keys for its element. */
+    const STATE_LAYOUT_KEYS = array(
+        'display'               => array( '_display' ),
+        'flex-direction'        => array( '_direction', '_flexDirection' ),
+        'flex-wrap'             => array( '_flexWrap' ),
+        'align-items'           => array( '_alignItems', '_alignItemsGrid' ),
+        'justify-content'       => array( '_justifyContent', '_justifyContentGrid' ),
+        'gap'                   => array( '_gap', '_gridGap', '_rowGap', '_columnGap' ),
+        'row-gap'               => array( '_rowGap' ),
+        'column-gap'            => array( '_columnGap' ),
+        'grid-template-columns' => array( '_gridTemplateColumns' ),
+        'grid-template-rows'    => array( '_gridTemplateRows' ),
+        'width'                 => array( '_width' ),
+        'max-width'             => array( '_widthMax' ),
+    );
 
     /** Approximate CSS specificity as a single sortable integer (same formula as the JS). */
     public static function specificity( $sel ) {
@@ -129,6 +148,50 @@ class SNN_Bricks_Cascade {
         } );
         $set->match_cache[ $el ] = $hit;
         return $hit;
+    }
+
+    /**
+     * The element a state selector styles: `.nav:hover .mega` styles `.mega`, `.btn:focus` styles `.btn`.
+     * The state pseudo-classes are dropped, leaving a plain selector for the element itself.
+     */
+    public static function state_subject( $selector ) {
+        $parts = preg_split( '/\s*[>+~]\s*|\s+/', trim( (string) $selector ) );
+        $last  = (string) end( $parts );
+        return trim( preg_replace( self::STATE_PSEUDO, '', $last ) );
+    }
+
+    /**
+     * Bricks setting keys whose layout a state rule (:hover, :focus-within, ...) changes on this element.
+     *
+     * Native layout is written as #brxe-{id} CSS, which outranks every class rule. If the base value
+     * (`display:none` on an overlay) were written there, it would beat the state rule (`:hover` shows
+     * the overlay) and the state would never apply. These keys stay out of the element settings, so
+     * the class CSS carries them and the state rule can win. Other layout (width, grid columns) is
+     * still native.
+     */
+    public static function state_owned_keys( $el, $set ) {
+        if ( ! $set || ! SNN_Bricks_Dom::is_element( $el ) ) {
+            return array();
+        }
+        if ( $set->state_layout->contains( $el ) ) {
+            return $set->state_layout[ $el ];
+        }
+        $keys = array();
+        foreach ( $set->states as $r ) {
+            $subject = self::state_subject( $r['selector'] );
+            if ( $subject === '' || ! SNN_Bricks_Dom::matches( $el, $subject ) ) {
+                continue;
+            }
+            foreach ( array_keys( $r['decls'] ) as $prop ) {
+                $owned = self::STATE_LAYOUT_KEYS[ strtolower( (string) $prop ) ] ?? array();
+                foreach ( $owned as $key ) {
+                    $keys[ $key ] = true;
+                }
+            }
+        }
+        $keys = array_keys( $keys );
+        $set->state_layout[ $el ] = $keys;
+        return $keys;
     }
 
     /** The declarations that apply to one element at one viewport width. */

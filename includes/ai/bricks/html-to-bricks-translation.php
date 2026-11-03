@@ -714,7 +714,56 @@
              * revert-layer: that hands it back to Bricks' layered element defaults, which
              * is exactly where the preview gets it from when no class rule applies.
              */
+            /** Bricks setting keys each state-controlled layout property writes (mirror of SNN_Bricks_Cascade::STATE_LAYOUT_KEYS). */
+            const STATE_LAYOUT_KEYS = {
+                'display': ['_display'],
+                'flex-direction': ['_direction', '_flexDirection'],
+                'flex-wrap': ['_flexWrap'],
+                'align-items': ['_alignItems', '_alignItemsGrid'],
+                'justify-content': ['_justifyContent', '_justifyContentGrid'],
+                'gap': ['_gap', '_gridGap', '_rowGap', '_columnGap'],
+                'row-gap': ['_rowGap'],
+                'column-gap': ['_columnGap'],
+                'grid-template-columns': ['_gridTemplateColumns'],
+                'grid-template-rows': ['_gridTemplateRows'],
+                'width': ['_width'],
+                'max-width': ['_widthMax']
+            };
+
+            /** The element a state selector styles: `.nav:hover .mega` styles `.mega`. */
+            function stateSubject(selector) {
+                const parts = String(selector).trim().split(/\s*[>+~]\s*|\s+/);
+                return (parts[parts.length - 1] || '')
+                    .replace(/::?(hover|focus-within|focus-visible|focus|active|visited|target|checked|disabled)\b/gi, '')
+                    .trim();
+            }
+
+            /**
+             * Bricks setting keys that a state rule (:hover, :focus-within, ...) changes on this element.
+             * They stay out of the element settings, so the class CSS carries them and the state wins.
+             */
+            function stateOwnedKeys(el, ruleSet) {
+                if (!ruleSet || !el || el.nodeType !== 1) return [];
+                if (!ruleSet.stateLayout) ruleSet.stateLayout = new WeakMap();
+                if (ruleSet.stateLayout.has(el)) return ruleSet.stateLayout.get(el);
+                const keys = new Set();
+                (ruleSet.states || []).forEach(r => {
+                    const subject = stateSubject(r.selector);
+                    if (!subject) return;
+                    let matches = false;
+                    try { matches = el.matches(subject); } catch (e) { matches = false; }
+                    if (!matches) return;
+                    Object.keys(r.decls || {}).forEach(p => {
+                        (STATE_LAYOUT_KEYS[p.toLowerCase()] || []).forEach(k => keys.add(k));
+                    });
+                });
+                const list = [...keys];
+                ruleSet.stateLayout.set(el, list);
+                return list;
+            }
+
             function computeNativeLayout(el, bricksName, ctx) {
+                const owned = stateOwnedKeys(el, ctx.ruleSet);
                 const plan   = ctx.plan;
                 const parent = el.parentElement && el.parentElement.tagName.toLowerCase() !== 'body' ? el.parentElement : null;
                 const at = (width) => deriveNativeSettings(
@@ -734,6 +783,9 @@
                         out[k + ':' + step.key] = value;
                         inherited[k] = value;
                     });
+                });
+                Object.keys(out).forEach(k => {
+                    if (owned.includes(k.split(':')[0])) delete out[k];
                 });
                 return out;
             }
@@ -1651,7 +1703,8 @@
             /** The Bricks element an HTML node compiles to. */
             function bricksNameFor(el) {
                 const explicit = el.getAttribute('data-bricks');
-                if (explicit) return explicit;
+                // header and footer are regions, not Bricks element types: both are sections.
+                if (explicit) return ({ header: 'section', footer: 'section' })[explicit] || explicit;
                 const tag = el.tagName.toLowerCase();
                 if ((tag === 'ul' || tag === 'ol') && isStructuralList(el)) return 'block';
                 return TAG_TO_ELEMENT[tag] || 'block';

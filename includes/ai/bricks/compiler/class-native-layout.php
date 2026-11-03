@@ -245,6 +245,9 @@ class SNN_Bricks_Native_Layout {
      */
     public static function compute( $el, $bricks_name, $ctx ) {
         $plan   = $ctx->plan;
+        // Settings a :hover/:focus rule changes stay in the class CSS, where that rule can win
+        // (see SNN_Bricks_Cascade::state_owned_keys). Everything else stays native.
+        $owned  = SNN_Bricks_Cascade::state_owned_keys( $el, $ctx->rule_set );
         $p      = SNN_Bricks_Dom::parent( $el );
         $parent = $p && SNN_Bricks_Dom::tag( $p ) !== 'body' ? $p : null;
         $at = function ( $width ) use ( $el, $bricks_name, $ctx, $parent ) {
@@ -276,6 +279,11 @@ class SNN_Bricks_Native_Layout {
                 }
                 $out[ $k . ':' . $step['key'] ] = $value;
                 $inherited[ $k ]                = $value;
+            }
+        }
+        foreach ( array_keys( $out ) as $k ) {
+            if ( in_array( explode( ':', (string) $k )[0], $owned, true ) ) {
+                unset( $out[ $k ] );
             }
         }
         return $out;

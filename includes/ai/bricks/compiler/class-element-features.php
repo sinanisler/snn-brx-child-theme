@@ -147,11 +147,17 @@ class SNN_Bricks_Features {
         return false;
     }
 
+    /**
+     * Hints that name an HTML region rather than a Bricks element type. Bricks has no "footer"
+     * or "header" element: both are sections (the real tag is kept by apply_layout_tag).
+     */
+    const HINT_ALIASES = array( 'header' => 'section', 'footer' => 'section' );
+
     /** The Bricks element an HTML node compiles to. */
     public static function bricks_name_for( $el ) {
         $explicit = SNN_Bricks_Dom::attr( $el, 'data-bricks' );
         if ( $explicit ) {
-            return $explicit;
+            return self::HINT_ALIASES[ $explicit ] ?? $explicit;
         }
         $tag = SNN_Bricks_Dom::tag( $el );
         if ( ( $tag === 'ul' || $tag === 'ol' ) && self::is_structural_list( $el ) ) {

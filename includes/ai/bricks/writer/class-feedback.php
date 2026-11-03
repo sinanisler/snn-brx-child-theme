@@ -266,6 +266,14 @@ class SNN_Bricks_Feedback {
         return $out;
     }
 
+    /** True when a :hover/:focus/:focus-within rule in the page CSS styles this class, e.g. `.nav-item:hover .mega`. */
+    private static function is_state_target( $name, $page_css ) {
+        if ( $name === '' ) {
+            return false;
+        }
+        return (bool) preg_match( '/:(hover|focus-within|focus-visible|focus|active)[^{}]*\.' . preg_quote( $name, '/' ) . '(?![\w-])[^{}]*\{/', $page_css );
+    }
+
     /** Problems a browser preview would show the builder user at a glance. */
     public static function checks( array $elements, SNN_Bricks_Edit_Ops $ops, array $classes, array $scope ) {
         $issues   = array();
@@ -318,14 +326,21 @@ class SNN_Bricks_Feedback {
         }
 
         // Canvas-export leftovers in the classes the affected sections use.
+        // An overlay (a mega menu panel, a tooltip) is absolutely positioned on purpose when a
+        // :hover or :focus rule shows it, so those classes are not reported.
+        $page_css = '';
+        foreach ( $class_by_id as $gc_css ) {
+            $page_css .= "\n" . (string) ( $gc_css['settings']['_cssCustom'] ?? '' );
+        }
         $canvas = array();
         foreach ( array_keys( $used ) as $cid ) {
-            $css = (string) ( $class_by_id[ $cid ]['settings']['_cssCustom'] ?? '' );
+            $css   = (string) ( $class_by_id[ $cid ]['settings']['_cssCustom'] ?? '' );
             if ( $css === '' ) {
                 continue;
             }
+            $cname = (string) ( $class_by_id[ $cid ]['name'] ?? '' );
             $why = array();
-            if ( preg_match( '/position\s*:\s*absolute/i', $css ) ) {
+            if ( preg_match( '/position\s*:\s*absolute/i', $css ) && ! self::is_state_target( $cname, $page_css ) ) {
                 $why[] = 'position:absolute';
             }
             if ( preg_match_all( '/(?<![-\w])(min-)?(width|height)\s*:\s*(\d{4,})px/i', $css, $m, PREG_SET_ORDER ) ) {
