@@ -42,7 +42,10 @@ add_action( 'admin_menu', 'snn_activity_log_page' );
  * This includes a global enable/disable toggle, a log limit, and individual toggles for each log type.
  */
 function snn_activity_log_register_settings() {
-    register_setting( 'snn_activity_log_options', 'snn_activity_log_enable' );
+    register_setting( 'snn_activity_log_options', 'snn_activity_log_enable', array(
+        'type'    => 'boolean',
+        'default' => 1,
+    ) );
     register_setting( 'snn_activity_log_options', 'snn_activity_log_limit', array(
         'type'              => 'integer',
         'sanitize_callback' => 'absint',
@@ -55,7 +58,7 @@ function snn_activity_log_register_settings() {
         foreach ( $options as $key => $label ) {
             register_setting( 'snn_activity_log_options', 'snn_log_' . $key, array(
                 'type'    => 'boolean',
-                'default' => true,
+                'default' => snn_get_log_type_default( $key ),
             ) );
         }
     }
@@ -278,7 +281,33 @@ function snn_get_logging_options() {
  * @return bool True if the log type is enabled, false otherwise.
  */
 function snn_is_log_type_enabled( $log_type ) {
-    return get_option( 'snn_log_' . $log_type, true );
+    return get_option( 'snn_log_' . $log_type, snn_get_log_type_default( $log_type ) );
+}
+
+/**
+ * Default on/off state of a log type, used until the admin saves the Logging Options.
+ * Only the types listed here are on out of the box; every other logging option starts disabled.
+ * Types with no toggle in the settings (such as MCP audit entries) keep logging.
+ *
+ * @param string $log_type The key of the log type (e.g., 'post_updated').
+ * @return bool True if the log type is on by default.
+ */
+function snn_get_log_type_default( $log_type ) {
+    $enabled_by_default = array(
+        'post_updated',
+        'bricks_content_updated',
+    );
+    if ( in_array( $log_type, $enabled_by_default, true ) ) {
+        return true;
+    }
+
+    foreach ( snn_get_logging_options() as $options ) {
+        if ( isset( $options[ $log_type ] ) ) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -292,7 +321,7 @@ function snn_is_log_type_enabled( $log_type ) {
  */
 function snn_log_user_activity( $action, $object = '', $object_id = 0, $log_type = '' ) {
     // Stop if the feature is disabled globally or if the action is empty.
-    if ( ! get_option( 'snn_activity_log_enable' ) || empty( trim( $action ) ) ) {
+    if ( ! get_option( 'snn_activity_log_enable', 1 ) || empty( trim( $action ) ) ) {
         return;
     }
 
@@ -1445,7 +1474,7 @@ add_filter( 'rest_authentication_errors', function( $result ) {
 // REST API — dynamic per-method tracking of all endpoints
 // Each HTTP method (GET, POST, PUT, PATCH, DELETE) can be toggled independently.
 add_action( 'rest_api_init', function() {
-    if ( ! get_option( 'snn_activity_log_enable' ) ) {
+    if ( ! get_option( 'snn_activity_log_enable', 1 ) ) {
         return;
     }
 
@@ -1831,7 +1860,7 @@ function snn_activity_log_page_html() {
                     <th scope="row"><?php _e( 'Enable Activity Log', 'snn' ); ?></th>
                     <td>
                         <label>
-                            <input type="checkbox" name="snn_activity_log_enable" value="1" <?php checked( 1, get_option( 'snn_activity_log_enable' ), true ); ?> />
+                            <input type="checkbox" name="snn_activity_log_enable" value="1" <?php checked( 1, get_option( 'snn_activity_log_enable', 1 ), true ); ?> />
                             <?php _e( 'Enable the activity logging feature.', 'snn' ); ?>
                         </label>
                     </td>
@@ -1877,7 +1906,7 @@ function snn_activity_log_page_html() {
                                         </th>
                                         <td>
                                             <label>
-                                                <input type="checkbox" name="snn_log_<?php echo esc_attr( $key ); ?>" value="1" <?php checked( 1, get_option( 'snn_log_' . $key, true ), true ); ?> />
+                                                <input type="checkbox" name="snn_log_<?php echo esc_attr( $key ); ?>" value="1" <?php checked( 1, get_option( 'snn_log_' . $key, snn_get_log_type_default( $key ) ), true ); ?> />
                                                 <?php _e( 'Enable', 'snn' ); ?>
                                             </label>
                                         </td>
