@@ -57,7 +57,7 @@ class SNN_Bricks_Features {
         'p' => 'text-basic', 'span' => 'text-basic', 'strong' => 'text-basic',
         'em' => 'text-basic', 'small' => 'text-basic', 'blockquote' => 'text-basic',
         'figcaption' => 'text-basic', 'address' => 'text-basic', 'time' => 'text-basic',
-        'label' => 'text-basic', 'ul' => 'text-basic', 'ol' => 'text-basic',
+        'label' => 'text-basic', 'ul' => 'block', 'ol' => 'block',
         'dl' => 'text-basic', 'pre' => 'text-basic',
         'a' => 'text-link', 'button' => 'button', 'img' => 'image',
         'i' => 'icon',
@@ -97,13 +97,43 @@ class SNN_Bricks_Features {
             }
         }
         if ( ! $glyph ) {
-            return null;
+            return self::parse_other_icon( $class_string );
         }
         if ( ! $library ) {
             $library = 'fontawesomeSolid';
         }
         $prefix = $library === 'fontawesomeBrands' ? 'fab' : ( $library === 'fontawesomeRegular' ? 'far' : 'fas' );
         return array( 'library' => $library, 'icon' => $prefix . ' ' . $glyph );
+    }
+
+    /**
+     * Icon libraries Bricks ships besides Font Awesome: Ionicons (ion-*) and Themify (ti-*).
+     * The class names are the library's own, so the icon is the token itself.
+     */
+    public static function parse_other_icon( $class_string ) {
+        foreach ( preg_split( '/\s+/', trim( (string) $class_string ) ) as $token ) {
+            if ( strpos( $token, 'ion-' ) === 0 && strlen( $token ) > 4 ) {
+                return array( 'library' => 'ionicons', 'icon' => $token );
+            }
+            if ( strpos( $token, 'ti-' ) === 0 && strlen( $token ) > 3 ) {
+                return array( 'library' => 'themify', 'icon' => $token );
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Icon classes that look like Font Awesome but that Bricks cannot draw in their own style.
+     * They become the solid style, so the caller reports it.
+     */
+    public static function unsupported_fa_style( $class_string ) {
+        $found = array();
+        foreach ( preg_split( '/\s+/', (string) $class_string ) as $token ) {
+            if ( in_array( $token, array( 'fal', 'fad', 'fat', 'fa-light', 'fa-thin', 'fa-duotone', 'fa-sharp' ), true ) ) {
+                $found[] = $token;
+            }
+        }
+        return $found;
     }
 
     public static function is_fa_token( $c ) {
@@ -153,17 +183,34 @@ class SNN_Bricks_Features {
      */
     const HINT_ALIASES = array( 'header' => 'section', 'footer' => 'section' );
 
-    /** The Bricks element an HTML node compiles to. */
+    /** The Bricks element an HTML node compiles to. A data-bricks hint wins; the walker validates it. */
     public static function bricks_name_for( $el ) {
         $explicit = SNN_Bricks_Dom::attr( $el, 'data-bricks' );
         if ( $explicit ) {
             return self::HINT_ALIASES[ $explicit ] ?? $explicit;
         }
+        return self::bricks_name_for_tag( $el );
+    }
+
+    /** The element for the tag alone, ignoring any data-bricks hint. */
+    public static function bricks_name_for_tag( $el ) {
         $tag = SNN_Bricks_Dom::tag( $el );
-        if ( ( $tag === 'ul' || $tag === 'ol' ) && self::is_structural_list( $el ) ) {
-            return 'block';
+        if ( $tag === 'li' && self::in_plain_list( $el ) ) {
+            return 'text-basic';
         }
         return self::TAG_TO_ELEMENT[ $tag ] ?? 'block';
+    }
+
+    /**
+     * A list item in a list of plain text. Such a list is a Bricks block (ul/ol) whose items are
+     * text elements, so every item can be edited on its own. Lists that hold layout stay blocks.
+     */
+    public static function in_plain_list( $el ) {
+        $p = SNN_Bricks_Dom::parent( $el );
+        if ( ! $p || ! in_array( SNN_Bricks_Dom::tag( $p ), array( 'ul', 'ol' ), true ) ) {
+            return false;
+        }
+        return ! self::is_structural_list( $p );
     }
 
     /** Keep a layout element's real HTML tag so tag selectors and semantics survive. */

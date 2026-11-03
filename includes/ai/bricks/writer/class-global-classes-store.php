@@ -148,6 +148,54 @@ class SNN_Bricks_Global_Classes_Store {
         return $write;
     }
 
+    /**
+     * Rename and delete global classes in one guarded write. A rename also rewrites the class's
+     * CSS and the CSS of every class that names the old name.
+     *
+     * @param array $renames original name => new name
+     * @param array $deletes names to delete
+     * @return array|WP_Error { renamed: string[], deleted: string[] }
+     */
+    public static function rename_and_delete( array $renames, array $deletes ) {
+        if ( ! $renames && ! $deletes ) {
+            return array( 'renamed' => array(), 'deleted' => array() );
+        }
+        $before  = self::read_classes();
+        $after   = array();
+        $renamed = array();
+        $deleted = array();
+        $now     = time();
+        foreach ( $before as $gc ) {
+            $name = (string) ( $gc['name'] ?? '' );
+            if ( in_array( $name, $deletes, true ) ) {
+                $deleted[] = $name;
+                continue;
+            }
+            $css = (string) ( $gc['settings']['_cssCustom'] ?? '' );
+            $new = $renames ? SNN_Bricks_Css::rename_classes_in_css( $css, $renames ) : $css;
+            if ( isset( $renames[ $name ] ) ) {
+                $gc['name']     = $renames[ $name ];
+                $renamed[]      = $name . ' => ' . $renames[ $name ];
+                $gc['modified'] = $now;
+            }
+            if ( $new !== $css ) {
+                $gc['settings']['_cssCustom'] = $new;
+                $gc['modified']               = $now;
+            }
+            $after[] = $gc;
+        }
+        if ( self::fingerprint( $after ) === self::fingerprint( $before ) ) {
+            return array( 'renamed' => array(), 'deleted' => array() );
+        }
+        $write = self::cas_write( self::classes_option(), $before, $after );
+        if ( is_wp_error( $write ) ) {
+            return $write;
+        }
+        update_option( self::opt( 'BRICKS_DB_GLOBAL_CLASSES_TIMESTAMP', 'bricks_global_classes_timestamp' ), $now );
+        self::regenerate_global_class_css();
+        return array( 'renamed' => $renamed, 'deleted' => $deleted );
+    }
+
     /** Make sure an empty class exists for each name; returns name → id. */
     public static function ensure_classes( array $names, SNN_Bricks_Id_Pool $ids ) {
         $map    = array();

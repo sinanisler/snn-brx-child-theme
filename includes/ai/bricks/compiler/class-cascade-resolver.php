@@ -38,6 +38,13 @@ class SNN_Bricks_Cascade {
     /** Selectors carrying interaction/state pseudos must not drive base layout settings. */
     const STATE_SELECTOR = '/::|:(hover|focus|focus-within|focus-visible|active|visited|target|checked|disabled|placeholder)\b/i';
 
+    /**
+     * Attribute selectors that a script or Bricks' interaction switches at runtime: data-*, aria-*,
+     * and the state attributes (hidden, open, checked, disabled). A rule on them (`.menu[data-open]`)
+     * is a state rule, so its layout stays in CSS, where it can win over the base value.
+     */
+    const STATE_ATTRIBUTE = '/\[(?:data-[\w-]+|aria-[\w-]+|hidden|open|checked|disabled)(?=[\]=~|^$*\s])/i';
+
     /** Longer names first, so ":focus" never half-matches ":focus-within". */
     const STATE_PSEUDO = '/:(hover|focus-within|focus-visible|focus|active|visited|target|checked|disabled)\b/i';
 
@@ -109,6 +116,13 @@ class SNN_Bricks_Cascade {
                         }
                         continue;
                     }
+                    if ( preg_match( self::STATE_ATTRIBUTE, $sel ) ) {
+                        // Applies as a base rule where the attribute is in the markup ([data-kind="x"]), and owns its
+                        // layout where a script sets it later (.menu[data-open]): both lists, so each case works.
+                        $set->states[] = $rule;
+                        $set->rules[]  = $rule;
+                        continue;
+                    }
                     $set->rules[] = $rule;
                 }
             }
@@ -157,6 +171,8 @@ class SNN_Bricks_Cascade {
     public static function state_subject( $selector ) {
         $parts = preg_split( '/\s*[>+~]\s*|\s+/', trim( (string) $selector ) );
         $last  = (string) end( $parts );
+        // The attribute a script sets is not on the element at compile time, so it is dropped with the pseudo-classes.
+        $last  = preg_replace( '/\[[^\]]*\]/', '', $last );
         return trim( preg_replace( self::STATE_PSEUDO, '', $last ) );
     }
 

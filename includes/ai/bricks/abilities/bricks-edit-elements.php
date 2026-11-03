@@ -22,6 +22,9 @@ function snn_register_bricks_edit_elements_ability() {
         '{"op":"insert","parent":{"id":"abcdef"},"index":1,"name":"heading","text":"Hello","classes":["hero-title"]}',
         '{"op":"wrap","targets":[{"id":"a"},{"id":"b"}],"name":"block","classes":["row"]}',
         '{"op":"unwrap","target":{"id":"abcdef"}}',
+        '{"op":"rename_class","from":"hero-title","to":"hero-heading"}  (renames the global class; its CSS and every class or page style that names it follow; elements keep working)',
+        '{"op":"delete_class","name":"old-card"}  (refused while elements use it; add "detach":true to remove it from them first)',
+        '{"op":"set_settings","target":{"id":"abcdef"},"settings":{"_cssId":"pricing"}}  (any Bricks setting; unknown keys are reported as warnings with the right name when one is close)',
     ) );
 
     $props = array_merge(
@@ -42,7 +45,7 @@ function snn_register_bricks_edit_elements_ability() {
 
     wp_register_ability( 'snn/bricks-edit-elements', array(
         'label'       => __( 'Bricks: Edit Elements', 'snn' ),
-        'description' => __( 'Edit a Bricks page with operations: set_text, set_image, set_icon, set_settings, update_class, delete, move, duplicate, insert, wrap, unwrap. All-or-nothing: one failing op leaves the page untouched. Every reply (dry_run too) has feedback: which elements changed and which settings, the outline of the touched sections, checks and the next step. Get ids from snn-bricks-get-page-tree or snn-bricks-find-elements and pass its documentDigest as expected_digest. Style changes belong in update_class (classes are shared), content changes in element ops. update_class on a layout property re-derives native layout on sections built from HTML.', 'snn' ),
+        'description' => __( 'Edit a Bricks page with operations: set_text, set_image, set_icon, set_settings, update_class, delete, move, duplicate, insert, wrap, unwrap, rename_class, delete_class. All-or-nothing: one failing op leaves the page untouched. Unknown element types and setting keys are checked against Bricks itself (snn/bricks-element-schema lists them). Every reply (dry_run too) has feedback: which elements changed and which settings, the outline of the touched sections, checks and the next step. Get ids from snn-bricks-get-page-tree or snn-bricks-find-elements and pass its documentDigest as expected_digest. Style changes belong in update_class (classes are shared), content changes in element ops. update_class on a layout property re-derives native layout on sections built from HTML.', 'snn' ),
         'category'    => 'snn-bricks',
         'input_schema' => array(
             'type'       => 'object',
@@ -92,13 +95,22 @@ function snn_register_bricks_edit_elements_ability() {
                     'documentDigestBefore' => $state['documentDigest'],
                 );
                 $out['classChanges'] = array_keys( $ops->class_writes() );
+                $out['warnings']     = $ops->warnings();
                 if ( $dry_run ) {
                     $out['feedback'] = snn_bricks_edit_feedback( $post_id, $state['elements'], $ops, false, false );
                     return $out;
                 }
 
                 $classes_before = SNN_Bricks_Global_Classes_Store::read_classes();
-                $new_classes    = $ops->new_classes();
+                if ( $ops->renames() || $ops->deletes() ) {
+                    $renamed_deleted = SNN_Bricks_Global_Classes_Store::rename_and_delete( $ops->renames(), $ops->deletes() );
+                    if ( is_wp_error( $renamed_deleted ) ) {
+                        return $renamed_deleted;
+                    }
+                    $out['classesRenamed'] = $renamed_deleted['renamed'];
+                    $out['classesDeleted'] = $renamed_deleted['deleted'];
+                }
+                $new_classes = $ops->new_classes();
                 if ( $new_classes ) {
                     $created = SNN_Bricks_Global_Classes_Store::apply( $new_classes );
                     if ( is_wp_error( $created ) ) {

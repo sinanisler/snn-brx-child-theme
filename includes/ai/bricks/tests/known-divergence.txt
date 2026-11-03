@@ -1,0 +1,19 @@
+# Samples whose PHP output differs from the JS reference on purpose (expected/*.json).
+# Format: sample name | reason. run-parity.php reports these as KNOWN, not FAIL.
+# A listed sample that matches again is reported, so the line can be removed.
+#
+# PHP-only behaviour the builder's JS compiler does not have (see html-to-bricks-translation.php):
+08-button-icon-right | PHP only: buttons get letter-spacing/text-align inherit (element_css_extras)
+09-button-icon-left-inline | PHP only: buttons get letter-spacing/text-align inherit (element_css_extras)
+11-icon-inherited-size-color | PHP only: text elements inherit colour from their ancestors
+12-icon-hover-state | PHP only: text elements inherit colour from their ancestors
+27-keyframes-states | PHP only: buttons get letter-spacing/text-align inherit (element_css_extras)
+28-bare-classes-and-global-css | PHP only: text elements inherit colour from their ancestors
+23-attributes | PHP only: data-animate becomes a Bricks interaction; id becomes the CSS ID
+#
+# Deliberate converter changes (the PHP compiler is the MCP reference):
+16-lists | plain ul/ol become a block whose li items are text elements (JS keeps one text blob)
+26-important-inline-specificity | the container's id="main" is kept as its CSS ID
+#
+# libxml fallback parser (PHP below 8.4; the HTML5 parser on 8.4+ keeps these):
+20-custom-html-embeds | no tbody inserted and boolean attributes serialised differently by libxml

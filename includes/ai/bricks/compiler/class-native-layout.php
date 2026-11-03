@@ -26,6 +26,22 @@ class SNN_Bricks_Native_Layout {
     /** Element names Bricks treats as layout elements (_direction / _flexWrap / _columnGap). */
     const LAYOUT_ELEMENT_NAMES = array( 'section', 'container', 'block', 'div' );
 
+    /**
+     * CSS properties derive() writes as native Bricks settings. Every other declaration
+     * stays in CSS (class rule or element rule), so nothing is lost.
+     */
+    const DERIVED_PROPS = array(
+        'display', 'flex-direction', 'flex-wrap', 'align-items', 'justify-content', 'align-content',
+        'gap', 'grid-gap', 'row-gap', 'column-gap',
+        'grid-template-columns', 'grid-template-rows', 'grid-auto-columns', 'grid-auto-rows',
+        'grid-auto-flow', 'justify-items', 'width', 'max-width',
+    );
+
+    /** Is this declaration one the native layout pass takes over? */
+    public static function is_native_prop( $prop ) {
+        return in_array( strtolower( trim( (string) $prop ) ), self::DERIVED_PROPS, true );
+    }
+
     /** Every setting the cascade resolver owns, so a re-sync clears exactly these. */
     const NATIVE_LAYOUT_KEYS = array(
         '_display', '_direction', '_flexDirection', '_flexWrap', '_alignItems', '_justifyContent',

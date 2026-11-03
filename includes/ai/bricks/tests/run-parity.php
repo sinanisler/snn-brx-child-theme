@@ -76,6 +76,20 @@ function snn_parity_json( $value ) {
     return $json;
 }
 
+// Samples whose PHP output differs on purpose: name | reason (known-divergence.txt).
+$snn_known = array();
+$snn_known_file = $snn_parity_dir . '/known-divergence.txt';
+if ( file_exists( $snn_known_file ) ) {
+    foreach ( file( $snn_known_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES ) as $snn_line ) {
+        if ( $snn_line === '' || $snn_line[0] === '#' || strpos( $snn_line, '|' ) === false ) {
+            continue;
+        }
+        $snn_parts = explode( '|', $snn_line, 2 );
+        $snn_known[ trim( $snn_parts[0] ) ] = trim( $snn_parts[1] );
+    }
+}
+$snn_known_hit = array();
+
 $snn_plan = SNN_Bricks_Native_Layout::breakpoint_plan( SNN_Bricks_Native_Layout::DEFAULT_BREAKPOINTS );
 $snn_pass = 0;
 $snn_fail = array();
@@ -102,7 +116,12 @@ foreach ( glob( $snn_parity_dir . '/samples/*.html' ) as $snn_file ) {
     $snn_b = snn_parity_json( $snn_expected );
     if ( $snn_a === $snn_b ) {
         $snn_pass++;
-        echo "PASS  {$snn_name}\n";
+        echo "PASS  {$snn_name}" . ( isset( $snn_known[ $snn_name ] ) ? '  (listed as known divergence: it matches now, remove the line)' : '' ) . "\n";
+        continue;
+    }
+    if ( isset( $snn_known[ $snn_name ] ) ) {
+        $snn_known_hit[] = $snn_name;
+        echo "KNOWN {$snn_name}  ({$snn_known[ $snn_name ]})\n";
         continue;
     }
     $snn_fail[] = $snn_name;
@@ -120,7 +139,7 @@ foreach ( glob( $snn_parity_dir . '/samples/*.html' ) as $snn_file ) {
     }
 }
 
-echo "\n{$snn_pass} passed, " . count( $snn_fail ) . " failed" . ( SNN_Bricks_Dom::has_html5() ? ' (HTML5 parser)' : ' (libxml fallback parser)' ) . "\n";
+echo "\n{$snn_pass} passed, " . count( $snn_known_hit ) . " known divergence, " . count( $snn_fail ) . " unexpected failure(s)" . ( SNN_Bricks_Dom::has_html5() ? ' (HTML5 parser)' : ' (libxml fallback parser)' ) . "\n";
 if ( $snn_fail && class_exists( 'WP_CLI' ) ) {
     WP_CLI::halt( 1 );
 }

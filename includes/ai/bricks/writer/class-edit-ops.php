@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class SNN_Bricks_Edit_Ops {
 
-    const OPS        = array( 'set_text', 'set_image', 'set_icon', 'set_settings', 'update_class', 'delete', 'move', 'duplicate', 'insert', 'wrap', 'unwrap' );
+    const OPS        = array( 'set_text', 'set_image', 'set_icon', 'set_settings', 'update_class', 'delete', 'move', 'duplicate', 'insert', 'wrap', 'unwrap', 'rename_class', 'delete_class' );
     const STRUCTURAL = array( 'delete', 'move', 'insert', 'wrap', 'unwrap', 'duplicate' );
 
     const LAYOUT_PROP = '/^(display|flex|flex-direction|flex-wrap|flex-flow|align-items|align-content|justify-items|justify-content|gap|row-gap|column-gap|grid-gap|grid-template|grid-template-columns|grid-template-rows|grid-auto-columns|grid-auto-rows|grid-auto-flow|width|max-width)$/i';
@@ -32,6 +32,12 @@ class SNN_Bricks_Edit_Ops {
     private $ids;
     private $post_id;
     private $content_changed = false;
+    /** @var string[] Warnings about this batch: unknown setting keys and the like. */
+    private $warnings = array();
+    /** @var array original class name => new name, applied to the global class store. */
+    private $renames = array();
+    /** @var string[] Class names to delete from the global class store. */
+    private $deletes = array();
 
     public function __construct( $post_id, array $content, array $classes ) {
         $this->post_id = $post_id;
@@ -151,6 +157,12 @@ class SNN_Bricks_Edit_Ops {
             $want    = ltrim( (string) $spec['class'], '.' );
             $matches = array_filter( $matches, function ( $el ) use ( $want ) {
                 return in_array( $want, $this->class_names_of( $el ), true );
+            } );
+        }
+        if ( ! empty( $spec['cssId'] ) ) {
+            $want    = ltrim( (string) $spec['cssId'], '#' );
+            $matches = array_filter( $matches, function ( $el ) use ( $want ) {
+                return ( $el['settings']['_cssId'] ?? '' ) === $want;
             } );
         }
         if ( ! empty( $spec['type'] ) ) {
@@ -388,8 +400,16 @@ class SNN_Bricks_Edit_Ops {
         if ( ! $r['ok'] ) {
             return self::fail( $r );
         }
-        $el             = &$this->el( $r['id'] );
-        $el['settings'] = self::merge_settings( (array) ( $el['settings'] ?? array() ), (array) ( $op['settings'] ?? array() ) );
+        $el    = &$this->el( $r['id'] );
+        $patch = (array) ( $op['settings'] ?? array() );
+        if ( isset( $patch['_cssId'] ) && is_string( $patch['_cssId'] ) && $patch['_cssId'] !== '' ) {
+            $patch['_cssId'] = SNN_Bricks_Html_To_Bricks::clean_css_id( $patch['_cssId'] );
+        }
+        // Keys Bricks does not define for this element are reported; the rest is written.
+        foreach ( SNN_Bricks_Schema::unknown_keys( (string) $el['name'], $patch ) as $key ) {
+            $this->warnings[] = SNN_Bricks_Schema::unknown_key_message( (string) $el['name'], $key ) . ' (on [' . $r['id'] . '])';
+        }
+        $el['settings'] = self::merge_settings( (array) ( $el['settings'] ?? array() ), $patch );
         return array( 'success' => true, 'message' => 'Settings updated on [' . $r['id'] . ']' );
     }
 
@@ -580,6 +600,12 @@ class SNN_Bricks_Edit_Ops {
             $parent_id = $pr['id'];
         }
         $name     = sanitize_key( (string) ( $op['name'] ?? 'block' ) );
+        if ( ! SNN_Bricks_Schema::has_element( $name ) ) {
+            return array( 'success' => false, 'error' => SNN_Bricks_Schema::unknown_element_message( $name ) );
+        }
+        foreach ( SNN_Bricks_Schema::unknown_keys( $name, (array) ( $op['settings'] ?? array() ) ) as $key ) {
+            $this->warnings[] = SNN_Bricks_Schema::unknown_key_message( $name, $key ) . ' (on the new ' . $name . ')';
+        }
         $settings = (array) ( $op['settings'] ?? array() );
         if ( isset( $op['text'] ) ) {
             $settings['text'] = (string) $op['text'];
@@ -629,6 +655,108 @@ class SNN_Bricks_Edit_Ops {
             array_splice( $this->content, $this->index()[ $parent_id ] + 1, 0, array( $el ) );
         }
         return array( 'success' => true, 'message' => 'Inserted ' . $name . ' [' . $id . ']', 'newId' => $id );
+    }
+
+    /**
+     * Rename a global class. Its own CSS, other classes that name it, and page <style> blocks follow.
+     * Elements refer to classes by id, so they need no change.
+     */
+    private function op_rename_class( array $op ) {
+        $from = ltrim( (string) ( $op['from'] ?? '' ), '.' );
+        $to   = ltrim( (string) ( $op['to'] ?? '' ), '.' );
+        if ( $from === '' || $to === '' ) {
+            return array( 'success' => false, 'error' => 'rename_class needs "from" and "to" class names' );
+        }
+        if ( ! preg_match( '/^-?[A-Za-z_][A-Za-z0-9_-]*$/', $to ) ) {
+            return array( 'success' => false, 'error' => 'The class name ".' . $to . '" is not valid: use letters, digits, - and _, and do not start with a digit.' );
+        }
+        if ( ! isset( $this->classes[ $from ] ) ) {
+            return array( 'success' => false, 'error' => 'No global class ".' . $from . '" exists' );
+        }
+        if ( isset( $this->classes[ $to ] ) ) {
+            return array( 'success' => false, 'error' => 'A global class ".' . $to . '" already exists. Choose a free name.' );
+        }
+        $map = array( $from => $to );
+
+        // Other classes whose CSS names the old class (".old:hover", ".old .child").
+        foreach ( $this->classes as $name => $gc ) {
+            $css = (string) ( $gc['settings']['_cssCustom'] ?? '' );
+            $new = SNN_Bricks_Css::rename_classes_in_css( $css, $map );
+            if ( $new !== $css ) {
+                $this->classes[ $name ]['settings']['_cssCustom'] = $new;
+                $this->class_writes[ $name ]                      = $new;
+            }
+        }
+
+        $row = $this->classes[ $from ];
+        unset( $this->classes[ $from ] );
+        $row['name']                   = $to;
+        $row['settings']['_cssCustom'] = SNN_Bricks_Css::rename_classes_in_css( (string) ( $row['settings']['_cssCustom'] ?? '' ), $map );
+        $this->classes[ $to ]          = $row;
+        if ( isset( $this->class_writes[ $from ] ) ) {
+            unset( $this->class_writes[ $from ] );
+            $this->class_writes[ $to ] = $row['settings']['_cssCustom'];
+        }
+
+        // The store renames from the names it holds, so chains (a to b, then b to c) collapse to a to c.
+        $chained = false;
+        foreach ( $this->renames as $orig => $current ) {
+            if ( $current === $from ) {
+                $this->renames[ $orig ] = $to;
+                $chained                = true;
+            }
+        }
+        if ( ! $chained ) {
+            $this->renames[ $from ] = $to;
+        }
+        $this->rename_in_page_css( $map );
+        return array( 'success' => true, 'message' => 'Renamed class .' . $from . ' to .' . $to );
+    }
+
+    /**
+     * Delete a global class. Refused while elements use it, unless "detach": true, which removes it
+     * from those elements first.
+     */
+    private function op_delete_class( array $op ) {
+        $name = ltrim( (string) ( $op['name'] ?? ( $op['class'] ?? '' ) ), '.' );
+        if ( ! isset( $this->classes[ $name ] ) ) {
+            return array( 'success' => false, 'error' => 'No global class ".' . $name . '" exists' );
+        }
+        $id    = $this->classes[ $name ]['id'];
+        $users = array();
+        foreach ( $this->content as $el ) {
+            if ( in_array( $id, (array) ( $el['settings']['_cssGlobalClasses'] ?? array() ), true ) ) {
+                $users[] = $el['id'];
+            }
+        }
+        if ( $users && empty( $op['detach'] ) ) {
+            return array( 'success' => false, 'error' => 'Class .' . $name . ' is used by ' . count( $users ) . ' element(s) (' . implode( ', ', array_slice( $users, 0, 8 ) ) . '). Pass "detach": true to remove it from them and delete it.' );
+        }
+        foreach ( $this->content as &$el ) {
+            if ( in_array( $el['id'], $users, true ) ) {
+                $el['settings']['_cssGlobalClasses'] = array_values( array_filter( (array) $el['settings']['_cssGlobalClasses'], function ( $c ) use ( $id ) {
+                    return $c !== $id;
+                } ) );
+            }
+        }
+        unset( $el );
+        unset( $this->classes[ $name ], $this->class_writes[ $name ] );
+        $this->deletes[] = $name;
+        return array( 'success' => true, 'message' => 'Deleted class .' . $name . ( $users ? ' (removed from ' . count( $users ) . ' element(s))' : '' ) );
+    }
+
+    /** Apply class renames inside the <style> blocks of page CSS elements. */
+    private function rename_in_page_css( array $map ) {
+        foreach ( $this->content as &$el ) {
+            $html = (string) ( $el['settings']['content'] ?? '' );
+            if ( ( $el['name'] ?? '' ) !== 'custom-html-css-script' || stripos( $html, '<style' ) === false ) {
+                continue;
+            }
+            $el['settings']['content'] = preg_replace_callback( '/(<style[^>]*>)([\s\S]*?)(<\/style>)/i', function ( $m ) use ( $map ) {
+                return $m[1] . SNN_Bricks_Css::rename_classes_in_css( $m[2], $map ) . $m[3];
+            }, $html );
+        }
+        unset( $el );
     }
 
     private function op_wrap( array $op ) {
@@ -952,6 +1080,21 @@ class SNN_Bricks_Edit_Ops {
             }
         }
         return $out;
+    }
+
+    /** Warnings about this batch, for the reply. */
+    public function warnings() {
+        return array_values( array_unique( $this->warnings ) );
+    }
+
+    /** Renames to apply to the store: original name => new name. */
+    public function renames() {
+        return $this->renames;
+    }
+
+    /** Classes to delete from the store. */
+    public function deletes() {
+        return array_values( array_unique( $this->deletes ) );
     }
 
     /** New classes created by insert/wrap, as store rows. */

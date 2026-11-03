@@ -42,7 +42,13 @@ class SNN_Bricks_Nested {
     public static function name_for( $el, $explicit ) {
         if ( $explicit !== null && $explicit !== '' ) {
             $map = array( 'accordion' => 'accordion-nested', 'tabs' => 'tabs-nested', 'slider' => 'slider-nested' );
-            return $map[ $explicit ] ?? null;
+            if ( isset( $map[ $explicit ] ) ) {
+                return $map[ $explicit ];
+            }
+            // A layout hint (block, container, section, div) still takes a group of details as an accordion.
+            if ( ! in_array( $explicit, array( 'block', 'container', 'section', 'div' ), true ) ) {
+                return null;
+            }
         }
         // No hint: a container made only of <details> is an accordion.
         $kids = SNN_Bricks_Dom::children( $el );
@@ -74,6 +80,27 @@ class SNN_Bricks_Nested {
         $index     = self::node( $content, $name, $parent_id, $ids, array(), self::global_ids( $el, $class_to_id ) );
         self::style( $content, $index, $el );
         self::hand_over_inner_layout( $content[ $index ]['settings'] );
+
+        // The wrapper takes the same attributes as any element: CSS ID, data-bricks-* settings, interactions.
+        $css_id = SNN_Bricks_Html_To_Bricks::css_id_for( $el, $name );
+        if ( $css_id !== '' ) {
+            $content[ $index ]['settings']['_cssId'] = $css_id;
+        }
+        $data = SNN_Bricks_Data_Settings::parse( $el, $name );
+        foreach ( $data['notes'] as $note ) {
+            SNN_Bricks_Html_To_Bricks::note( $note );
+        }
+        foreach ( $data['settings'] as $k => $v ) {
+            $content[ $index ]['settings'][ $k ] = $v;
+        }
+        $parsed = SNN_Bricks_Interactions::parse( $el, $content[ $index ]['id'] );
+        foreach ( $parsed['notes'] as $note ) {
+            SNN_Bricks_Html_To_Bricks::note( $note );
+        }
+        if ( $parsed['interactions'] ) {
+            $content[ $index ]['settings']['_interactions'] = $parsed['interactions'];
+        }
+
         switch ( $name ) {
             case 'accordion-nested':
                 self::accordion( $el, $index, $ids, $content, $walk, $class_to_id );

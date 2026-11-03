@@ -186,7 +186,7 @@ class SNN_Bricks_Dom {
         if ( self::has_html5() && $el instanceof \Dom\Element ) {
             return (string) $el->ownerDocument->saveHtml( $el );
         }
-        return (string) $el->ownerDocument->saveHTML( $el );
+        return self::restore_svg_case( (string) $el->ownerDocument->saveHTML( $el ) );
     }
 
     /** Serialize an SVG element as XML (XMLSerializer.serializeToString). */
@@ -197,7 +197,65 @@ class SNN_Bricks_Dom {
             $copy = $xml->importNode( $el, true );
             return (string) $xml->saveXml( $copy );
         }
-        return (string) $el->ownerDocument->saveXML( $el );
+        return self::restore_svg_case( (string) $el->ownerDocument->saveXML( $el ) );
+    }
+
+    /**
+     * SVG names with the capitals SVG defines them with. The libxml HTML parser lowercases
+     * every name, which turns viewBox into viewbox and breaks the SVG. Keys are lowercase.
+     */
+    const SVG_CASE = array(
+        'viewbox' => 'viewBox', 'preserveaspectratio' => 'preserveAspectRatio',
+        'gradientunits' => 'gradientUnits', 'gradienttransform' => 'gradientTransform',
+        'patternunits' => 'patternUnits', 'patterncontentunits' => 'patternContentUnits',
+        'patterntransform' => 'patternTransform', 'clippathunits' => 'clipPathUnits',
+        'maskunits' => 'maskUnits', 'maskcontentunits' => 'maskContentUnits',
+        'primitiveunits' => 'primitiveUnits', 'filterunits' => 'filterUnits',
+        'stddeviation' => 'stdDeviation', 'basefrequency' => 'baseFrequency', 'numoctaves' => 'numOctaves',
+        'kernelmatrix' => 'kernelMatrix', 'kernelunitlength' => 'kernelUnitLength', 'edgemode' => 'edgeMode',
+        'tablevalues' => 'tableValues', 'specularexponent' => 'specularExponent', 'surfacescale' => 'surfaceScale',
+        'diffuseconstant' => 'diffuseConstant', 'limitingconeangle' => 'limitingConeAngle',
+        'textlength' => 'textLength', 'lengthadjust' => 'lengthAdjust', 'startoffset' => 'startOffset',
+        'pathlength' => 'pathLength', 'markerwidth' => 'markerWidth', 'markerheight' => 'markerHeight',
+        'markerunits' => 'markerUnits', 'refx' => 'refX', 'refy' => 'refY',
+        'attributename' => 'attributeName', 'attributetype' => 'attributeType', 'repeatcount' => 'repeatCount',
+        'keytimes' => 'keyTimes', 'keysplines' => 'keySplines', 'calcmode' => 'calcMode',
+        'lineargradient' => 'linearGradient', 'radialgradient' => 'radialGradient', 'clippath' => 'clipPath',
+        'textpath' => 'textPath', 'foreignobject' => 'foreignObject', 'animatemotion' => 'animateMotion',
+        'animatetransform' => 'animateTransform', 'feblend' => 'feBlend', 'fecolormatrix' => 'feColorMatrix',
+        'fecomponenttransfer' => 'feComponentTransfer', 'fecomposite' => 'feComposite',
+        'feconvolvematrix' => 'feConvolveMatrix', 'fediffuselighting' => 'feDiffuseLighting',
+        'fedisplacementmap' => 'feDisplacementMap', 'fedistantlight' => 'feDistantLight',
+        'fedropshadow' => 'feDropShadow', 'feflood' => 'feFlood', 'fefunca' => 'feFuncA', 'fefuncb' => 'feFuncB',
+        'fefuncg' => 'feFuncG', 'fefuncr' => 'feFuncR', 'fegaussianblur' => 'feGaussianBlur', 'feimage' => 'feImage',
+        'femerge' => 'feMerge', 'femergenode' => 'feMergeNode', 'femorphology' => 'feMorphology',
+        'feoffset' => 'feOffset', 'fepointlight' => 'fePointLight', 'fespecularlighting' => 'feSpecularLighting',
+        'fespotlight' => 'feSpotLight', 'fetile' => 'feTile', 'feturbulence' => 'feTurbulence',
+    );
+
+    /**
+     * Put SVG's capitals back into markup serialized by libxml. A no-op on the HTML5 parser,
+     * which keeps the case, and on markup without an svg.
+     */
+    public static function restore_svg_case( $markup ) {
+        $markup = (string) $markup;
+        if ( self::has_html5() || stripos( $markup, '<svg' ) === false ) {
+            return $markup;
+        }
+        $map = self::SVG_CASE;
+        // Element names: <lineargradient ...> and </lineargradient>.
+        $markup = preg_replace_callback( '/<(\/?)([a-z][a-z0-9]*)(?=[\s\/>])/i', function ( $m ) use ( $map ) {
+            $k = strtolower( $m[2] );
+            return '<' . $m[1] . ( $map[ $k ] ?? $m[2] );
+        }, $markup );
+        // Attribute names inside tags: <svg viewbox="..."> becomes viewBox="...".
+        $markup = preg_replace_callback( '/(<[a-z][^>]*>)/i', function ( $tag ) use ( $map ) {
+            return preg_replace_callback( '/(\s)([a-z][a-z0-9:-]*)(?=\s*=)/i', function ( $m ) use ( $map ) {
+                $k = strtolower( $m[2] );
+                return $m[1] . ( $map[ $k ] ?? $m[2] );
+            }, $tag[1] );
+        }, $markup );
+        return $markup;
     }
 
     public static function remove( $node ) {

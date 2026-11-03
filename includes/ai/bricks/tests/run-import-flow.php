@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// wp_tempnam() lives in the admin file helpers, which a CLI run does not load.
+require_once ABSPATH . 'wp-admin/includes/file.php';
+
 wp_set_current_user( 1 );
 global $wpdb;
 $t_max_id = (int) $wpdb->get_var( "SELECT MAX(ID) FROM {$wpdb->posts}" );

@@ -15,18 +15,20 @@ You write HTML + CSS. The server compiles it into native Bricks elements with th
 
 - every CSS class becomes a Bricks **global class**, its CSS kept verbatim;
 - the layout part of the cascade (display, flex, grid, gap, width, max-width) is resolved per breakpoint and written as **native element settings**, so the result matches a browser preview of your HTML;
-- headings, text, buttons, links, images, icons, dividers and SVGs become their **native Bricks elements**.
+- headings, text, buttons, links, images, icons, dividers, SVGs, videos and lists become their **native Bricks elements**; any other Bricks element (icon boxes, counters, alerts, pricing tables, testimonials ...) is placed with a `data-bricks` hint and its settings;
+- interactions (click to show or toggle, hover, scroll and viewport triggers) and entrance animations become Bricks' own interactions, so they stay editable in the builder.
 
 ## Recommended call order
 
 1. `snn-bricks-start-here` (this) — once per session.
 2. `snn-bricks-get-page-tree` with `post_id` — read the page, note `documentDigest` and `lockedBy`.
 3. Optional: `snn-bricks-get-global-classes` — reuse existing class names and palette.
-4. Images: send public URLs directly in `src`, or upload first with `snn-bricks-upload-asset` and use the returned URL. A design-export `.zip` goes to `snn-bricks-import-zip` (see "Design exports" below).
-5. `snn-bricks-html-to-bricks` with `html`, `css`, `mode`, `expected_digest` (from step 2) and an `idempotencyKey`. Use `dry_run: true` to inspect the compiled elements first.
-6. Read `feedback` in the reply (see "The feedback loop"), fix what it reports, and use the returned `documentDigest` for the next write.
-7. Small changes later: `snn-bricks-find-elements` → `snn-bricks-edit-elements`. Rebuild one section: `snn-bricks-html-to-bricks` with `mode: "replace-section"` and `section_id`.
-8. Verify: open `permalink` in a browser (desktop and 390px) when you can; `feedback.render` and `snn-bricks-render-summary` are the server-side check.
+4. Optional: `snn-bricks-element-schema` with `names` — the settings of an element type you are not sure about (its keys, types and allowed values). Use `search` to find an element type.
+5. Images: send public URLs directly in `src`, or upload first with `snn-bricks-upload-asset` and use the returned URL. A design-export `.zip` goes to `snn-bricks-import-zip` (see "Design exports" below).
+6. `snn-bricks-html-to-bricks` with `html`, `css`, `mode`, `expected_digest` (from step 2) and an `idempotencyKey`. Use `dry_run: true` to inspect the compiled elements first.
+7. Read `feedback` in the reply (see "The feedback loop"), fix what it reports, and use the returned `documentDigest` for the next write.
+8. Small changes later: `snn-bricks-find-elements` (by text, class, type or `css_id`) → `snn-bricks-edit-elements`. Rebuild one section: `snn-bricks-html-to-bricks` with `mode: "replace-section"` and `section_id`.
+9. Verify: open `permalink` in a browser (desktop and 390px) when you can; `feedback.render` and `snn-bricks-render-summary` are the server-side check.
 
 Modes: `append` (default), `prepend`, `replace` (whole page), `insert-after` / `insert-before` (+ `anchor_id`, a top-level id), `replace-section` (+ `section_id`).
 
@@ -35,13 +37,14 @@ Modes: `append` (default), `prepend`, `replace` (whole page), `insert-after` / `
 Every write — and every `dry_run` — of `snn-bricks-html-to-bricks` and `snn-bricks-edit-elements` returns `feedback`:
 
 - `changes` — elements added, removed and changed, with the changed setting keys. Check that it matches what you meant to change and nothing else.
-- `outline` — the affected sections as `[id] type .classes "text"`. Use these ids for follow-up edits.
+- `outline` — the affected sections as `[id] type #css-id .classes "text"`. Use these ids (or the `#css-id`) for follow-up edits.
 - `pageSections` — the whole page's top-level order; affected sections are flagged. Check the new sections landed where they belong.
-- `checks` — heading outline problems, empty text, images without a source, buttons without a link, and canvas-export leftovers (`position:absolute`, 4-digit pixel widths) in the classes used.
+- `checks` — heading outline problems, empty text, images without a source, buttons without a link, canvas-export leftovers (`position:absolute`, 4-digit pixel widths) in the classes used.
+- `warnings` (top level of the reply) — everything the converter could not keep as you wrote it, with the reason: unknown element types or setting keys (with the right name when one is close), duplicate CSS IDs, interaction targets that name no element, icon styles Bricks cannot draw, content an element cannot hold, scripts kept as code. Read every warning; each one is a decision you should make on purpose.
 - `render` — Bricks' own server render: landmarks, responsive CSS present, CSS syntax errors (builds by default; edits with `verify: true`).
 - `next` — what to do next.
 
-Work in small steps: build or change one thing, read `feedback`, correct, continue. Do not report a page as finished while `checks.issues` lists problems you can fix.
+Work in small steps: build or change one thing, read `feedback` and `warnings`, correct, continue. Do not report a page as finished while `checks.issues` lists problems you can fix.
 
 If a write returns `snn_post_locked`, the page is open in the Bricks builder; saving there later would overwrite your write. Ask the user to close the builder tab, then retry. Only pass `force: true` when the user says so. If it returns `snn_document_digest_mismatch`, read the page again before retrying. Never retry with a reused `idempotencyKey` for a different request.
 
@@ -59,29 +62,44 @@ If a write returns `snn_post_locked`, the page is open in the Bricks builder; sa
   - `data-bricks="button"` — buttons / CTAs (`href` for the link)
   - `data-bricks="text-link"` — inline `<a>`
   - `data-bricks="image"` — `<img>` (keep `src` exactly as given)
-  - `data-bricks="icon"` — FontAwesome `<i class="fas fa-star">` (fas, fab; avoid far)
+  - `data-bricks="icon"` — `<i class="fas fa-star">` (fas, fab, far; `ion-ios-star` for Ionicons; `ti-star` for Themify)
   - `data-bricks="divider"` — `<hr>` and decorative line divs
   - `data-bricks="accordion"` — Bricks' accordion. Its items are `<details>` children, each with a `<summary>` title; the rest of the details is the content. A container made only of `<details>` becomes an accordion without a hint. Add `open` on the first details to expand it.
   - `data-bricks="tabs"` — Bricks' tabs. Its children are `<div data-bricks="tab" data-title="Label">`, one per tab, holding the content. Do not build tabs from radio inputs or scripts.
-  - `data-bricks="slider"` — Bricks' slider. Its children are the slides (any element). Options: `data-per-page="2"`, `data-arrows="false"`, `data-pagination="false"`, `data-gap="20"`. Slides per view can differ by breakpoint: `data-per-page="3 2 1"` sets desktop, tablet (991px) and mobile (767px) values, so a 3-column slider on desktop shows one slide on a phone. Do not build sliders from scroll-snap or scripts.
-  - `data-bricks="custom-html-css-script"` — raw HTML kept verbatim: iframes, video embeds, forms, tables.
-- Scripts: a `<script>` is kept as embedded code, in place, and runs on the page. Bricks cannot edit it as an element, so the build reports every kept script in its warnings. Use Bricks' native elements and `data-animate` first; use a script only for behaviour Bricks cannot do (counters, cursor effects, custom widgets).
-- Entrance animations are Bricks' own interactions. Put `data-animate="fadeInUp"` on any element (any animate.css name: fadeIn, fadeInDown, fadeInUp, fadeInLeft, zoomIn, bounceIn …). Optional `data-animate-delay="0.2s"` and `data-animate-duration="0.9s"`. Triggers: the default is "enter viewport" (plays when the element scrolls into view); `data-animate-trigger="contentLoaded"` plays on page load (use it for the hero); `data-animate-trigger="scroll"` plays when the page passes the element, with `data-animate-offset="120px"` (px, % or vh); `data-animate-trigger="hover"` plays on hover.
-- Any tag the list does not name (form, table, video, input, details …) is preserved verbatim.
-- Icons in buttons and links: ONE FontAwesome `<i>` or ONE inline `<svg>` directly inside the button/link, at the start or end of the label. It becomes the button's native icon (side, size, colour, gap). No other icon fonts (Lucide, Material Symbols, Bootstrap Icons).
-- Standalone SVG graphics (logos, illustrations): write the `<svg>` directly with no data-bricks wrapper — it is uploaded and becomes a native Bricks SVG element (needs Bricks SVG upload permission; otherwise it stays as code).
+  - `data-bricks="slider"` — Bricks' slider. Its children are the slides (any element). Options: `data-per-page="2"`, `data-arrows="false"`, `data-pagination="false"`, `data-gap="20"`. Slides per view can differ by breakpoint: `data-per-page="3 2 1"` sets desktop, tablet (991px) and mobile (767px) values. Do not build sliders from scroll-snap or scripts.
+  - `data-bricks="video"` — a video. Also automatic for YouTube and Vimeo `<iframe>` embeds and `<video src>` files (see "Video").
+  - `data-bricks="<any Bricks element>"` — any element type Bricks has (icon-box, counter, alert, pricing-tables, testimonials, social-icons, progress-bar, team-members, logo, carousel, toggle, offcanvas, nav-menu ...). Use `snn-bricks-element-schema` to list the names and each element's settings. An unknown name is reported in `warnings` and the plain tag is used instead.
+  - `data-bricks="custom-html-css-script"` — raw HTML kept verbatim: forms, tables, iframes that are not videos.
+- **Settings of any element** as attributes: `data-bricks-<setting>="value"`. The name is matched to Bricks' schema whatever its case or dashes (`data-bricks-iconsize` is `iconSize`). Values `true` / `false` become booleans; a value starting with `[` or `{` is JSON, for repeaters such as `data-bricks-items='[{"title":"Fast"}]'`. A name the element does not have is reported with the right name when one is close.
+- **Text-only content** of an element that can hold no children (icon-box, counter ...) goes to its `text` setting when it has one; otherwise it is reported.
+- **HTML ids** are kept: `id="pricing"` becomes the Bricks CSS ID, so `href="#pricing"` jumps to it and interactions can target `#pricing`. Use letters, digits, `-` and `_`. Each id is used once per page; a repeat is reported.
+- Scripts: a `<script>` is kept as embedded code, in place, and runs on the page. Bricks cannot edit it as an element, so the build reports every kept script in its warnings. Use Bricks' native elements, interactions and `data-animate` first; use a script only for behaviour none of them can do.
+- **Interactions** (Bricks' own; any number per element):
+  - shorthand: `data-interact="click" data-interact-action="toggleAttribute" data-interact-key="data-open" data-interact-target="#menu"`
+  - JSON: `data-interactions='[{"trigger":"click","action":"show","target":"#menu"},{"trigger":"enterView","action":"startAnimation","animation":"fadeInUp","delay":"0.2s"}]'`
+  - Triggers: click, mouseover (hover), mouseenter, mouseleave, focus, blur, enterView, leaveView, contentLoaded, scroll, animationEnd.
+  - Actions: show, hide, click (of the target), setAttribute / removeAttribute / toggleAttribute (with `data-interact-key`, optional `data-interact-value`), scrollTo, startAnimation (with `data-interact-animation`), toggleOffCanvas, clearForm.
+  - Target: `self` (default), `popup`, or a CSS selector such as `#menu`. Toggling a panel: put `id="menu"` on the panel, and on the button `data-interact="click" data-interact-action="toggleAttribute" data-interact-key="data-open" data-interact-target="#menu"`; style `[data-open]` in CSS.
+  - Interaction timing: `data-interact-duration="0.6s"`, `data-interact-delay="0.2s"`, scroll triggers take `data-interact-offset="120px"`, viewport triggers take `data-interact-root-margin`.
+- **Entrance animations** (`data-animate`): `data-animate="fadeInUp"` on any element (any animate.css name: fadeIn, fadeInDown, fadeInUp, fadeInLeft, zoomIn, bounceIn …). Optional `data-animate-delay="0.2s"` and `data-animate-duration="0.9s"`. Triggers: the default is "enter viewport"; `data-animate-trigger="contentLoaded"` plays on page load (use it for the hero); `data-animate-trigger="scroll"` plays when the page passes the element, with `data-animate-offset="120px"` (px, % or vh); `data-animate-trigger="hover"` plays on hover.
+- **Video**: a YouTube or Vimeo `<iframe>` (`src` with youtube.com/embed/, youtu.be, or player.vimeo.com/video/) becomes a native Bricks video; `<video src="…">` or `<video><source src="…"></video>` becomes a file video. `title` on the iframe is kept. `?autoplay=1` on YouTube is kept. Any other iframe stays raw HTML.
+- **Lists**: a `ul` or `ol` of text items becomes a Bricks list block whose items are text elements (each item stays editable). A list whose items hold layout (cards, blocks) keeps those blocks.
+- Any tag the list does not name (form, table, input, textarea, select, details outside an accordion, canvas, audio, picture …) is preserved verbatim.
+- Icons in buttons and links: ONE icon directly inside the button/link, at the start or end of the label. It becomes the button's native icon (side, size, colour, gap). Font Awesome (fas, fab, far), Ionicons (`ion-*`) and Themify (`ti-*`) are native. Light, duotone and thin Font Awesome styles are drawn solid, and the converter says so. Other icon fonts (Lucide, Material Symbols, Bootstrap Icons) stay as HTML and are reported.
+- Standalone SVG graphics (logos, illustrations): write the `<svg>` directly with no data-bricks wrapper — it is uploaded and becomes a native Bricks SVG element (needs Bricks SVG upload permission; otherwise it stays as code). Keep the SVG's own capitals (viewBox, linearGradient); they are kept.
 - Links keep their real `href` (`#pricing`, `/contact`, `https://…`); `target="_blank"` opens a new tab.
-- Use `class="…"` only. No inline `style=""`.
+- Styles: prefer `class="…"` with CSS. An inline `style=""` is also kept: its declarations are written on that element, and its layout (display, flex, grid, gap, width) becomes native settings.
 - Real content. No Lorem Ipsum.
 
 ## CSS rules
 
-- All styling as CSS classes, in `css` or a `<style>` block. Any property, `:hover`, `@keyframes`, `@media` works.
-- Write plain standard CSS and assume browser behaviour. Descendant and child selectors (`.card p`, `.grid > div`) are resolved for real; elements keep their real tags.
+- All styling as CSS classes, in `css` or a `<style>` block. Any property, `:hover`, `:focus`, `::before`, `@keyframes`, `@font-face`, `@media` works.
+- Write plain standard CSS and assume browser behaviour. Descendant and child selectors (`.card p`, `.grid > div`) are resolved for real: a rule whose subject is an element applies to that element, with every declaration except the layout the native settings carry.
 - One property per line.
 - `:root` custom properties with concrete values (hex / rgb / px), never `var()` as the value. Colour and size variables are added to the Bricks palette / global variables when the names are new.
 - Google Fonts via `@import url(...)` at the top of the CSS.
 - Class naming: one word per section, hyphenated children: `.hero`, `.hero-container`, `.hero-title`, `.features-grid`, `.features-card`. Prefix with a page or section word when the site already has generic names. A class that already exists site-wide with identical CSS is reused; with different CSS it is renamed (`-1`, `-2`) automatically and the response lists the renames.
+- Renaming or deleting an existing global class is done with `snn-bricks-edit-elements` (`rename_class`, `delete_class`), not by rebuilding the page.
 - Responsive: use the exact `@media` queries listed under "This site's breakpoints" below, so they map onto Bricks breakpoints. Stack multi-column rows on mobile.
 - Keep primary content in normal flow: no absolute positioning, fixed canvas widths or negative offsets for layout.
 
@@ -90,6 +108,14 @@ If a write returns `snn_post_locked`, the page is open in the Bricks builder; sa
 1. Grid wrapper block (`display: grid`, no data-loop)
 2. Loop block: `data-loop="post_type_slug" data-loop-posts-per-page="6"` (optional `data-loop-orderby`, `data-loop-order`)
 3. One template card inside — Bricks repeats it. Dynamic tags: `{post_title}`, `{post_excerpt}`, `{post_date}`, `{post_link}`, `{featured_image}`, `{cf_FIELDNAME}`.
+
+## Editing a built page
+
+`snn-bricks-edit-elements` takes these operations, all applied together or not at all:
+
+- element ops: `set_text`, `set_image`, `set_icon`, `set_settings` (any Bricks setting; unknown keys are reported with the right name), `delete`, `move`, `duplicate`, `insert` (an element type from `snn-bricks-element-schema`), `wrap`, `unwrap`.
+- style ops: `update_class` (declarations or the whole class CSS), `rename_class` (`from`, `to`: the class, its CSS and every class or page style that names it follow; elements keep working), `delete_class` (refused while elements use it; `"detach": true` removes it from them first).
+- Target an element by `{"id":"abcdef"}` (Bricks id), `{"cssId":"pricing"}` (its HTML id), `{"text":"…"}`, `{"class":"x"}`, `{"type":"heading","index":0}` or `{"within":{…}}`.
 
 ## Design exports (zip from Figma, Penpot, Webflow …)
 

@@ -76,7 +76,8 @@ if ( $snn_acc ) {
 
     $snn_title = $snn_by_id( $snn_content, $snn_items[0]['children'][0] );
     $snn_nested_ok( ( $snn_title['settings']['_hidden']['_cssClasses'] ?? '' ) === 'accordion-title-wrapper', 'title row carries accordion-title-wrapper' );
-    $snn_nested_ok( ( $snn_title['settings']['_cssGlobalClasses'] ?? array() ) !== array(), 'summary class moves onto the title row' );
+    // The title row takes no summary classes (their padding would repeat on the row); the heading carries them.
+    $snn_nested_ok( ( $snn_title['settings']['_cssGlobalClasses'] ?? array() ) === array(), 'title row takes no summary classes (its heading carries them)' );
     $snn_heading = $snn_by_id( $snn_content, $snn_title['children'][0] );
     $snn_nested_ok( $snn_heading['name'] === 'heading' && $snn_heading['settings']['text'] === 'First?', 'summary text becomes the item heading' );
     $snn_nested_ok( $snn_by_id( $snn_content, $snn_title['children'][1] )['name'] === 'icon', 'title row has the accordion icon' );

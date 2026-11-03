@@ -193,6 +193,9 @@ class SNN_Bricks_Feedback {
                 return '.' . $c;
             }, $ops->class_names_of( $el ) ) );
             $line = str_repeat( '  ', $depth ) . '[' . $el['id'] . '] ' . ( $el['name'] ?? 'block' );
+            if ( ! empty( $el['settings']['_cssId'] ) ) {
+                $line .= ' #' . $el['settings']['_cssId'];
+            }
             if ( $classes !== '' ) {
                 $line .= '  ' . $classes;
             }

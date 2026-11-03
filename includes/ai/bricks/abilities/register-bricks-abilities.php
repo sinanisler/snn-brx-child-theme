@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $snn_bricks_dir = dirname( __DIR__ );
 
 require_once $snn_bricks_dir . '/compiler/class-dom.php';
+require_once $snn_bricks_dir . '/compiler/class-element-schema.php';
 require_once $snn_bricks_dir . '/compiler/class-css-tokenizer.php';
 require_once $snn_bricks_dir . '/compiler/class-media-matcher.php';
 require_once $snn_bricks_dir . '/compiler/class-selector-matcher.php';
@@ -24,6 +25,9 @@ require_once $snn_bricks_dir . '/compiler/class-native-layout.php';
 require_once $snn_bricks_dir . '/compiler/class-element-features.php';
 require_once $snn_bricks_dir . '/compiler/class-nested-elements.php';
 require_once $snn_bricks_dir . '/compiler/class-animations.php';
+require_once $snn_bricks_dir . '/compiler/class-interactions.php';
+require_once $snn_bricks_dir . '/compiler/class-data-settings.php';
+require_once $snn_bricks_dir . '/compiler/class-video.php';
 require_once $snn_bricks_dir . '/compiler/class-html-to-bricks.php';
 require_once $snn_bricks_dir . '/compiler/class-svg-sanitizer.php';
 require_once $snn_bricks_dir . '/compiler/class-assets.php';
@@ -43,6 +47,7 @@ require_once __DIR__ . '/bricks-settings.php';
 require_once __DIR__ . '/bricks-get-page-tree.php';
 require_once __DIR__ . '/bricks-find-elements.php';
 require_once __DIR__ . '/bricks-get-global-classes.php';
+require_once __DIR__ . '/bricks-element-schema.php';
 require_once __DIR__ . '/bricks-render-summary.php';
 require_once __DIR__ . '/bricks-upload-asset.php';
 require_once __DIR__ . '/bricks-upload-zip-part.php';

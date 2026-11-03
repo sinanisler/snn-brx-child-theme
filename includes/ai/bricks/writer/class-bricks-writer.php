@@ -117,6 +117,20 @@ class SNN_Bricks_Writer {
         return $ids;
     }
 
+    /** Element ids and CSS IDs already on the page: what an interaction selector can point at. */
+    public static function known_page_ids( array $elements ) {
+        $out = array();
+        foreach ( $elements as $el ) {
+            if ( ! empty( $el['id'] ) ) {
+                $out[] = (string) $el['id'];
+            }
+            if ( ! empty( $el['settings']['_cssId'] ) ) {
+                $out[] = (string) $el['settings']['_cssId'];
+            }
+        }
+        return $out;
+    }
+
     /** Ids already used on the page, so new ids never collide. */
     public static function page_ids( array $elements ) {
         $out = array();
@@ -207,6 +221,7 @@ class SNN_Bricks_Writer {
         $build = SNN_Bricks_Html_To_Bricks::build( $html, array(
             'existing_classes' => $existing_classes,
             'taken_ids'        => self::page_ids( $original ),
+            'known_ids'        => self::known_page_ids( $original ),
             'svg_assets'       => $svg['assets'],
         ) );
         self::debug( 'build.compiled', array(

@@ -21,6 +21,7 @@ function snn_register_bricks_find_elements_ability() {
                 'text'    => array( 'type' => 'string' ),
                 'class'   => array( 'type' => 'string' ),
                 'type'    => array( 'type' => 'string' ),
+                'css_id'  => array( 'type' => 'string', 'description' => 'The element\'s CSS ID, as written in HTML id="…" (for example "pricing"). Exact match.' ),
                 'within'  => array( 'type' => 'string', 'description' => 'Only descendants of this element id.' ),
             ),
         ),
@@ -44,6 +45,7 @@ function snn_register_bricks_find_elements_ability() {
             $text  = isset( $input['text'] ) ? mb_strtolower( (string) $input['text'] ) : '';
             $class = isset( $input['class'] ) ? ltrim( (string) $input['class'], '.' ) : '';
             $type  = isset( $input['type'] ) ? (string) $input['type'] : '';
+            $css_id = isset( $input['css_id'] ) ? ltrim( (string) $input['css_id'], '#' ) : '';
 
             $matches = array();
             foreach ( $state['elements'] as $el ) {
@@ -60,10 +62,14 @@ function snn_register_bricks_find_elements_ability() {
                 if ( $type !== '' && ( $el['name'] ?? '' ) !== $type ) {
                     continue;
                 }
+                if ( $css_id !== '' && ( $el['settings']['_cssId'] ?? '' ) !== $css_id ) {
+                    continue;
+                }
                 $matches[] = array(
                     'id'      => $el['id'],
                     'name'    => $el['name'],
                     'parent'  => $el['parent'] ?? 0,
+                    'cssId'   => $el['settings']['_cssId'] ?? null,
                     'classes' => $names,
                     'text'    => SNN_Bricks_Edit_Ops::text_of( $el, 80 ),
                 );

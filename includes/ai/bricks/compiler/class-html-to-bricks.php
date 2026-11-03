@@ -63,6 +63,9 @@ class SNN_Bricks_Html_To_Bricks {
     // Settings that carry the design's typography and paint, never layout (native layout owns that).
     const PAINT_OR_TYPE_PATTERN = '/^(line-height|letter-spacing|color|font-|text-|text-transform|text-decoration|background|border|box-shadow|opacity|fill|stroke|filter|cursor|transition)/';
 
+    /** Elements whose markup is kept as written; no styles are moved onto them. */
+    const RAW_NAMES = array( 'custom-html-css-script' );
+
     // Text-bearing Bricks elements that receive inherited typography and contextual rules.
     const TEXT_EXTRA_NAMES = array( 'heading', 'text-basic', 'text', 'text-link', 'button' );
 
@@ -214,19 +217,22 @@ class SNN_Bricks_Html_To_Bricks {
      * inherits, and the inherit values that stop Bricks' own button defaults overriding it.
      */
     public static function element_css_extras( $el, $bricks_name, $ctx, array $own_decls ) {
-        if ( $ctx === null || ! in_array( $bricks_name, self::TEXT_EXTRA_NAMES, true ) ) {
+        if ( $ctx === null || in_array( $bricks_name, self::RAW_NAMES, true ) ) {
             return '';
         }
         $base  = $ctx->plan['base']['width'];
         $decls = array();
 
+        // Rules whose subject is this element (".list li", ".card p"): every declaration the native layout does not own.
         foreach ( SNN_Bricks_Cascade::contextual_decls_at( $el, $ctx->rule_set, $base ) as $k => $v ) {
-            if ( preg_match( self::PAINT_OR_TYPE_PATTERN, $k ) ) {
+            if ( ! SNN_Bricks_Native_Layout::is_native_prop( $k ) ) {
                 $decls[ $k ] = $v;
             }
         }
 
-        foreach ( array( 'line-height', 'letter-spacing', 'color' ) as $k ) {
+        // Inherited typography: text-bearing elements only.
+        $inherit_typography = in_array( $bricks_name, self::TEXT_EXTRA_NAMES, true );
+        foreach ( $inherit_typography ? array( 'line-height', 'letter-spacing', 'color' ) : array() as $k ) {
             if ( isset( $own_decls[ $k ] ) ) {
                 continue;
             }
@@ -236,11 +242,18 @@ class SNN_Bricks_Html_To_Bricks {
             }
         }
 
-        if ( $bricks_name === 'button' ) {
+        if ( $bricks_name === 'button' && $inherit_typography ) {
             foreach ( array( 'letter-spacing', 'text-align' ) as $k ) {
                 if ( ! isset( $own_decls[ $k ] ) && ! isset( $decls[ $k ] ) ) {
                     $decls[ $k ] = 'inherit';
                 }
+            }
+        }
+
+        // The element's own inline style, minus the layout the native settings already carry.
+        foreach ( SNN_Bricks_Css::parse_declarations( (string) SNN_Bricks_Dom::attr( $el, 'style' ) ) as $k => $v ) {
+            if ( ! SNN_Bricks_Native_Layout::is_native_prop( $k ) ) {
+                $decls[ $k ] = $v;
             }
         }
 
@@ -297,6 +310,14 @@ class SNN_Bricks_Html_To_Bricks {
         }
 
         $bricks_name   = SNN_Bricks_Features::bricks_name_for( $el );
+        if ( $explicit_name && ! SNN_Bricks_Schema::has_element( $bricks_name ) ) {
+            self::note( SNN_Bricks_Schema::unknown_element_message( $explicit_name ) . ' The <' . $tag . '> was converted as its tag instead.' );
+            $bricks_name = SNN_Bricks_Features::bricks_name_for_tag( $el );
+        }
+        // Embedded video (YouTube, Vimeo, a video file) becomes Bricks' native video element.
+        if ( ( $tag === 'video' || ( $tag === 'iframe' && SNN_Bricks_Video::is_embed( $el ) ) ) && ( ! $explicit_name || $explicit_name === 'video' ) ) {
+            $bricks_name = 'video';
+        }
         $base_width    = $ctx->plan['base']['width'];
         $own_decls     = SNN_Bricks_Cascade::resolve_decls_at( $el, $ctx->rule_set, $base_width );
 
@@ -358,6 +379,12 @@ class SNN_Bricks_Html_To_Bricks {
             }
         }
 
+        // The HTML id becomes the Bricks CSS ID: the target of #id links and of interaction selectors.
+        $css_id = self::css_id_for( $el, $bricks_name );
+        if ( $css_id !== '' ) {
+            $element['settings']['_cssId'] = $css_id;
+        }
+
         if ( $bricks_name === 'custom-html-css-script' ) {
             $element['settings']['_display'] = 'contents';
         } else {
@@ -370,8 +397,13 @@ class SNN_Bricks_Html_To_Bricks {
             SNN_Bricks_Features::apply_layout_tag( $element, $el, $bricks_name, $tag );
         }
 
-        // data-animate → Bricks' own startAnimation interaction (scripts never convert).
+        // data-animate → Bricks' own startAnimation interaction; data-interact / data-interactions → any Bricks interaction.
         $interactions = SNN_Bricks_Animate::interactions_for( $el, $id );
+        $parsed       = SNN_Bricks_Interactions::parse( $el, $id );
+        foreach ( $parsed['notes'] as $note ) {
+            self::note( $note );
+        }
+        $interactions = array_merge( $interactions, $parsed['interactions'] );
         if ( $interactions ) {
             $element['settings']['_interactions'] = $interactions;
         }
@@ -411,10 +443,15 @@ class SNN_Bricks_Html_To_Bricks {
                 break;
 
             case 'icon':
-                $icon = SNN_Bricks_Features::parse_fa_icon( (string) SNN_Bricks_Dom::attr( $el, 'class' ) );
+                $icon_class = (string) SNN_Bricks_Dom::attr( $el, 'class' );
+                foreach ( SNN_Bricks_Features::unsupported_fa_style( $icon_class ) as $fa_style ) {
+                    self::note( 'Icon class "' . $fa_style . '" is a Font Awesome style Bricks does not draw; the solid style is used.' );
+                }
+                $icon = SNN_Bricks_Features::parse_fa_icon( $icon_class );
                 if ( $icon ) {
                     $element['settings']['icon'] = $icon;
                 } else {
+                    self::note( 'Icon "' . $icon_class . '" is not an icon Bricks has (Font Awesome, Ionicons ion-*, Themify ti-*). It is kept as HTML.' );
                     $element['name']     = 'custom-html-css-script';
                     $element['settings'] = array( 'content' => SNN_Bricks_Dom::outer_html( $el ), '_display' => 'contents' );
                 }
@@ -520,6 +557,44 @@ class SNN_Bricks_Html_To_Bricks {
                 $element['settings']['content'] = SNN_Bricks_Dom::outer_html( $el );
                 $is_leaf = true;
                 break;
+
+            case 'video':
+                $video = SNN_Bricks_Video::settings_for( $el );
+                if ( $video !== null ) {
+                    foreach ( $video as $k => $v ) {
+                        $element['settings'][ $k ] = $v;
+                    }
+                    $is_leaf = true;
+                }
+                break;
+
+            default:
+                // A registered Bricks element with no special mapping (icon-box, counter, alert ...). One that can
+                // hold children converts them as usual. One that cannot takes its content in its text setting.
+                if ( $explicit_name && ! SNN_Bricks_Schema::is_nestable( $bricks_name ) ) {
+                    $is_leaf      = true;
+                    $content_html = trim( SNN_Bricks_Dom::inner_html( $el ) );
+                    if ( $content_html !== '' ) {
+                        $text_key = SNN_Bricks_Schema::text_setting( $bricks_name );
+                        if ( $text_key !== null ) {
+                            $element['settings'][ $text_key ] = $content_html;
+                        } else {
+                            self::note( '<' . $tag . ' data-bricks="' . $bricks_name . '"> cannot hold child elements in Bricks and has no text setting, so its content was not kept. Use data-bricks-<setting> attributes for its settings.' );
+                        }
+                    }
+                }
+                break;
+        }
+
+        // data-bricks-<setting> attributes write native settings, each checked against the element's schema.
+        if ( $bricks_name !== 'custom-html-css-script' ) {
+            $data = SNN_Bricks_Data_Settings::parse( $el, $bricks_name );
+            foreach ( $data['notes'] as $note ) {
+                self::note( $note );
+            }
+            foreach ( $data['settings'] as $k => $v ) {
+                $element['settings'][ $k ] = $v;
+            }
         }
 
         // Query loop support.
@@ -538,7 +613,8 @@ class SNN_Bricks_Html_To_Bricks {
         if ( $element['name'] !== 'custom-html-css-script' && $element['name'] !== 'svg' ) {
             $custom = array();
             foreach ( SNN_Bricks_Dom::attributes( $el ) as $name => $value ) {
-                if ( ! in_array( $name, self::IGNORED_ATTRS, true ) ) {
+                $hint = SNN_Bricks_Data_Settings::is_setting_attribute( $name ) || strpos( $name, 'data-interact' ) === 0;
+                if ( ! in_array( $name, self::IGNORED_ATTRS, true ) && ! $hint ) {
                     $custom[] = array( '_id' => $ids->next(), 'name' => $name, 'value' => $value );
                 }
             }
@@ -572,6 +648,77 @@ class SNN_Bricks_Html_To_Bricks {
         }
 
         return $id;
+    }
+
+    /**
+     * The Bricks CSS ID for an HTML id. Bricks allows letters, digits, "-" and "_"; the id
+     * cannot start with a digit (it would not be a valid CSS selector) and has no "#".
+     */
+    public static function css_id_for( $el, $bricks_name ) {
+        if ( $bricks_name === 'custom-html-css-script' ) {
+            return '';
+        }
+        $raw = trim( (string) SNN_Bricks_Dom::attr( $el, 'id' ) );
+        return $raw === '' ? '' : self::clean_css_id( $raw );
+    }
+
+    /** A CSS ID as Bricks takes it, from any written id. '' when nothing usable is left. */
+    public static function clean_css_id( $raw ) {
+        $raw   = trim( (string) $raw );
+        $clean = trim( preg_replace( '/[^A-Za-z0-9_-]+/', '-', ltrim( $raw, '#' ) ), '-' );
+        if ( $clean !== '' && ctype_digit( $clean[0] ) ) {
+            $clean = 'id-' . $clean;
+        }
+        if ( $clean === '' ) {
+            self::note( 'HTML id "' . $raw . '" has no letters or digits, so it was not kept.' );
+            return '';
+        }
+        if ( $clean !== $raw ) {
+            self::note( 'HTML id "' . $raw . '" became the Bricks CSS ID "' . $clean . '" (Bricks allows only letters, digits, - and _).' );
+        }
+        return $clean;
+    }
+
+    /**
+     * Page-level checks across a build: CSS IDs used twice, and interaction selectors that name
+     * an id no element on the page carries.
+     *
+     * @param array $compiled   sections: [{label, content}]
+     * @param array $known_ids  ids already on the page the build lands in (element ids and CSS IDs)
+     */
+    public static function page_warnings( array $compiled, array $known_ids = array() ) {
+        $warnings = array();
+        $seen     = array();
+        $ids      = array_fill_keys( array_map( 'strval', $known_ids ), true );
+        foreach ( $compiled as $c ) {
+            foreach ( $c['content'] as $el ) {
+                $css = (string) ( $el['settings']['_cssId'] ?? '' );
+                if ( $css !== '' ) {
+                    if ( isset( $seen[ $css ] ) ) {
+                        $warnings[] = $c['label'] . ': the CSS ID "' . $css . '" is used by more than one element. Give each element its own id.';
+                    }
+                    $seen[ $css ] = true;
+                    $ids[ $css ]  = true;
+                }
+                $ids[ (string) $el['id'] ] = true;
+            }
+        }
+        foreach ( $compiled as $c ) {
+            foreach ( $c['content'] as $el ) {
+                foreach ( (array) ( $el['settings']['_interactions'] ?? array() ) as $ix ) {
+                    if ( ( $ix['target'] ?? '' ) !== 'custom' ) {
+                        continue;
+                    }
+                    foreach ( SNN_Bricks_Interactions::selector_ids( $ix['targetSelector'] ?? '' ) as $want ) {
+                        if ( ! isset( $ids[ $want ] ) ) {
+                            $warnings[] = $c['label'] . ': the ' . $ix['trigger'] . ' interaction targets ' . $ix['targetSelector']
+                                . ', but no element on the page has that id. Give the target element id="' . ltrim( $ix['targetSelector'], '#' ) . '".';
+                        }
+                    }
+                }
+            }
+        }
+        return $warnings;
     }
 
     /**
@@ -1014,6 +1161,11 @@ class SNN_Bricks_Html_To_Bricks {
                 $list[] = $s['src'] . ' (' . $s['bytes'] . ' bytes)';
             }
             $warnings[] = count( $kept_scripts ) . ' <script> tag(s) kept as embedded code, not converted to Bricks elements: ' . implode( '; ', $list ) . '. Check them in the page source before publishing.';
+        }
+
+        // Page-level checks: duplicate CSS IDs, interaction targets that name no element.
+        foreach ( self::page_warnings( $compiled, (array) ( $args['known_ids'] ?? array() ) ) as $w ) {
+            $warnings[] = $w;
         }
 
         // PHASE 2.5: classes attached to elements become global classes; markup-only
