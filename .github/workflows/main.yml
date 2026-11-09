@@ -14,15 +14,16 @@ jobs:
         with:
           fetch-depth: '0'
 
+      # The message comes from the HEAD_MSG env variable (set at the bottom of this file), never pasted into the
+      # script, so quotes, $, backticks or several lines in a commit message cannot break the step.
       - name: Debug commit message
         run: |
-          echo "HEAD commit message: ${{ github.event.head_commit.message }}"
+          printf 'HEAD commit message: %s\n' "$HEAD_MSG"
 
       - name: Check if commit message contains alphatag
         id: checkmsg
         run: |
-          msg="${{ github.event.head_commit.message }}"
-          if echo "$msg" | grep -iq 'alphatag'; then
+          if printf '%s' "$HEAD_MSG" | grep -iq 'alphatag'; then
             echo "commit_message_contains_alphatag=true" >> $GITHUB_ENV
           else
             echo "commit_message_contains_alphatag=false" >> $GITHUB_ENV
@@ -30,11 +31,6 @@ jobs:
 
       - name: Display current style.css before update
         run: cat style.css
-
-      - name: Check last commit message
-        id: check_last_commit
-        run: |
-          echo "last_commit_message=${{ github.event.head_commit.message }}" >> $GITHUB_OUTPUT
 
       - name: Get commit messages since last release
         id: get_commits
@@ -194,3 +190,4 @@ jobs:
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HEAD_MSG: ${{ github.event.head_commit.message }}

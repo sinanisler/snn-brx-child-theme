@@ -4,162 +4,75 @@ on:
   push:
     branches:
       - main
- 
+  workflow_dispatch:
+
 jobs:
   sync:
     runs-on: ubuntu-latest
 
-    env:
-      FILES_TO_SYNC: |
-        includes/features/301-redirect.php
-        includes/features/404-logging.php
-        includes/features/accessibility-settings.php
-        includes/features/activity-logs.php
-        includes/features/block-editor-settings.php
-        includes/features/cookie-banner.php
-        includes/features/custom-code-snippets.php
-        includes/features/custom-field-settings.php
-        includes/features/disable-bundled-theme-install.php
-        includes/features/disable-emojis.php
-        includes/features/disable-file-editing.php
-        includes/features/disable-gravatar.php
-        includes/features/disable-wp-json-if-not-logged-in.php
-        includes/features/disable-xmlrpc.php
-        includes/features/file-size-column-media.php
-        includes/features/limit-login-attempts.php
-        includes/features/login-logo-change-url-change.php
-        includes/features/login-math-captcha.php
-        includes/features/login-settings.php
-        includes/features/login-url-security.php
-        includes/features/mail-customizer.php
-        includes/features/mail-logging.php
-        includes/features/media-image-opt.php
-        includes/features/media-settings.php
-        includes/features/other-settings.php
-        includes/features/post-types-settings.php
-        includes/features/remove-rss.php
-        includes/features/remove-wp-version.php
-        includes/features/role-manager.php
-        includes/features/search-loggins.php
-        includes/features/security-page.php
-        includes/features/turnstile-captcha.php
-        includes/features/seo.php
-        includes/features/smtp-settings.php
-        includes/features/taxonomy-settings.php
-        includes/features/utils.php
-        includes/features/wp-admin-dashboard-widgets.php
-        includes/features/interactions.php
-        includes/features/draft-revision.php
-
-        includes/ai/ai-settings.php
-        includes/ai/ai-api.php
-        includes/ai/ai-overlay.php
-        includes/ai/ai-seo-generation.php
-        includes/ai/ai-block-editor.php
-        includes/ai/ai-agent-and-chat.php
-        includes/ai/ai-proxy.php
-        includes/ai/api-call-templates.php
-
-        includes/ai/abilities/ability-categories.php
-        includes/ai/abilities/active-theme-info.php
-        includes/ai/abilities/analyze-post-seo.php
-        includes/ai/abilities/check-seo-quality-title-and-content.php
-        includes/ai/abilities/create-post-summaries.php
-        includes/ai/abilities/create-posts.php
-        includes/ai/abilities/create-terms.php
-        includes/ai/abilities/edit-block-content.php
-        includes/ai/abilities/generate-block-pattern.php
-        includes/ai/abilities/get-comments.php
-        includes/ai/abilities/get-media.php
-        includes/ai/abilities/get-post-by-id.php
-        includes/ai/abilities/get-post-content.php
-        includes/ai/abilities/get-post-meta.php
-        includes/ai/abilities/get-posts.php
-        includes/ai/abilities/get-site-info.php
-        includes/ai/abilities/get-tags.php
-        includes/ai/abilities/get-terms.php
-        includes/ai/abilities/get-users.php
-        includes/ai/abilities/installed-plugin-list-and-infos.php
-        includes/ai/abilities/list-taxonomies.php
-        includes/ai/abilities/search-content.php
-        includes/ai/abilities/suggest-content-ideas.php
-        includes/ai/abilities/update-post-metadata.php
-        includes/ai/abilities/update-posts.php
-
-        assets/js/FileSaver.min.js
-        assets/js/ScrollTrigger.min.js
-        assets/js/accessibility.min.js
-        assets/js/canvas-to-blob.min.js
-        assets/js/gsap-data-animate.js
-        assets/js/gsap.min.js
-        assets/js/jszip.min.js
-        assets/js/leaflet.js
-        assets/js/lenis.min.js
-        assets/js/lottie.min.js
-        assets/js/markdown.min.js
-        assets/js/pdf.min.js
-        assets/js/pdf.worker.min.js
-        assets/js/snn-accessibility.js
-        assets/js/snn-rich-text-editor.js
-        assets/js/wavesurfer.esm.js
-
-        assets/css/leaflet.css
-        assets/css/snn-rich-text-editor.css
-        assets/css/images/marker-icon.png
-
-
-
     steps:
-      - name: Checkout Source Repo
+      - name: Checkout source repo (snn-brx-child-theme)
         uses: actions/checkout@v4
         with:
           path: source-repo
           fetch-depth: 0
 
-      - name: Get Source Commit Info
-        id: commit_info
-        run: |
-          cd source-repo
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          COMMIT_HASH=$(git log -1 --pretty=%h)
-          COMMIT_AUTHOR=$(git log -1 --pretty=%an)
-          echo "message=$COMMIT_MSG" >> $GITHUB_OUTPUT
-          echo "hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
-          echo "author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
-
-      # Sync to sinanisler/snn-block 
-      - name: Checkout Destination Repo (snn-block)
+      - name: Checkout destination repo (snn-block)
         uses: actions/checkout@v4
         with:
           repository: sinanisler/snn-block
           path: destination-repo-block
           token: ${{ secrets.SNNBRXSYNCSECRET }}
 
-      - name: Copy files to Destination Repo (snn-block)
+      # The files to copy are listed in .github/sync-manifest.txt. A listed file that is missing
+      # from the source fails the run, so a renamed or deleted file is never skipped silently.
+      - name: Copy the listed files
         run: |
-          # Copy individual files
-          for file_path in $FILES_TO_SYNC; do
-            if [ -f "source-repo/$file_path" ]; then
-              echo "Processing file: $file_path (snn-block)"
-              mkdir -p "destination-repo-block/$(dirname "$file_path")"
-              cp "source-repo/$file_path" "destination-repo-block/$file_path"
+          set -euo pipefail
+          manifest="source-repo/.github/sync-manifest.txt"
+          list="$RUNNER_TEMP/sync-list.txt"
+          : > "$list"
+          failed=0
+          while IFS= read -r line || [ -n "$line" ]; do
+            path="$(printf '%s' "$line" | sed -e 's/#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            if [ -z "$path" ]; then
+              continue
             fi
-          done
+            if [ ! -f "source-repo/$path" ]; then
+              echo "::error file=.github/sync-manifest.txt::Listed but missing in snn-brx-child-theme: $path"
+              failed=1
+              continue
+            fi
+            mkdir -p "destination-repo-block/$(dirname "$path")"
+            cp "source-repo/$path" "destination-repo-block/$path"
+            echo "$path" >> "$list"
+          done < "$manifest"
+          echo "Listed files copied: $(wc -l < "$list")"
+          exit "$failed"
 
-      - name: Commit and Push Changes (snn-block)
+      # The commit message is read from git and written to a file, never pasted into a command line,
+      # so quotes, $, backticks or several lines in the message cannot break the step.
+      - name: Commit and push to snn-block
         run: |
+          set -euo pipefail
+          src_hash="$(git -C source-repo log -1 --format=%h)"
+          git -C source-repo log -1 --format=%B > "$RUNNER_TEMP/commit-body.txt"
           cd destination-repo-block
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ -z $(git status --porcelain) ]]; then
+          # Stage only the listed files, so nothing else in snn-block is touched.
+          xargs -r -d '\n' -a "$RUNNER_TEMP/sync-list.txt" git add --
+          if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
           fi
-          # Add individual files
-          for file_path in $FILES_TO_SYNC; do
-            git add "$file_path"
-          done
-          git commit -m "${{ steps.commit_info.outputs.message }}" -m ": ${{ steps.commit_info.outputs.hash }}"
+          {
+            echo "### Synced from snn-brx-child-theme ($src_hash)"
+            echo ""
+            echo '```'
+            git diff --cached --stat
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          { cat "$RUNNER_TEMP/commit-body.txt"; echo; echo ": $src_hash"; } > "$RUNNER_TEMP/commit-message.txt"
+          git commit -F "$RUNNER_TEMP/commit-message.txt"
           git push
-
- 
