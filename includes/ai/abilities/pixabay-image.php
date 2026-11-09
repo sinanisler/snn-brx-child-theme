@@ -15,7 +15,7 @@ function snn_register_pixabay_image_ability() {
         'snn/pixabay-image',
         array(
             'label'       => __( 'Pixabay Image', 'snn' ),
-            'description' => __( 'Search Pixabay photos or import one into the media library. SEARCH: pass query, and optionally orientation, min_width, order and per_page (3 to 20, default 10). It returns candidates with tags, size, popularity and photographer, and writes nothing. Choose by tags and size, then call again with the chosen pixabay_id to IMPORT: pass pixabay_id and alt (a short description of the image). The import returns the media library id and url. Use that url in the page. Never use preview_url in page content: it is for judging the image only, and Pixabay does not allow serving its images from the site. Importing an ID that is already in the library returns the existing attachment. Keep photographer and page_url for attribution.', 'snn' ),
+            'description' => __( 'Search Pixabay photos or import one into the media library. SEARCH: pass query, and optionally orientation, min_width, order and per_page (3 to 20, default 10). It returns candidates with tags, size, popularity and photographer, and writes nothing. Choose by tags and size, then call again with the chosen pixabay_id to IMPORT: pass pixabay_id, alt (a short description of the image) and name (the section it goes in plus what it shows, e.g. "hero mountain lake"). The file is saved under that name, so pick it from the section. The import returns the media library id and url. Use that url in the page. Never use preview_url in page content: it is for judging the image only, and Pixabay does not allow serving its images from the site. Importing an ID that is already in the library returns the existing attachment. Keep photographer and page_url for attribution.', 'snn' ),
             'category'    => 'media',
             'input_schema' => array(
                 'type'       => 'object',
@@ -33,6 +33,11 @@ function snn_register_pixabay_image_ability() {
                     'alt'         => array(
                         'type'        => 'string',
                         'description' => 'Alt text for the imported image. Only used when importing.',
+                    ),
+                    'name'        => array(
+                        'type'        => 'string',
+                        'maxLength'   => 100,
+                        'description' => 'Only used when importing: a readable file name built from the section and subject, e.g. "hero mountain lake" or "team member portrait". It is saved as a slug (hero-mountain-lake.jpg). Leave it out and the name comes from alt, then from the tags.',
                     ),
                     'orientation' => array(
                         'type'        => 'string',
@@ -91,7 +96,11 @@ function snn_register_pixabay_image_ability() {
             'execute_callback' => function ( $input ) {
                 $pixabay_id = (int) ( $input['pixabay_id'] ?? 0 );
                 if ( $pixabay_id > 0 ) {
-                    return SNN_Pixabay::import( $pixabay_id, sanitize_text_field( (string) ( $input['alt'] ?? '' ) ) );
+                    return SNN_Pixabay::import(
+                        $pixabay_id,
+                        sanitize_text_field( (string) ( $input['alt'] ?? '' ) ),
+                        sanitize_text_field( (string) ( $input['name'] ?? '' ) )
+                    );
                 }
 
                 $query = sanitize_text_field( (string) ( $input['query'] ?? '' ) );

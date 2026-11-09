@@ -20,7 +20,6 @@ class SNN_Pixabay {
     const API_URL         = 'https://pixabay.com/api/';
     const CACHE_TTL       = DAY_IN_SECONDS;
     const MAX_PER_PAGE    = 20;
-    const MAX_IMAGE_BYTES = 10485760; // 10 MB
 
     const META_ID           = '_snn_pixabay_id';
     const META_PHOTOGRAPHER = '_snn_pixabay_photographer';
@@ -112,9 +111,15 @@ class SNN_Pixabay {
      * Save a Pixabay image into the media library. An ID that was imported before
      * returns the existing attachment, so repeating a call does not add a copy.
      *
+     * The file is named from $name (the section and subject, e.g. "hero mountain lake"),
+     * then $alt, then the first tags. Never from the Pixabay ID.
+     *
+     * @param int    $id   Pixabay image ID from an earlier search.
+     * @param string $alt  Short description of the image; also used as alt text.
+     * @param string $name Readable name for the file, most specific words first.
      * @return array|WP_Error {id, url, filename, pixabay_id, photographer, page_url}
      */
-    public static function import( $id, $alt = '' ) {
+    public static function import( $id, $alt = '', $name = '' ) {
         $id = (int) $id;
 
         $existing = self::attachment_for( $id );
@@ -122,10 +127,8 @@ class SNN_Pixabay {
             return self::payload( $existing );
         }
 
-        // Not loaded outside wp-admin (REST and MCP calls), and the download and sideload need them.
+        // Not loaded outside wp-admin (REST and MCP calls), and the download needs them.
         require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/media.php';
-        require_once ABSPATH . 'wp-admin/includes/image.php';
 
         $hit = self::find( $id );
         if ( is_wp_error( $hit ) ) {
@@ -146,34 +149,15 @@ class SNN_Pixabay {
             }
         }
 
-        if ( (int) filesize( $tmp ) > self::MAX_IMAGE_BYTES ) {
-            wp_delete_file( $tmp );
-            return new WP_Error( 'snn_pixabay_too_large', 'Image is larger than 10 MB.' );
-        }
-
-        $ext = strtolower( pathinfo( (string) wp_parse_url( $hit['large_url'], PHP_URL_PATH ), PATHINFO_EXTENSION ) );
-        $ext = in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp' ), true ) ? $ext : 'jpg';
-
-        $title         = trim( (string) strtok( $hit['tags'], ',' ) );
-        $attachment_id = media_handle_sideload(
-            array( 'name' => 'pixabay-' . $id . '.' . $ext, 'tmp_name' => $tmp ),
-            0,
-            null,
-            array( 'post_title' => '' !== $title ? $title : 'Pixabay ' . $id )
-        );
+        $tag_words = implode( ' ', array_slice( array_map( 'trim', explode( ',', (string) $hit['tags'] ) ), 0, 3 ) );
+        $attachment_id = SNN_AI_Media::sideload( $tmp, array( $name, $alt, $tag_words ), $alt );
         if ( is_wp_error( $attachment_id ) ) {
-            if ( file_exists( $tmp ) ) {
-                wp_delete_file( $tmp );
-            }
             return $attachment_id;
         }
 
         update_post_meta( $attachment_id, self::META_ID, $id );
         update_post_meta( $attachment_id, self::META_PHOTOGRAPHER, sanitize_text_field( $hit['photographer'] ) );
         update_post_meta( $attachment_id, self::META_PAGE_URL, esc_url_raw( $hit['page_url'] ) );
-        if ( '' !== $alt ) {
-            update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
-        }
 
         return self::payload( $attachment_id );
     }

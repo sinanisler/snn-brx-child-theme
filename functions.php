@@ -59,6 +59,7 @@ if ( snn_feature_enabled('snn-ai-settings') )      require_once SNN_PATH . 'incl
 if ( snn_feature_enabled('snn-ai-agent-settings') ) require_once SNN_PATH . 'includes/ai/ai-agent-and-chat.php';
 
 if ( snn_feature_enabled('snn-ai-agent-settings') ) {
+require_once SNN_PATH . 'includes/ai/media/class-ai-media.php';
 require_once SNN_PATH . 'includes/ai/pixabay/class-pixabay.php';
 require_once SNN_PATH . 'includes/ai/abilities/ability-categories.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-posts.php';

@@ -3546,7 +3546,7 @@ Output as a \`\`\`html block.`;
                 // in PHASE 1. Elements reference them via _cssGlobalClasses. No per-element
                 // CSS injection is needed — Bricks renders global class CSS in the canvas.
 
-                const builtImageUrls = [];
+                const builtImages = [];
                 let builtCount = 0;
                 for (const compiled of allCompiledData) {
                     if (!ChatState.isProcessing) { addMessage('assistant', 'Build stopped.'); break; }
@@ -3562,9 +3562,10 @@ Output as a \`\`\`html block.`;
                     // The previous approach wrapped each class's CSS in `%root% { .class { ... } }`,
                     // which produced INVALID nested CSS (a selector inside another selector block).
                     // That workaround is no longer needed — global classes handle canvas rendering.
+                    // The section label and alt text name the saved file (hero-mountain-lake.jpg).
                     (data.content || []).forEach(el => {
                         if (el.settings.image?.url) {
-                            builtImageUrls.push(el.settings.image.url);
+                            builtImages.push({ url: el.settings.image.url, section: label, alt: el.settings.altText || '' });
                         }
                     });
 
@@ -3607,7 +3608,7 @@ Output as a \`\`\`html block.`;
                     renderQuickActions();
                     removeApproveBar();
                     ChatState.previewMode = null;
-                    if (builtImageUrls.length) saveImagesToWPLibrary(builtImageUrls);
+                    if (builtImages.length) saveImagesToWPLibrary(builtImages);
                 } else {
                     addMessage('error', 'No sections could be compiled. Try simplifying or rephrasing your request.');
                 }
@@ -4763,18 +4764,23 @@ IMPORTANT RULES:
                 return null;
             }
 
-            async function saveImagesToWPLibrary(imageUrls) {
-                if (!imageUrls || !imageUrls.length) return;
+            async function saveImagesToWPLibrary(images) {
+                if (!images || !images.length) return;
                 const hostname = window.location.hostname;
 
                 // Log all collected URLs before filtering so we can see what was found
-                console.log('[Bricks AI] 📸 All image URLs collected from compiled sections (' + imageUrls.length + '):', imageUrls);
+                console.log('[Bricks AI] 📸 All image URLs collected from compiled sections (' + images.length + '):', images.map(i => i.url));
 
                 // Include:
                 //   1. Pixabay proxy URLs (same-host admin-ajax URLs that redirect to Pixabay CDN)
                 //   2. Truly external URLs (different hostname)
                 // Skip: already-local WP media URLs on the same host that are NOT proxy URLs
-                const external = [...new Set(imageUrls.filter(url => {
+                // One entry per URL: the first section that uses it names the file.
+                const seen = new Set();
+                const external = images.filter(img => {
+                    const url = img.url;
+                    if (seen.has(url)) return false;
+                    seen.add(url);
                     if (!url || !url.startsWith('http')) {
                         console.log('[Bricks AI] 📸 Skip (not http):', url);
                         return false;
@@ -4790,7 +4796,7 @@ IMPORTANT RULES:
                     }
                     console.log('[Bricks AI] 📸 Skip (already local):', url);
                     return false;
-                }))];
+                });
 
                 console.log('[Bricks AI] 📸 Images to save:', external.length, external);
 
@@ -4802,12 +4808,13 @@ IMPORTANT RULES:
                 addMessage('assistant', 'Saving ' + external.length + ' image(s) to WordPress media library...');
                 setAgentState('saving', 'Saving ' + external.length + ' image(s)...');
                 let saved = 0, failed = 0;
-                for (const url of external) {
-                    console.log('[Bricks AI] 📸 Saving image →', url);
+                for (const img of external) {
+                    const url = img.url;
+                    console.log('[Bricks AI] 📸 Saving image →', url, '(section: ' + (img.section || '-') + ')');
                     try {
                         const result = await $.ajax({
                             url: snnBricksChatConfig.ajaxUrl, type: 'POST',
-                            data: { action: 'snn_save_image_to_library', nonce: snnBricksChatConfig.agentNonce, url }
+                            data: { action: 'snn_save_image_to_library', nonce: snnBricksChatConfig.agentNonce, url, section: img.section || '', alt: img.alt || '' }
                         });
                         if (result.success) {
                             saved++;
@@ -6227,23 +6234,43 @@ function snn_save_image_to_library_handler() {
         wp_send_json_error( array( 'message' => 'Only HTTP/HTTPS URLs are allowed.' ) );
     }
 
-    // If this is a Pixabay proxy URL, swap it for the best matching image before sideloading.
-    // We cannot do a loopback HTTP HEAD to admin-ajax.php (it requires auth and would return 403),
-    // so the 'q' param goes through the same Pixabay helper the proxy uses.
+    // The section the image sits in, and its alt text, name the file: hero-mountain-lake.jpg.
+    $section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
+    $alt     = isset( $_POST['alt'] ) ? sanitize_text_field( wp_unslash( $_POST['alt'] ) ) : '';
+
+    // Pixabay proxy URL: the 'q' keyword picks the photo. We cannot do a loopback HTTP HEAD to
+    // admin-ajax.php (it requires auth and would return 403), so the same Pixabay helper runs here.
+    // Importing through SNN_Pixabay keeps the Pixabay ID, so a repeat import reuses the library copy.
     if ( strpos( $url, 'action=snn_pixabay_image' ) !== false ) {
         $parsed_qs = array();
-        wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $parsed_qs );
-        $hits = SNN_Pixabay::search( array( 'query' => sanitize_text_field( $parsed_qs['q'] ?? 'nature' ), 'per_page' => 5 ) );
-        if ( ! is_wp_error( $hits ) && ! empty( $hits ) ) {
-            $url = $hits[0]['large_url'];
+        wp_parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $parsed_qs );
+        $keyword = sanitize_text_field( $parsed_qs['q'] ?? 'nature' );
+
+        $hits = SNN_Pixabay::search( array( 'query' => $keyword, 'per_page' => 5 ) );
+        if ( is_wp_error( $hits ) ) {
+            wp_send_json_error( array( 'message' => $hits->get_error_message() ) );
         }
+        if ( empty( $hits ) ) {
+            wp_send_json_error( array( 'message' => 'Pixabay has no photo for "' . $keyword . '".' ) );
+        }
+
+        $subject = '' !== $alt ? $alt : $keyword;
+        $saved   = SNN_Pixabay::import( $hits[0]['pixabay_id'], $alt, trim( $section . ' ' . $subject ) );
+        if ( is_wp_error( $saved ) ) {
+            wp_send_json_error( array( 'message' => $saved->get_error_message() ) );
+        }
+
+        wp_send_json_success( array(
+            'attachment_id' => $saved['id'],
+            'url'           => $saved['url'],
+            'original_url'  => $url,
+        ) );
     }
 
-    require_once ABSPATH . 'wp-admin/includes/media.php';
-    require_once ABSPATH . 'wp-admin/includes/file.php';
-    require_once ABSPATH . 'wp-admin/includes/image.php';
-
-    $attachment_id = media_sideload_image( $url, 0, null, 'id' );
+    // Any other image: keep the bytes, but name the file from the section and what it shows.
+    // The URL's own file name is only the last resort.
+    $subject       = '' !== $alt ? $alt : pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_FILENAME );
+    $attachment_id = SNN_AI_Media::sideload_url( $url, array( trim( $section . ' ' . $subject ), $subject, $section ), $alt );
 
     if ( is_wp_error( $attachment_id ) ) {
         wp_send_json_error( array( 'message' => $attachment_id->get_error_message() ) );
